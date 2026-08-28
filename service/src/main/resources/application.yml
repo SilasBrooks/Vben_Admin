@@ -1,0 +1,55 @@
+server:
+  port: 8080
+  # 与前端 vite proxy 约定一致：前端请求 /api/** 代理到本服务
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: vben-service
+  profiles:
+    # 默认使用 dev(H2 内存库，零配置启动)；生产切换为 prod 并配置 MySQL
+    active: dev
+  jackson:
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    # 控制台打印 SQL，生产请关闭
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+# ---------------------------------------------------------------------------
+# JWT 双 Token 配置
+# access  token：响应体返回，前端存 Pinia，请求头 Authorization: Bearer xxx
+# refresh token：httpOnly Cookie（名称与前端约定为 jwt），仅 /api/auth/refresh 使用
+# ---------------------------------------------------------------------------
+vben:
+  jwt:
+    # 生产环境务必更换为足够随机的密钥（至少 32 字节），并保持 access/refresh 不同
+    access-token-secret: "ChangeMe-Access-Token-Secret-Key-At-Least-32Bytes!"
+    refresh-token-secret: "ChangeMe-Refresh-Token-Secret-Key-At-Least-32Bytes"
+    access-token-validity: 7d
+    refresh-token-validity: 30d
+  cookie:
+    # Cookie 名称与前端 backend-mock 约定保持一致
+    name: jwt
+    http-only: true
+    max-age: 86400
+    # 本地 http 开发环境必须为 Lax + false，否则浏览器拒收 Cookie 导致 refresh 失效；
+    # 生产（https + 跨域部署）应为 None + true，与前端 mock 行为一致
+    same-site: Lax
+    secure: false
+  cors:
+    # 允许跨域携带 Cookie 的来源（走前端代理时无需跨域，此配置用于直连/分离部署）
+    allowed-origins:
+      - http://localhost:5777
+      - http://localhost:5666
+
+logging:
+  level:
+    com.vben.service: debug

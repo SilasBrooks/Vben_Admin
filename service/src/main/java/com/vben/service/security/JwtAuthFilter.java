@@ -1,0 +1,92 @@
+package com.vben.service.security;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vben.service.common.R;
+import com.vben.service.module.system.service.SysPermissionService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * JWT 认证过滤器：校验 Authorization: Bearer xxx
+ *
+ * <p>白名单（登录、刷新、登出、预检请求）直接放行；
+ * 无效 token 统一返回 401 + R 结构，与前端 backend-mock 行为一致，
+ * 前端拦截器检测到 401 会自动尝试 refresh。
+ */
+@Component
+@RequiredArgsConstructor
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+  private static final AntPathMatcher MATCHER = new AntPathMatcher();
+
+  /** 无需认证的路径（相对 context-path） */
+  private static final List<String> WHITE_LIST =
+      List.of("/auth/login", "/auth/refresh", "/auth/logout", "/h2-console/**", "/error");
+
+  private final JwtTokenService jwtTokenService;
+  private final SysPermissionService permissionService;
+  private final ObjectMapper objectMapper;
+
+  @Override
+  protected void doFilterInternal(@NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response, @NonNull FilterChain chain)
+      throws ServletException, IOException {
+
+    if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || isWhiteListed(request)) {
+      chain.doFilter(request, response);
+      return;
+    }
+
+    String header = request.getHeader("Authorization");
+    if (header == null || !header.startsWith("Bearer ")) {
+      writeUnauthorized(response);
+      return;
+    }
+
+    String token = header.substring(7);
+    LoginUser payload = jwtTokenService.parseAccessToken(token);
+    if (payload == null) {
+      writeUnauthorized(response);
+      return;
+    }
+
+    // 以库中最新角色/权限为准（token 中的 roles 仅作冗余）
+    LoginUser user = permissionService.loadLoginUser(payload.getUserId());
+    if (user == null) {
+      writeUnauthorized(response);
+      return;
+    }
+
+    try {
+      LoginUserHolder.set(user);
+      chain.doFilter(request, response);
+    } finally {
+      LoginUserHolder.clear();
+    }
+  }
+
+  private boolean isWhiteListed(HttpServletRequest request) {
+    String path = request.getRequestURI()
+        .substring(request.getContextPath().length());
+    return WHITE_LIST.stream().anyMatch(p -> MATCHER.match(p, path));
+  }
+
+  private void writeUnauthorized(HttpServletResponse response) throws IOException {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.setCharacterEncoding("UTF-8");
+    response.getWriter().write(
+        objectMapper.writeValueAsString(R.fail("Unauthorized Exception", "Unauthorized Exception")));
+  }
+}

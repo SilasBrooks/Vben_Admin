@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:file:./data/vben;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password: ""
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema-h2.sql
+      data-locations: optional:classpath:db/data.sql
+  h2:
+    console:
+      # 访问 http://localhost:8080/api/h2-console 可查看内存库（JDBC URL: jdbc:h2:mem:vben）
+      enabled: true
+      settings:
+        web-allow-others: true

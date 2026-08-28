@@ -16,8 +16,9 @@ export default defineConfig(async () => {
           '/api': {
             changeOrigin: true,
             rewrite: (path) => path.replace(/^\/api/, ''),
-            // mock代理目标地址
-            target: 'http://localhost:5320/api',
+            // 后端服务（service/，context-path=/api）；如需切回官方 mock 改为
+            // http://localhost:5320/api 并将 .env.development 的 VITE_NITRO_MOCK 置为 true
+            target: 'http://localhost:8080/api',
             ws: true,
           },
         },

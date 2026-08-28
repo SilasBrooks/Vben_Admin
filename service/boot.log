@@ -1,0 +1,835 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.6)
+
+2026-08-20T16:58:20.131+08:00  INFO 23660 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Starting ServiceApplication v1.0.0 using Java 21.0.2 with PID 23660 (D:\code\java\Vben-admin\service\target\vben-service-1.0.0.jar started by Win in D:\code\java\Vben-admin)
+2026-08-20T16:58:20.133+08:00 DEBUG 23660 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Running with Spring Boot v3.5.6, Spring v6.2.11
+2026-08-20T16:58:20.134+08:00  INFO 23660 --- [vben-service] [           main] com.vben.service.ServiceApplication      : The following 1 profile is active: "dev"
+2026-08-20T16:58:21.111+08:00  INFO 23660 --- [vben-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-08-20T16:58:21.123+08:00  INFO 23660 --- [vben-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-20T16:58:21.123+08:00  INFO 23660 --- [vben-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2026-08-20T16:58:21.154+08:00  INFO 23660 --- [vben-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+2026-08-20T16:58:21.155+08:00  INFO 23660 --- [vben-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 967 ms
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Get /172.19.112.1 network interface 
+Get network interface info: name:ethernet_32774 (Hyper-V Virtual Ethernet Adapter)
+Initialization Sequence datacenterId:1 workerId:30
+2026-08-20T16:58:21.292+08:00  INFO 23660 --- [vben-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-20T16:58:21.549+08:00  INFO 23660 --- [vben-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:file:./data/vben user=SA
+2026-08-20T16:58:21.551+08:00  INFO 23660 --- [vben-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-20T16:58:21.795+08:00 DEBUG 23660 --- [vben-service] [           main] c.vben.service.security.JwtAuthFilter    : Filter 'jwtFilterRegistration' configured for use
+2026-08-20T16:58:22.144+08:00  INFO 23660 --- [vben-service] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@5a9d6f02
+2026-08-20T16:58:22.160+08:00  INFO 23660 --- [vben-service] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:file:./data/vben'
+2026-08-20T16:58:22.238+08:00  INFO 23660 --- [vben-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api'
+2026-08-20T16:58:22.244+08:00  INFO 23660 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Started ServiceApplication in 2.52 seconds (process running for 2.896)
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@84f51d9]
+JDBC Connection [HikariProxyConnection@72521703 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM sys_user
+==> Parameters: 
+<==    Columns: total
+<==        Row: 3
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@84f51d9]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@84f51d9]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@84f51d9]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@84f51d9]
+2026-08-20T16:58:50.266+08:00  INFO 23660 --- [vben-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-20T16:58:50.266+08:00  INFO 23660 --- [vben-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-20T16:58:50.267+08:00  INFO 23660 --- [vben-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Load compatibleSet: com.baomidou.mybatisplus.extension.spi.SpringCompatibleSet@14711556
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@78e1d754] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@263905684 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE (username = ? AND status = ?)
+==> Parameters: vben(String), 0(Integer)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@78e1d754]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5a8bed37] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@606213766 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5a8bed37]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2a5119f5] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@615577925 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2a5119f5]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5d504de1] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1138736088 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5d504de1]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@61638ce7] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1119501151 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==      Total: 17
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@61638ce7]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@579dfd8c] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1138083148 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, null, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@579dfd8c]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7cb120ec] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1920385290 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE (username = ? AND status = ?)
+==> Parameters: vben(String), 0(Integer)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7cb120ec]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76494b9c] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@860605233 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@76494b9c]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@59097dc3] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1473153170 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@59097dc3]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@53f116b3] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@385057449 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@53f116b3]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@40612d1] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@657428699 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==      Total: 17
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@40612d1]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7c305e03] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1994161638 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, null, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7c305e03]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@641ba024] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1792819927 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@641ba024]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ee3cb54] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@736184556 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ee3cb54]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@12c2d734] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@444654913 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==      Total: 17
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@12c2d734]
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+JDBC Connection [HikariProxyConnection@509016723 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu WHERE id=?
+==> Parameters: 18(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, null, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: UPDATE sys_menu SET parent_id=?, menu_name=?, menu_type=?, title=?, icon=?, order_num=?, path=?, component=?, perm=?, visible=?, keep_alive=?, affix_tab=?, authority=?, status=? WHERE id=?
+==> Parameters: 16(Long), WsmTransport(String), C(String), 库存物流(String), (String), 1(Integer), /wsm/transport(String), /wsm/transport/index(String), (String), 0(Integer), 0(Integer), 0(Integer), super,admin(String), 0(Integer), 18(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: SELECT id,role_key,role_name,sort_num,status,remark,create_time FROM sys_role WHERE (role_key IN (?,?))
+==> Parameters: super(String), admin(String)
+<==    Columns: id, role_key, role_name, sort_num, status, remark, create_time
+<==        Row: 2, admin, 管理员, 2, 0, null, 2026-08-20 16:06:24.667362
+<==        Row: 1, super, 超级管理员, 1, 0, null, 2026-08-20 16:06:24.662791
+<==      Total: 2
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: SELECT COUNT( * ) AS total FROM sys_role_menu WHERE (role_id = ? AND menu_id = ?)
+==> Parameters: 2(Long), 18(Long)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 18(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: SELECT COUNT( * ) AS total FROM sys_role_menu WHERE (role_id = ? AND menu_id = ?)
+==> Parameters: 1(Long), 18(Long)
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 18(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@38d1528d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9d00159] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@119012883 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@9d00159]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3286a29] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1177220136 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3286a29]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4f79ff7d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2007398375 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4f79ff7d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@26079acd] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1650120869 wrapping conn0: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@26079acd]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3a92b299] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1236918462 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3a92b299]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2cf4892f] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1219405803 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@2cf4892f]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6787c21d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1631416899 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6787c21d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7500fbdb] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1386091627 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7500fbdb]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@c4245a8] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@42318416 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@c4245a8]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ba2ed8] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1136177259 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6ba2ed8]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5dc9c2b1] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1915860066 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5dc9c2b1]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25aa9812] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@597118756 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@25aa9812]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@330d50fc] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@627036160 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@330d50fc]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3c1038e5] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1832747901 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3c1038e5]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34eeb496] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1877655003 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@34eeb496]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@528067d3] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1395073173 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@528067d3]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6fcaf36c] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@951590033 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@6fcaf36c]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@762c2094] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2107298403 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@762c2094]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@45730f2f] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1037553540 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@45730f2f]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1caa6de] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1545456575 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1caa6de]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5baf122e] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@514688831 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5baf122e]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@74da803d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@796515087 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@74da803d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@ce482ac] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2122479728 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@ce482ac]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fb9dd86] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@400607551 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3fb9dd86]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46883bf4] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@36887742 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@46883bf4]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e1b72cf] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1399075966 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e1b72cf]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5434e27d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1089930089 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5434e27d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@32c0eaf] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1948374234 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM sys_role
+==> Parameters: 
+<==    Columns: total
+<==        Row: 3
+<==      Total: 1
+==>  Preparing: SELECT id,role_key,role_name,sort_num,status,remark,create_time FROM sys_role ORDER BY sort_num ASC LIMIT ?
+==> Parameters: 10(Long)
+<==    Columns: id, role_key, role_name, sort_num, status, remark, create_time
+<==        Row: 1, super, 超级管理员, 1, 0, null, 2026-08-20 16:06:24.662791
+<==        Row: 2, admin, 管理员, 2, 0, null, 2026-08-20 16:06:24.667362
+<==        Row: 3, user, 普通用户, 3, 0, null, 2026-08-20 16:06:24.668369
+<==      Total: 3
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@32c0eaf]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@190a80ba] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1731466718 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@190a80ba]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72926793] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1939899262 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@72926793]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e62c2e0] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@2034219543 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.672369
+<==        Row: 16, 0, Wsm, M, 库存管理, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.695369
+<==        Row: 4, 0, System, M, 系统管理, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.678369
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 16:06:24.67437
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.676372
+<==        Row: 5, 4, SystemUser, C, 用户管理, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.679369
+<==        Row: 6, 4, SystemRole, C, 角色管理, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.681368
+<==        Row: 7, 4, SystemMenu, C, 菜单管理, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.682368
+<==        Row: 8, 5, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.684368
+<==        Row: 9, 6, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.685369
+<==        Row: 10, 6, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.686368
+<==        Row: 11, 6, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.688368
+<==        Row: 12, 6, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.689368
+<==        Row: 13, 7, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.690369
+<==        Row: 14, 7, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.69237
+<==        Row: 15, 7, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 16:06:24.693371
+<==        Row: 17, 16, WsmStore, C, 库存, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 16:06:24.696369
+<==        Row: 18, 16, WsmTransport, C, 库存物流, , 1, /wsm/transport, /wsm/transport/index, null, , 0, 0, 0, super,admin, null, 0, 2026-08-20 16:53:52.506579
+<==      Total: 18
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@3e62c2e0]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5c473e5a] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@420066900 wrapping conn10: url=jdbc:h2:file:./data/vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT COUNT(*) AS total FROM sys_user
+==> Parameters: 
+<==    Columns: total
+<==        Row: 3
+<==      Total: 1
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user LIMIT ?
+==> Parameters: 10(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$nmH8yuCo7NRvLfwet8YZf..fHhGkvREmCeI5a6dd4hfjvHv3u2/WW, Vben, null, 0, 2026-08-20 16:06:24.766369, 2026-08-20 16:06:24.766369
+<==        Row: 2, admin, $2a$10$gMdGSLUGKQLmucD3H.015eqVEQCb00aAnggsmBTZfguNEJmJUSSPG, Admin, /workspace, 0, 2026-08-20 16:06:24.825976, 2026-08-20 16:06:24.825976
+<==        Row: 3, jack, $2a$10$tAUiH7ZFx/6yAnHRf/PjCuXpXDVXITHF64sFAphZVGaBuSwYbKrmK, Jack, /analytics, 0, 2026-08-20 16:06:24.885574, 2026-08-20 16:06:24.885574
+<==      Total: 3
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@5c473e5a]

@@ -1,0 +1,472 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.6)
+
+2026-08-20T15:55:50.521+08:00  INFO 23836 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Starting ServiceApplication v1.0.0 using Java 21.0.2 with PID 23836 (D:\code\java\Vben-admin\service\target\vben-service-1.0.0.jar started by Win in D:\code\java\Vben-admin)
+2026-08-20T15:55:50.523+08:00 DEBUG 23836 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Running with Spring Boot v3.5.6, Spring v6.2.11
+2026-08-20T15:55:50.524+08:00  INFO 23836 --- [vben-service] [           main] com.vben.service.ServiceApplication      : The following 1 profile is active: "dev"
+2026-08-20T15:55:51.548+08:00  INFO 23836 --- [vben-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-08-20T15:55:51.560+08:00  INFO 23836 --- [vben-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-08-20T15:55:51.561+08:00  INFO 23836 --- [vben-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2026-08-20T15:55:51.591+08:00  INFO 23836 --- [vben-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+2026-08-20T15:55:51.592+08:00  INFO 23836 --- [vben-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1019 ms
+Logging initialized using 'class org.apache.ibatis.logging.stdout.StdOutImpl' adapter.
+Get /172.19.112.1 network interface 
+Get network interface info: name:ethernet_32774 (Hyper-V Virtual Ethernet Adapter)
+Initialization Sequence datacenterId:1 workerId:9
+2026-08-20T15:55:51.719+08:00  INFO 23836 --- [vben-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-08-20T15:55:51.911+08:00  INFO 23836 --- [vben-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:vben user=SA
+2026-08-20T15:55:51.914+08:00  INFO 23836 --- [vben-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-08-20T15:55:52.151+08:00 DEBUG 23836 --- [vben-service] [           main] c.vben.service.security.JwtAuthFilter    : Filter 'jwtFilterRegistration' configured for use
+2026-08-20T15:55:52.510+08:00  INFO 23836 --- [vben-service] [           main] m.e.s.MybatisPlusApplicationContextAware : Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@5a9d6f02
+2026-08-20T15:55:52.523+08:00  INFO 23836 --- [vben-service] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:vben'
+2026-08-20T15:55:52.590+08:00  INFO 23836 --- [vben-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/api'
+2026-08-20T15:55:52.596+08:00  INFO 23836 --- [vben-service] [           main] com.vben.service.ServiceApplication      : Started ServiceApplication in 2.499 seconds (process running for 2.888)
+Creating a new SqlSession
+Registering transaction synchronization for SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+JDBC Connection [HikariProxyConnection@381118552 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will be managed by Spring
+==>  Preparing: SELECT COUNT( * ) AS total FROM sys_user
+==> Parameters: 
+<==    Columns: total
+<==        Row: 0
+<==      Total: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+2026-08-20T15:55:52.712+08:00  INFO 23836 --- [vben-service] [           main] c.vben.service.bootstrap.DatabaseSeeder  : Ê£ÄÊµãÂà∞Á©∫Â∫ìÔºåÂºÄÂßãÂàùÂßãÂåñÁßçÂ≠êÊï∞ÊçÆÔºà3 Ë¥¶Âè∑ / 3 ËßíËâ≤ / ËèúÂçï‰∏éÊùÉÈôêÁ†ÅÔºâ...
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role ( role_key, role_name, sort_num, status ) VALUES ( ?, ?, ?, ? )
+==> Parameters: super(String), ≥¨º∂π‹¿Ì‘±(String), 1(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role ( role_key, role_name, sort_num, status ) VALUES ( ?, ?, ?, ? )
+==> Parameters: admin(String), π‹¿Ì‘±(String), 2(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role ( role_key, role_name, sort_num, status ) VALUES ( ?, ?, ?, ? )
+==> Parameters: user(String), ∆’Õ®”√ªß(String), 3(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, path, redirect, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 0(Long), Dashboard(String), M(String), page.dashboard.title(String), -1(Integer), /dashboard(String), /analytics(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, path, component, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 1(Long), Analytics(String), C(String), page.dashboard.analytics(String), 1(Integer), /analytics(String), /dashboard/analytics/index(String), 0(Integer), 0(Integer), 1(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, path, component, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 1(Long), Workspace(String), C(String), page.dashboard.workspace(String), 2(Integer), /workspace(String), /dashboard/workspace/index(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 0(Long), Perm_System_User_List(String), F(String), System:User:List(String), 99(Integer), System:User:List(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, redirect, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 0(Long), System(String), M(String), œµÕ≥π‹¿Ì(String), ic:baseline-settings(String), 9000(Integer), /system(String), /system/user(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, component, visible, keep_alive, affix_tab, authority, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), SystemUser(String), C(String), ”√ªßπ‹¿Ì(String), ant-design:user-outlined(String), 1(Integer), /system/user(String), /system/user/index(String), 0(Integer), 0(Integer), 0(Integer), super,admin(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, component, visible, keep_alive, affix_tab, authority, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), SystemRole(String), C(String), Ω«…´π‹¿Ì(String), ant-design:user-switch-outlined(String), 2(Integer), /system/role(String), /system/role/index(String), 0(Integer), 0(Integer), 0(Integer), super,admin(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, component, visible, keep_alive, affix_tab, authority, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), SystemMenu(String), C(String), ≤Àµ•π‹¿Ì(String), ant-design:menu-outlined(String), 3(Integer), /system/menu(String), /system/menu/index(String), 0(Integer), 0(Integer), 0(Integer), super,admin(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Role_Add(String), F(String), System:Role:Add(String), 99(Integer), System:Role:Add(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Role_Edit(String), F(String), System:Role:Edit(String), 99(Integer), System:Role:Edit(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Role_Delete(String), F(String), System:Role:Delete(String), 99(Integer), System:Role:Delete(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Role_Auth(String), F(String), System:Role:Auth(String), 99(Integer), System:Role:Auth(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Menu_Add(String), F(String), System:Menu:Add(String), 99(Integer), System:Menu:Add(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Menu_Edit(String), F(String), System:Menu:Edit(String), 99(Integer), System:Menu:Edit(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, order_num, perm, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 5(Long), Perm_System_Menu_Delete(String), F(String), System:Menu:Delete(String), 99(Integer), System:Menu:Delete(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, redirect, visible, keep_alive, affix_tab, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 0(Long), Wsm(String), M(String), ø‚¥Êπ‹¿Ì(String), ic:baseline-inventory-2(String), 8000(Integer), /wsm(String), /wsm/store(String), 0(Integer), 0(Integer), 0(Integer), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_menu ( parent_id, menu_name, menu_type, title, icon, order_num, path, component, visible, keep_alive, affix_tab, authority, status ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+==> Parameters: 16(Long), WsmStore(String), C(String), ø‚¥Ê(String), ic:baseline-inventory(String), 1(Integer), /wsm/store(String), /wsm/store/index(String), 0(Integer), 0(Integer), 0(Integer), super,admin(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user ( username, password, nickname, status ) VALUES ( ?, ?, ?, ? )
+==> Parameters: vben(String), $2a$10$M3aS1rpP.zEwZWv79RQ4R.yDyzUOHU0ZsyaiZMxtT3VNWlpf4DO.W(String), Vben(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user ( username, password, nickname, home_path, status ) VALUES ( ?, ?, ?, ?, ? )
+==> Parameters: admin(String), $2a$10$Xdwa3egN0/wnh4J1BAXE4On15tglpofU4EjGPKjiZyI69DmDIlMeO(String), Admin(String), /workspace(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user ( username, password, nickname, home_path, status ) VALUES ( ?, ?, ?, ?, ? )
+==> Parameters: jack(String), $2a$10$4BT0cH1Fxa3j0IINbjpmZ./gMD0M6Us6sxPtK2jxrym6wp1VrSnum(String), Jack(String), /analytics(String), 0(Integer)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user_role ( user_id, role_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 1(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user_role ( user_id, role_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 2(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_user_role ( user_id, role_id ) VALUES ( ?, ? )
+==> Parameters: 3(Long), 3(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.734077
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 15:55:52.736079
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.73808
+<==        Row: 4, 0, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.740078
+<==        Row: 5, 0, System, M, œµÕ≥π‹¿Ì, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.742078
+<==        Row: 6, 5, SystemUser, C, ”√ªßπ‹¿Ì, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.743078
+<==        Row: 7, 5, SystemRole, C, Ω«…´π‹¿Ì, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.744078
+<==        Row: 8, 5, SystemMenu, C, ≤Àµ•π‹¿Ì, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.746079
+<==        Row: 9, 5, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.747077
+<==        Row: 10, 5, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74808
+<==        Row: 11, 5, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74908
+<==        Row: 12, 5, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75008
+<==        Row: 13, 5, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.752078
+<==        Row: 14, 5, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75308
+<==        Row: 15, 5, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75508
+<==        Row: 16, 0, Wsm, M, ø‚¥Êπ‹¿Ì, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75608
+<==        Row: 17, 16, WsmStore, C, ø‚¥Ê, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.757077
+<==      Total: 17
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 1(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 1(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 3(Long), 1(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 2(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 2(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 3(Long), 2(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 3(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 3(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 3(Long), 3(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 4(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 4(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 5(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 5(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 6(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 6(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 7(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 7(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 8(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 8(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 9(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 9(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 10(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 10(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 11(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 11(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 12(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 12(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 13(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 13(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 14(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 14(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 15(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 15(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 16(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 16(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 1(Long), 17(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Fetched SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277] from current transaction
+==>  Preparing: INSERT INTO sys_role_menu ( role_id, menu_id ) VALUES ( ?, ? )
+==> Parameters: 2(Long), 17(Long)
+<==    Updates: 1
+Releasing transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+2026-08-20T15:55:52.994+08:00  INFO 23836 --- [vben-service] [           main] c.vben.service.bootstrap.DatabaseSeeder  : ÁßçÂ≠êÊï∞ÊçÆÂàùÂßãÂåñÂÆåÊàê„ÄÇË¥¶Âè∑Ôºövben/123456(super)„ÄÅadmin/123456(admin)„ÄÅjack/123456(user)
+Transaction synchronization committing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Transaction synchronization deregistering SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+Transaction synchronization closing SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@faec277]
+2026-08-20T15:56:12.912+08:00  INFO 23836 --- [vben-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-08-20T15:56:12.912+08:00  INFO 23836 --- [vben-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-08-20T15:56:12.913+08:00  INFO 23836 --- [vben-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+Load compatibleSet: com.baomidou.mybatisplus.extension.spi.SpringCompatibleSet@681c0926
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4b5a3fc7] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1602201584 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE (username = ? AND status = ?)
+==> Parameters: vben(String), 0(Integer)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$M3aS1rpP.zEwZWv79RQ4R.yDyzUOHU0ZsyaiZMxtT3VNWlpf4DO.W, Vben, null, 0, 2026-08-20 15:55:52.825667, 2026-08-20 15:55:52.825667
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@4b5a3fc7]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@170568e3] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@716833462 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@170568e3]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@430a786d] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@887411850 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,username,password,nickname,home_path,status,create_time,update_time FROM sys_user WHERE id=?
+==> Parameters: 1(Long)
+<==    Columns: id, username, password, nickname, home_path, status, create_time, update_time
+<==        Row: 1, vben, $2a$10$M3aS1rpP.zEwZWv79RQ4R.yDyzUOHU0ZsyaiZMxtT3VNWlpf4DO.W, Vben, null, 0, 2026-08-20 15:55:52.825667, 2026-08-20 15:55:52.825667
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@430a786d]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1d4a02fb] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1159785891 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT r.role_key FROM sys_role r JOIN sys_user_role ur ON ur.role_id = r.id WHERE ur.user_id = ? AND r.status = 0
+==> Parameters: 1(Long)
+<==    Columns: role_key
+<==        Row: super
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@1d4a02fb]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@55f92c7a] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1194062539 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT DISTINCT m.* FROM sys_menu m JOIN sys_role_menu rm ON rm.menu_id = m.id JOIN sys_user_role ur ON ur.role_id = rm.role_id JOIN sys_role r ON r.id = ur.role_id WHERE ur.user_id = ? AND m.status = 0 AND r.status = 0 ORDER BY m.parent_id, m.order_num
+==> Parameters: 1(Long)
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.734077
+<==        Row: 4, 0, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.740078
+<==        Row: 16, 0, Wsm, M, ø‚¥Êπ‹¿Ì, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75608
+<==        Row: 5, 0, System, M, œµÕ≥π‹¿Ì, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.742078
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 15:55:52.736079
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.73808
+<==        Row: 6, 5, SystemUser, C, ”√ªßπ‹¿Ì, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.743078
+<==        Row: 7, 5, SystemRole, C, Ω«…´π‹¿Ì, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.744078
+<==        Row: 8, 5, SystemMenu, C, ≤Àµ•π‹¿Ì, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.746079
+<==        Row: 9, 5, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.747077
+<==        Row: 10, 5, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74808
+<==        Row: 11, 5, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74908
+<==        Row: 12, 5, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75008
+<==        Row: 13, 5, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.752078
+<==        Row: 14, 5, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75308
+<==        Row: 15, 5, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75508
+<==        Row: 17, 16, WsmStore, C, ø‚¥Ê, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.757077
+<==      Total: 17
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@55f92c7a]
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@14fdf54b] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@997236994 wrapping conn0: url=jdbc:h2:mem:vben user=SA] will not be managed by Spring
+==>  Preparing: SELECT id,parent_id,menu_name,menu_type,title,icon,order_num,path,component,redirect,perm,visible,keep_alive,affix_tab,authority,extra_meta,status,create_time FROM sys_menu ORDER BY parent_id ASC,order_num ASC
+==> Parameters: 
+<==    Columns: id, parent_id, menu_name, menu_type, title, icon, order_num, path, component, redirect, perm, visible, keep_alive, affix_tab, authority, extra_meta, status, create_time
+<==        Row: 1, 0, Dashboard, M, page.dashboard.title, null, -1, /dashboard, null, /analytics, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.734077
+<==        Row: 4, 0, Perm_System_User_List, F, System:User:List, null, 99, null, null, null, System:User:List, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.740078
+<==        Row: 16, 0, Wsm, M, ø‚¥Êπ‹¿Ì, ic:baseline-inventory-2, 8000, /wsm, null, /wsm/store, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75608
+<==        Row: 5, 0, System, M, œµÕ≥π‹¿Ì, ic:baseline-settings, 9000, /system, null, /system/user, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.742078
+<==        Row: 2, 1, Analytics, C, page.dashboard.analytics, null, 1, /analytics, /dashboard/analytics/index, null, null, 0, 0, 1, null, null, 0, 2026-08-20 15:55:52.736079
+<==        Row: 3, 1, Workspace, C, page.dashboard.workspace, null, 2, /workspace, /dashboard/workspace/index, null, null, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.73808
+<==        Row: 6, 5, SystemUser, C, ”√ªßπ‹¿Ì, ant-design:user-outlined, 1, /system/user, /system/user/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.743078
+<==        Row: 7, 5, SystemRole, C, Ω«…´π‹¿Ì, ant-design:user-switch-outlined, 2, /system/role, /system/role/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.744078
+<==        Row: 8, 5, SystemMenu, C, ≤Àµ•π‹¿Ì, ant-design:menu-outlined, 3, /system/menu, /system/menu/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.746079
+<==        Row: 9, 5, Perm_System_Role_Add, F, System:Role:Add, null, 99, null, null, null, System:Role:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.747077
+<==        Row: 10, 5, Perm_System_Role_Edit, F, System:Role:Edit, null, 99, null, null, null, System:Role:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74808
+<==        Row: 11, 5, Perm_System_Role_Delete, F, System:Role:Delete, null, 99, null, null, null, System:Role:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.74908
+<==        Row: 12, 5, Perm_System_Role_Auth, F, System:Role:Auth, null, 99, null, null, null, System:Role:Auth, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75008
+<==        Row: 13, 5, Perm_System_Menu_Add, F, System:Menu:Add, null, 99, null, null, null, System:Menu:Add, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.752078
+<==        Row: 14, 5, Perm_System_Menu_Edit, F, System:Menu:Edit, null, 99, null, null, null, System:Menu:Edit, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75308
+<==        Row: 15, 5, Perm_System_Menu_Delete, F, System:Menu:Delete, null, 99, null, null, null, System:Menu:Delete, 0, 0, 0, null, null, 0, 2026-08-20 15:55:52.75508
+<==        Row: 17, 16, WsmStore, C, ø‚¥Ê, ic:baseline-inventory, 1, /wsm/store, /wsm/store/index, null, null, 0, 0, 0, super,admin, null, 0, 2026-08-20 15:55:52.757077
+<==      Total: 17
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@14fdf54b]
