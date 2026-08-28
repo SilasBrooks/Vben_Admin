@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  Language: zh-CN
+  All artifacts must be written in zh-CN.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  ## 项目结构（monorepo）
+  - `service/`：后端，Spring Boot 3 + Spring Security 6 + MyBatis-Plus 3.5 + H2/PostgreSQL + JWT 无状态认证
+    - 入口 `com.vben.service.ServiceApplication`，启动 `mvn spring-boot:run`，接口前缀 `/api`
+  - `front/`：前端，Vben Admin 5 monorepo（pnpm workspace），实际应用 `front/apps/web-ele`（Vue3 + Vite + Element Plus）
+    - 启动 `pnpm dev:ele`，类型检查 `vue-tsc --noEmit`
+
+  ## 架构约定
+  - 后端分层：controller（@RequirePermission 声明权限码）→ service（XxxAdminService）→ mapper → entity
+  - 权限码格式 `System:Menu:Add`，前后端一一对应；前端按钮用 `v-access:code` 指令隐藏，后端注解兜底
+  - 前端列表页用 `useVbenVxeGrid`，弹窗表单用 `useVbenModal` + `useVbenForm`（schema 驱动），禁止直接用 Element Plus 表格/表单组件
+  - 动态菜单：后端 `/auth/menu` 下发嵌套树 → 前端生成路由；用户偏好（主题色等）localStorage 持久化
+  - 种子数据：`DatabaseSeeder`（super 账号 vben/123456，受限账号 stockAdmin）
+
+  ## 当前规划
+  - 先做单体通用后台模板（权限/角色/菜单/用户/部门/字典/日志），SaaS 多租户后置
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
