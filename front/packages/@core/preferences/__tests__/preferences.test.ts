@@ -86,6 +86,62 @@ describe('preferences', () => {
     expect(preferenceManager.getPreferences()).toEqual(expected);
   });
 
+  it('restores cached preferences over defaults on initialization', async () => {
+    // 模拟用户之前修改过主题（自定义主色 + light 模式）并已写入 localStorage
+    const cached = {
+      theme: {
+        builtinType: 'custom',
+        colorPrimary: 'hsl(0 100% 61%)',
+        mode: 'light',
+      },
+    };
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => {
+      if (key === 'cache-restore-preferences') {
+        return JSON.stringify({ value: cached });
+      }
+      return null;
+    });
+
+    await preferenceManager.initPreferences({
+      namespace: 'cache-restore',
+      overrides: {},
+    });
+
+    const preferences = preferenceManager.getPreferences();
+    // 缓存的用户偏好必须覆盖默认值（否则刷新后主题被重置）
+    expect(preferences.theme.builtinType).toBe('custom');
+    expect(preferences.theme.colorPrimary).toBe('hsl(0 100% 61%)');
+    expect(preferences.theme.mode).toBe('light');
+  });
+
+  it('keeps explicit overrides priority over cached preferences', async () => {
+    const cached = {
+      app: {
+        name: 'Cached Name',
+      },
+      theme: {
+        mode: 'light',
+      },
+    };
+    vi.mocked(localStorage.getItem).mockImplementation((key: string) => {
+      if (key === 'override-priority-preferences') {
+        return JSON.stringify({ value: cached });
+      }
+      return null;
+    });
+
+    await preferenceManager.initPreferences({
+      namespace: 'override-priority',
+      overrides: { app: { name: 'Override Name' } } as any,
+    });
+
+    const preferences = preferenceManager.getPreferences();
+    // 显式配置优先于缓存
+    expect(preferences.app.name).toBe('Override Name');
+    // 缓存优先于默认值
+    expect(preferences.theme.mode).toBe('light');
+  });
+
   it('updates theme mode correctly', () => {
     preferenceManager.updatePreferences({
       theme: {

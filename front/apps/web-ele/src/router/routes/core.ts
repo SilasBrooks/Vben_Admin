@@ -7,9 +7,9 @@ import { $t } from '#/locales';
 
 const BasicLayout = () => import('#/layouts/basic.vue');
 const AuthPageLayout = () => import('#/layouts/auth.vue');
-/** 全局404页面 */
+/** 全局404页面（包在 BasicLayout 内，保留侧边栏/头部，避免全屏 404 无法退出） */
 const fallbackNotFoundRoute: RouteRecordRaw = {
-  component: () => import('#/views/_core/fallback/not-found.vue'),
+  component: BasicLayout,
   meta: {
     hideInBreadcrumb: true,
     hideInMenu: true,
@@ -18,6 +18,19 @@ const fallbackNotFoundRoute: RouteRecordRaw = {
   },
   name: 'FallbackNotFound',
   path: '/:path(.*)*',
+  children: [
+    {
+      component: () => import('#/views/_core/fallback/not-found.vue'),
+      meta: {
+        hideInBreadcrumb: true,
+        hideInMenu: true,
+        hideInTab: true,
+        title: '404',
+      },
+      name: 'FallbackNotFoundView',
+      path: '',
+    },
+  ],
 };
 
 /** 基本路由，这些路由是必须存在的 */

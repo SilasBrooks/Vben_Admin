@@ -119,13 +119,25 @@ function onFormSaved() {
     <RoleMenuAuthModal @saved="onFormSaved" />
     <Grid>
       <template #toolbar-actions>
-        <VbenButton variant="default" @click="openCreate">新增角色</VbenButton>
+        <VbenButton
+          v-access:code="'System:Role:Add'"
+          variant="default"
+          @click="openCreate"
+        >
+          新增角色
+        </VbenButton>
       </template>
       <template #action="{ row }">
-        <VbenButton variant="link" size="sm" @click="openEdit(row as RoleItem)">
+        <VbenButton
+          v-access:code="'System:Role:Edit'"
+          variant="link"
+          size="sm"
+          @click="openEdit(row as RoleItem)"
+        >
           编辑
         </VbenButton>
         <VbenButton
+          v-access:code="'System:Role:Auth'"
           variant="link"
           size="sm"
           @click="openMenuAuth(row as RoleItem)"
@@ -133,6 +145,7 @@ function onFormSaved() {
           分配菜单
         </VbenButton>
         <VbenButton
+          v-access:code="'System:Role:Delete'"
           variant="link"
           size="sm"
           class="text-destructive"

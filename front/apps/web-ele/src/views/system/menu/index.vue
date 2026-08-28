@@ -17,10 +17,10 @@ const [MenuFormModal, menuFormApi] = useVbenModal({
 
 const gridOptions: VxeTableGridOptions<MenuNode> = {
   rowConfig: { keyField: 'id', isHover: true },
+  // 后端 /system/menu/list 直接返回嵌套 children 的树，无需 transform 重组
   treeConfig: {
-    transform: true,
-    parentField: 'parentId',
     rowField: 'id',
+    childrenField: 'children',
     expandAll: true,
   },
   columns: [
@@ -94,22 +94,29 @@ function onFormSaved() {
     <MenuFormModal @saved="onFormSaved" />
     <Grid>
       <template #toolbar-actions>
-        <VbenButton variant="default" @click="openCreate(0)">
+        <VbenButton v-access:code="'System:Menu:Add'" variant="default" @click="openCreate(0)">
           新增根菜单
         </VbenButton>
       </template>
       <template #action="{ row }">
         <VbenButton
+          v-access:code="'System:Menu:Add'"
           variant="link"
           size="sm"
           @click="openCreate((row as MenuNode).id)"
         >
           新增子项
         </VbenButton>
-        <VbenButton variant="link" size="sm" @click="openEdit(row as MenuNode)">
+        <VbenButton
+          v-access:code="'System:Menu:Edit'"
+          variant="link"
+          size="sm"
+          @click="openEdit(row as MenuNode)"
+        >
           编辑
         </VbenButton>
         <VbenButton
+          v-access:code="'System:Menu:Delete'"
           variant="link"
           size="sm"
           class="text-destructive"

@@ -114,11 +114,25 @@ function onFormSaved() {
     <UserFormModal @saved="onFormSaved" />
     <Grid>
       <template #toolbar-actions>
-        <VbenButton variant="default" @click="openCreate">新增用户</VbenButton>
+        <VbenButton
+          v-access:code="'System:User:Add'"
+          variant="default"
+          @click="openCreate"
+        >
+          新增用户
+        </VbenButton>
       </template>
       <template #action="{ row }">
-        <VbenButton variant="link" size="sm" @click="openEdit(row)"> 编辑 </VbenButton>
         <VbenButton
+          v-access:code="'System:User:Edit'"
+          variant="link"
+          size="sm"
+          @click="openEdit(row)"
+        >
+          编辑
+        </VbenButton>
+        <VbenButton
+          v-access:code="'System:User:Delete'"
           variant="link"
           size="sm"
           class="text-destructive"

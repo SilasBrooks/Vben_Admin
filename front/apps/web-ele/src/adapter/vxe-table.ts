@@ -73,6 +73,16 @@ setupVbenVxeTable({
 
 export const useVbenVxeGrid = <T extends Record<string, any>>(
   ...rest: Parameters<typeof useGrid<T, ComponentType, ComponentPropsMap>>
-) => useGrid<T, ComponentType, ComponentPropsMap>(...rest);
+) => {
+  const options = rest[0];
+  if (options?.formOptions) {
+    // 搜索字段不超过一行时"展开/收起"按钮无实际作用，默认关闭；需要时可在页面 formOptions 显式开启
+    options.formOptions = {
+      showCollapseButton: false,
+      ...options.formOptions,
+    };
+  }
+  return useGrid<T, ComponentType, ComponentPropsMap>(...rest);
+};
 
 export type * from '@vben/plugins/vxe-table';
