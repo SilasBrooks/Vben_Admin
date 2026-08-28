@@ -56,7 +56,8 @@ const gridOptions: VxeTableGridOptions<MenuNode> = {
   },
   toolbarConfig: {
     custom: true,
-    refresh: { code: 'query' },
+    refresh: true,
+    refreshOptions: { code: 'query' },
   },
 };
 

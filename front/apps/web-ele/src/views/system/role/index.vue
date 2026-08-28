@@ -55,7 +55,8 @@ const gridOptions: VxeTableGridOptions<RoleItem> = {
   },
   toolbarConfig: {
     custom: true,
-    refresh: { code: 'query' },
+    refresh: true,
+    refreshOptions: { code: 'query' },
     search: true,
   },
 };
