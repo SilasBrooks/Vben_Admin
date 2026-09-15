@@ -1,6 +1,7 @@
 package com.vben.service.module.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.vben.service.common.OperLog;
 import com.vben.service.common.R;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.service.SysUserAdminService;
@@ -72,6 +73,7 @@ public class SysUserController {
   }
 
   /** 新增用户（username + password 必填，roleIds 可选） */
+  @OperLog(module = "用户管理", description = "新增用户")
   @RequirePermission("System:User:Add")
   @PostMapping("/save")
   public R<Void> save(@RequestBody SysUser user) {
@@ -80,6 +82,7 @@ public class SysUserController {
   }
 
   /** 编辑用户（username 不可改，password 走 reset-password，roleIds 可选） */
+  @OperLog(module = "用户管理", description = "编辑用户")
   @RequirePermission("System:User:Edit")
   @PutMapping("/update")
   public R<Void> update(@RequestBody SysUser user) {
@@ -88,6 +91,7 @@ public class SysUserController {
   }
 
   /** 删除用户（禁止自删、禁止删除最后一个 super） */
+  @OperLog(module = "用户管理", description = "删除用户")
   @RequirePermission("System:User:Delete")
   @DeleteMapping("/{id}")
   public R<Void> remove(@PathVariable Long id) {
@@ -96,6 +100,7 @@ public class SysUserController {
   }
 
   /** 重置密码（body: {newPassword}，至少 6 位） */
+  @OperLog(module = "用户管理", description = "重置密码")
   @RequirePermission("System:User:ResetPwd")
   @PostMapping("/{id}/reset-password")
   public R<Void> resetPassword(@PathVariable Long id, @RequestBody ResetPasswordDto dto) {
@@ -104,6 +109,7 @@ public class SysUserController {
   }
 
   /** 分配角色（body: {roleIds}，全量替换） */
+  @OperLog(module = "用户管理", description = "分配角色")
   @RequirePermission("System:User:Edit")
   @PostMapping("/{id}/assign-roles")
   public R<Void> assignRoles(@PathVariable Long id, @RequestBody AssignRolesDto dto) {

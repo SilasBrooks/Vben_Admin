@@ -29,5 +29,8 @@ public class SysRole {
 
   private String remark;
 
+  /** 数据范围：1全部 2自定义部门 3本部门 4本部门及以下 5仅本人 */
+  private String dataScope;
+
   private LocalDateTime createTime;
 }

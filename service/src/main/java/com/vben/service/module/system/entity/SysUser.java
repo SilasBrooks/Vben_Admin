@@ -1,5 +1,6 @@
 package com.vben.service.module.system.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -30,13 +31,23 @@ public class SysUser {
   /** 登录后首页（可选） */
   private String homePath;
 
+  /** 所属部门 id（可选，NULL = 未归属部门） */
+  private Long deptId;
+
   /** 0 正常 1 停用 */
   private Integer status;
 
+  @TableField(fill = FieldFill.INSERT)
   private LocalDateTime createTime;
+
+  @TableField(fill = FieldFill.INSERT_UPDATE)
   private LocalDateTime updateTime;
 
   /** 已分配角色 id 列表（非表字段，仅用于 save/update 入参与 detail 返回） */
   @TableField(exist = false)
   private List<Long> roleIds;
+
+  /** 部门名称（非表字段，列表/详情展示用，service 层批量填充） */
+  @TableField(exist = false)
+  private String deptName;
 }

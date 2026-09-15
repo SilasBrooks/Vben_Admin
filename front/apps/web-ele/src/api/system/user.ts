@@ -8,6 +8,8 @@ export interface UserItem {
   email?: string;
   phone?: string;
   homePath?: string;
+  deptId?: number;
+  deptName?: string;
   status?: number;
   roleIds?: number[];
 }

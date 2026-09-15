@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vben.service.common.BizException;
+import com.vben.service.common.DataScope;
+import com.vben.service.common.DataScopeHolder;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.entity.SysUserRole;
@@ -40,9 +42,11 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
 
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleMapper roleMapper;
+  private final SysDeptAdminService deptService;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-  /** 用户分页列表（密码字段已清空，支持按用户名模糊 + 状态过滤） */
+  /** 用户分页列表（密码字段已清空，支持按用户名模糊 + 状态过滤；回填部门名；按数据范围过滤） */
+  @DataScope
   public IPage<SysUser> page(long pageNo, long pageSize, String username, Integer status) {
     LambdaQueryWrapper<SysUser> q = new LambdaQueryWrapper<SysUser>()
         .orderByDesc(SysUser::getCreateTime);
@@ -52,12 +56,50 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     if (status != null) {
       q.eq(SysUser::getStatus, status);
     }
+    applyDataScope(q);
     IPage<SysUser> p = page(new Page<>(pageNo, pageSize), q);
     p.getRecords().forEach(u -> u.setPassword(null));
+    deptService.fillDeptNames(p.getRecords());
     return p;
   }
 
-  /** 用户详情（含已分配角色 id 列表，密码字段已清空） */
+  /**
+   * 按数据范围上下文追加过滤条件：
+   * SELF → id=本人；DEPT → dept_id IN (...) OR dept_id IS NULL（视 includeUnassigned）OR id=本人；
+   * ALL/无上下文 → 不追加。必须置于一个嵌套括号内，避免与外层 keyword/status 条件混淆 AND/OR 优先级。
+   */
+  private void applyDataScope(LambdaQueryWrapper<SysUser> q) {
+    DataScopeHolder.DataScopeInfo ds = DataScopeHolder.get();
+    if (ds == null || ds.type() == DataScopeHolder.Type.ALL) {
+      return;
+    }
+    q.and(w -> {
+      if (ds.type() == DataScopeHolder.Type.SELF) {
+        w.eq(SysUser::getId, ds.userId());
+        return;
+      }
+      boolean first = true;
+      if (!ds.deptIds().isEmpty()) {
+        w.in(SysUser::getDeptId, ds.deptIds());
+        first = false;
+      }
+      if (ds.includeUnassigned()) {
+        if (!first) {
+          w.or();
+        }
+        w.isNull(SysUser::getDeptId);
+        first = false;
+      }
+      if (ds.userId() != null) {
+        if (!first) {
+          w.or();
+        }
+        w.eq(SysUser::getId, ds.userId());
+      }
+    });
+  }
+
+  /** 用户详情（含已分配角色 id 列表 + 部门名，密码字段已清空） */
   public SysUser detail(Long id) {
     SysUser user = getById(id);
     if (user == null) {
@@ -65,6 +107,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     }
     user.setPassword(null);
     user.setRoleIds(baseMapper.selectRoleIdsByUserId(id));
+    deptService.fillDeptNames(List.of(user));
     return user;
   }
 
@@ -93,6 +136,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     if (user.getStatus() == null) {
       user.setStatus(0);
     }
+    checkDept(user.getDeptId());
     String rawPassword = user.getPassword();
     user.setPassword(passwordEncoder.encode(rawPassword));
     save(user);
@@ -115,6 +159,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     if (user.getStatus() == null) {
       user.setStatus(exist.getStatus());
     }
+    checkDept(user.getDeptId());
     updateById(user);
 
     // 仅当显式传了 roleIds 才重分配；不传 = 不动角色（避免误清空）
@@ -176,6 +221,20 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   // ------------------------------------------------------------------
   // 内部实现
   // ------------------------------------------------------------------
+
+  /** 校验用户归属的部门存在且未停用（null = 不归属部门，放行） */
+  private void checkDept(Long deptId) {
+    if (deptId == null) {
+      return;
+    }
+    com.vben.service.module.system.entity.SysDept dept = deptService.getById(deptId);
+    if (dept == null) {
+      throw BizException.badRequest("所选部门不存在");
+    }
+    if (dept.getStatus() != null && dept.getStatus() == 1) {
+      throw BizException.badRequest("所选部门已停用");
+    }
+  }
 
   /** 真正执行角色重分配：先删 user_role，再批量插 */
   private void reassignRoles(Long userId, List<Long> roleIds) {

@@ -1,5 +1,6 @@
 package com.vben.service.module.system.controller;
 
+import com.vben.service.common.OperLog;
 import com.vben.service.common.R;
 import com.vben.service.module.system.entity.SysMenu;
 import com.vben.service.module.system.service.SysMenuAdminService;
@@ -45,6 +46,7 @@ public class SystemMenuController {
     return R.ok(menuService.detail(id));
   }
 
+  @OperLog(module = "菜单管理", description = "新增菜单")
   @RequirePermission("System:Menu:Add")
   @PostMapping("/save")
   public R<Void> save(@RequestBody SysMenu menu) {
@@ -52,6 +54,7 @@ public class SystemMenuController {
     return R.ok();
   }
 
+  @OperLog(module = "菜单管理", description = "编辑菜单")
   @RequirePermission("System:Menu:Edit")
   @PutMapping("/update")
   public R<Void> update(@RequestBody SysMenu menu) {
@@ -59,6 +62,7 @@ public class SystemMenuController {
     return R.ok();
   }
 
+  @OperLog(module = "菜单管理", description = "删除菜单")
   @RequirePermission("System:Menu:Delete")
   @DeleteMapping("/{id}")
   public R<Void> remove(@PathVariable Long id) {

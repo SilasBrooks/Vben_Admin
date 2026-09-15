@@ -15,6 +15,7 @@ type VxeGridRow = {
   username: string;
   nickname?: string;
   homePath?: string;
+  deptName?: string;
   status: number;
   createTime?: string;
 };
@@ -31,6 +32,7 @@ const gridOptions: VxeTableGridOptions<VxeGridRow> = {
     { field: 'id', title: 'ID', visible: false },
     { field: 'username', title: '用户名', minWidth: 140 },
     { field: 'nickname', title: '昵称', minWidth: 140 },
+    { field: 'deptName', title: '所属部门', minWidth: 120 },
     { field: 'homePath', title: '首页', minWidth: 140 },
     {
       field: 'status',

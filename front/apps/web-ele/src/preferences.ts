@@ -12,4 +12,7 @@ export const overridesPreferences = defineOverridesPreferences({
     // 使用后端动态路由（service/ 返回的 /menu/all），关闭前端静态菜单
     accessMode: 'backend',
   },
+  logo: {
+    source: '/logo.png'
+  },
 });

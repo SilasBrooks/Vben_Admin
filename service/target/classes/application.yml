@@ -8,7 +8,7 @@ spring:
   application:
     name: vben-service
   profiles:
-    # 默认使用 dev(H2 内存库，零配置启动)；生产切换为 prod 并配置 MySQL
+    # 默认使用 dev(PostgreSQL, Docker 容器 vben5 :5444)；生产切换为 prod 并配置 MySQL
     active: dev
   jackson:
     default-property-inclusion: non_null

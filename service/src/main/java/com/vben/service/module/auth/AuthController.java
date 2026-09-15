@@ -4,6 +4,7 @@ import com.vben.service.common.BizException;
 import com.vben.service.common.R;
 import com.vben.service.module.auth.dto.LoginRequest;
 import com.vben.service.module.auth.dto.LoginResult;
+import com.vben.service.module.monitor.service.MonitorLoginLogService;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.module.system.service.SysPermissionService;
@@ -39,6 +40,7 @@ public class AuthController {
   private final SysPermissionService permissionService;
   private final JwtTokenService jwtTokenService;
   private final RefreshTokenCookieService cookieService;
+  private final MonitorLoginLogService loginLogService;
 
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -47,15 +49,17 @@ public class AuthController {
    */
   @PostMapping("/login")
   public R<LoginResult> login(@Valid @RequestBody LoginRequest body,
-      HttpServletResponse response) {
+      HttpServletRequest request, HttpServletResponse response) {
     SysUser user = permissionService.findActiveUser(body.getUsername());
     if (user == null || !passwordEncoder.matches(body.getPassword(), user.getPassword())) {
       // 与 mock 对齐：用户名或密码错误返回 403
+      loginLogService.record(body.getUsername(), false, "用户名或密码错误", request);
       cookieService.clear(response);
       throw BizException.forbidden("Username or password is incorrect.");
     }
 
     List<String> roles = userMapper.selectRoleKeysByUserId(user.getId());
+    loginLogService.record(user.getUsername(), true, "登录成功", request);
     String accessToken =
         jwtTokenService.generateAccessToken(user.getId(), user.getUsername(), roles);
     String refreshToken =

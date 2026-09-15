@@ -8,18 +8,14 @@ import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
 import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
 import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
-import {
-  BasicLayout,
-  LockScreen,
-  Notification,
-  UserDropdown,
-} from '@vben/layouts';
+import { BasicLayout, LockScreen, Notification, UserDropdown } from '@vben/layouts';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { openWindow } from '@vben/utils';
 
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
+import AiAssistant from '#/components/ai-assistant/AiAssistant.vue';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
 const notifications = ref<NotificationItem[]>([
@@ -30,7 +26,7 @@ const notifications = ref<NotificationItem[]>([
     isRead: true,
     message: '描述信息描述信息描述信息',
     title: '收到了 14 份新周报',
-  }
+  },
 ]);
 
 const router = useRouter();
@@ -39,9 +35,7 @@ const authStore = useAuthStore();
 const accessStore = useAccessStore();
 const { destroyWatermark, updateWatermark } = useWatermark();
 const { isDark } = usePreferences();
-const showDot = computed(() =>
-  notifications.value.some((item) => !item.isRead),
-);
+const showDot = computed(() => notifications.value.some((item) => !item.isRead));
 
 const menus = computed(() => [
   {
@@ -116,11 +110,7 @@ const handleClick = (item: NotificationItem) => {
   }
 };
 
-function navigateTo(
-  link: string,
-  query?: Record<string, any>,
-  state?: Record<string, any>,
-) {
+function navigateTo(link: string, query?: Record<string, any>, state?: Record<string, any>) {
   if (link.startsWith('http://') || link.startsWith('https://')) {
     // 外部链接，在新标签页打开
     window.open(link, '_blank');
@@ -142,9 +132,7 @@ watch(
   }),
   async ({ enable, content, isDark: isDarkValue }) => {
     if (enable) {
-      const watermarkColor = isDarkValue
-        ? 'rgba(255, 255, 255, 0.12)'
-        : 'rgba(0, 0, 0, 0.12)';
+      const watermarkColor = isDarkValue ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)';
 
       await updateWatermark({
         advancedStyle: {
@@ -160,9 +148,7 @@ watch(
           ],
           type: 'linear',
         },
-        content:
-          content ||
-          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
+        content: content || `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
       });
     } else {
       destroyWatermark();
@@ -200,12 +186,10 @@ watch(
       />
     </template>
     <template #extra>
-      <AuthenticationLoginExpiredModal
-        v-model:open="accessStore.loginExpired"
-        :avatar
-      >
+      <AuthenticationLoginExpiredModal v-model:open="accessStore.loginExpired" :avatar>
         <LoginForm />
       </AuthenticationLoginExpiredModal>
+      <AiAssistant />
     </template>
     <template #lock-screen>
       <LockScreen :avatar @to-login="handleLogout" />

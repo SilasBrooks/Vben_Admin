@@ -7,6 +7,8 @@ import { ref } from 'vue';
 import { useVbenModal } from '@vben/common-ui';
 
 import { useVbenForm, z } from '#/adapter/form';
+import type { DeptNode } from '#/api/system/dept';
+import { getDeptTreeApi } from '#/api/system/dept';
 import {
   createUserApi,
   getUserDetailApi,
@@ -28,6 +30,7 @@ const [Modal, modalApi] = useVbenModal({
 
 const isEdit = ref(false);
 const roleOptions = ref<RoleItem[]>([]);
+const deptTree = ref<DeptNode[]>([]);
 
 // schema 在 init 时根据 isEdit 动态生成
 const [Form, formApi] = useVbenForm({
@@ -45,6 +48,10 @@ async function init() {
   // 加载角色选项（首次打开时缓存）
   if (roleOptions.value.length === 0) {
     roleOptions.value = await getRoleOptionsApi();
+  }
+  // 加载部门树（首次打开时缓存）
+  if (deptTree.value.length === 0) {
+    deptTree.value = await getDeptTreeApi();
   }
 
   // 重新生成 schema（让 isEdit 状态生效、角色 options 是最新值）
@@ -84,6 +91,20 @@ async function init() {
       label: '首页路径',
       component: 'Input',
       componentProps: { placeholder: '如 /workspace，可留空' },
+    },
+    {
+      fieldName: 'deptId',
+      label: '所属部门',
+      component: 'TreeSelect',
+      componentProps: {
+        data: deptTree.value,
+        nodeKey: 'id',
+        props: { label: 'deptName', children: 'children' },
+        checkStrictly: true,
+        defaultExpandAll: true,
+        clearable: true,
+        placeholder: '可选，归属到某个部门，清空 = 不归属',
+      },
     },
     {
       fieldName: 'roleIds',

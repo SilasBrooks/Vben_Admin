@@ -12,11 +12,26 @@ CREATE TABLE IF NOT EXISTS sys_user (
   password    VARCHAR(128) NOT NULL COMMENT 'BCrypt 哈希',
   nickname    VARCHAR(64)  NOT NULL DEFAULT '' COMMENT '显示名(对应前端 realName)',
   home_path   VARCHAR(255) NULL COMMENT '登录后首页(可选)',
+  dept_id     BIGINT       NULL COMMENT '所属部门id(sys_dept.id),NULL=未归属',
   status      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1停用',
   create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_username (username)
+  UNIQUE KEY uk_username (username),
+  KEY idx_user_dept (dept_id)
 ) ENGINE = InnoDB COMMENT ='用户表';
+
+CREATE TABLE IF NOT EXISTS sys_dept (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  parent_id   BIGINT       NOT NULL DEFAULT 0 COMMENT '父部门id,0=根部门',
+  dept_name   VARCHAR(64)  NOT NULL COMMENT '部门名称',
+  leader      VARCHAR(64)  NULL COMMENT '负责人姓名(仅存字段)',
+  status      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1停用',
+  order_num   INT          NOT NULL DEFAULT 0,
+  remark      VARCHAR(255) NULL,
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY idx_dept_parent (parent_id)
+) ENGINE = InnoDB COMMENT ='部门表';
 
 CREATE TABLE IF NOT EXISTS sys_role (
   id          BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -25,9 +40,18 @@ CREATE TABLE IF NOT EXISTS sys_role (
   sort_num    INT         NOT NULL DEFAULT 0,
   status      TINYINT     NOT NULL DEFAULT 0,
   remark      VARCHAR(255) NULL,
+  data_scope  CHAR(1)     NOT NULL DEFAULT '5' COMMENT '数据范围:1全部 2自定义部门 3本部门 4本部门及以下 5仅本人',
   create_time DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_role_key (role_key)
 ) ENGINE = InnoDB COMMENT ='角色表';
+
+-- 数据范围-自定义部门关联表（仅 data_scope=2 时读写）
+CREATE TABLE IF NOT EXISTS sys_role_dept (
+  id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+  role_id BIGINT NOT NULL COMMENT '角色id',
+  dept_id BIGINT NOT NULL COMMENT '部门id(含其子孙部门)',
+  UNIQUE KEY uk_role_dept (role_id, dept_id)
+) ENGINE = InnoDB COMMENT ='角色自定义数据部门关联表';
 
 CREATE TABLE IF NOT EXISTS sys_menu (
   id           BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -65,3 +89,56 @@ CREATE TABLE IF NOT EXISTS sys_role_menu (
   menu_id BIGINT NOT NULL,
   UNIQUE KEY uk_role_menu (role_id, menu_id)
 ) ENGINE = InnoDB COMMENT ='角色菜单关联表';
+
+CREATE TABLE IF NOT EXISTS sys_oper_log (
+  id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+  oper_user_id    BIGINT        NULL COMMENT '操作人id(NULL=匿名)',
+  oper_name       VARCHAR(64)   NULL COMMENT '操作人用户名',
+  module          VARCHAR(64)   NOT NULL COMMENT '所属模块,如用户管理',
+  description     VARCHAR(255)  NULL COMMENT '操作描述',
+  method          VARCHAR(255)  NULL COMMENT '调用方法 类#方法',
+  request_method  VARCHAR(16)   NULL COMMENT 'HTTP 方法',
+  request_url     VARCHAR(255)  NULL,
+  params          VARCHAR(2000) NULL COMMENT '入参摘要(脱敏+截断)',
+  status          TINYINT       NOT NULL DEFAULT 0 COMMENT '0成功 1失败',
+  error_msg       VARCHAR(2000) NULL,
+  ip              VARCHAR(64)   NULL,
+  cost_ms         BIGINT        NOT NULL DEFAULT 0 COMMENT '耗时毫秒',
+  oper_time       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_oper_log_time (oper_time)
+) ENGINE = InnoDB COMMENT ='操作日志表';
+
+CREATE TABLE IF NOT EXISTS sys_login_log (
+  id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+  username   VARCHAR(64)  NOT NULL COMMENT '尝试登录的用户名',
+  status     TINYINT      NOT NULL DEFAULT 0 COMMENT '0成功 1失败',
+  message    VARCHAR(255) NULL COMMENT '结果消息',
+  ip         VARCHAR(64)  NULL,
+  user_agent VARCHAR(512) NULL,
+  login_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_login_log_time (login_time)
+) ENGINE = InnoDB COMMENT ='登录日志表';
+
+CREATE TABLE IF NOT EXISTS sys_dict_type (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  dict_name   VARCHAR(64)  NOT NULL COMMENT '字典名称,如库存类型',
+  dict_type   VARCHAR(64)  NOT NULL COMMENT '字典类型键,全局唯一,如 wsm_stock_type',
+  status      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1停用',
+  remark      VARCHAR(255) NULL,
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_dict_type (dict_type)
+) ENGINE = InnoDB COMMENT ='字典类型表';
+
+CREATE TABLE IF NOT EXISTS sys_dict_data (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  dict_type   VARCHAR(64)  NOT NULL COMMENT '所属字典类型键(逻辑外键)',
+  dict_label  VARCHAR(64)  NOT NULL COMMENT '显示名',
+  dict_value  VARCHAR(64)  NOT NULL COMMENT '值',
+  sort_num    INT          NOT NULL DEFAULT 0,
+  status      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1停用',
+  remark      VARCHAR(255) NULL,
+  create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_dict_value (dict_type, dict_value),
+  INDEX idx_dict_data_type (dict_type)
+) ENGINE = InnoDB COMMENT ='字典数据表';

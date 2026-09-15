@@ -6,6 +6,8 @@ export interface RoleItem {
   roleName: string;
   sortNum?: number;
   status?: number;
+  /** 数据范围：1全部 2自定义部门 3本部门 4本部门及以下 5仅本人 */
+  dataScope?: string;
 }
 
 export interface RolePageResult {
@@ -33,9 +35,9 @@ export async function getRoleDetailApi(id: number) {
   return requestClient.get<RoleItem>(`/system/role/${id}`);
 }
 
-/** 新增角色 */
+/** 新增角色，返回新角色 id */
 export async function createRoleApi(data: Partial<RoleItem>) {
-  return requestClient.post('/system/role/save', data);
+  return requestClient.post<number>('/system/role/save', data);
 }
 
 /** 更新角色 */
@@ -56,4 +58,24 @@ export async function getRoleMenuIdsApi(roleId: number) {
 /** 分配菜单给角色 */
 export async function assignRoleMenusApi(roleId: number, menuIds: number[]) {
   return requestClient.post('/system/role/assign', { roleId, menuIds });
+}
+
+/** 角色数据范围配置（dataScope + 自定义部门 id 集合） */
+export async function getDataScopeApi(roleId: number) {
+  return requestClient.get<{ dataScope: string; deptIds: number[] }>(
+    `/system/role/data-scope/${roleId}`,
+  );
+}
+
+/** 更新角色数据范围 */
+export async function updateDataScopeApi(
+  roleId: number,
+  dataScope: string,
+  deptIds?: number[],
+) {
+  return requestClient.put('/system/role/data-scope', {
+    roleId,
+    dataScope,
+    deptIds,
+  });
 }

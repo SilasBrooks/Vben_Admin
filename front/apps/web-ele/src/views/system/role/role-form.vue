@@ -4,11 +4,16 @@ import type { VbenFormSchema } from '#/adapter/form';
 import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
+import { ElMessage } from 'element-plus';
 
 import { useVbenForm, z } from '#/adapter/form';
+import type { DeptNode } from '#/api/system/dept';
+import { getDeptTreeApi } from '#/api/system/dept';
 import {
   createRoleApi,
+  getDataScopeApi,
   getRoleDetailApi,
+  updateDataScopeApi,
   updateRoleApi,
 } from '#/api/system/role';
 
@@ -24,6 +29,7 @@ const [Modal, modalApi] = useVbenModal({
 });
 
 const isEdit = ref(false);
+const deptTree = ref<DeptNode[]>([]);
 
 const [Form, formApi] = useVbenForm({
   schema: [],
@@ -41,8 +47,18 @@ async function init() {
   let roleKeyDisabled = false;
   let roleKeyValue: string | undefined;
 
+  // 部门树（首次打开时缓存）
+  if (deptTree.value.length === 0) {
+    deptTree.value = await getDeptTreeApi();
+  }
+
+  let detail: Awaited<ReturnType<typeof getRoleDetailApi>> | undefined;
+  let scope: { dataScope: string; deptIds: number[] } | undefined;
   if (isEdit.value && data?.id) {
-    const detail = await getRoleDetailApi(data.id);
+    [detail, scope] = await Promise.all([
+      getRoleDetailApi(data.id),
+      getDataScopeApi(data.id),
+    ]);
     roleKeyValue = detail.roleKey;
     roleKeyDisabled = detail.roleKey === 'super';
   }
@@ -84,28 +100,72 @@ async function init() {
       },
       defaultValue: 0,
     },
+    {
+      fieldName: 'dataScope',
+      label: '数据范围',
+      component: 'RadioGroup',
+      componentProps: {
+        options: [
+          { label: '全部数据', value: '1' },
+          { label: '自定义部门', value: '2' },
+          { label: '本部门', value: '3' },
+          { label: '本部门及以下', value: '4' },
+          { label: '仅本人', value: '5' },
+        ],
+        // super 角色数据范围恒为全部数据（后端强制，前端锁定）
+        disabled: roleKeyValue === 'super',
+      },
+      defaultValue: '5',
+    },
+    {
+      fieldName: 'deptIds',
+      label: '自定义部门',
+      component: 'TreeSelect',
+      componentProps: {
+        data: deptTree.value,
+        nodeKey: 'id',
+        props: { label: 'deptName', children: 'children' },
+        multiple: true,
+        showCheckbox: true,
+        checkStrictly: true,
+        defaultExpandAll: true,
+        collapseTags: true,
+        collapseTagsTooltip: true,
+        placeholder: '勾选可见部门（勾选父级时子孙部门自动包含）',
+      },
+      rules: z.array(z.number()).min(1, { message: '请至少选择一个部门' }),
+      dependencies: {
+        triggerFields: ['dataScope'],
+        if: (values) => values.dataScope === '2',
+      },
+    },
   ];
   formApi.setState({ schema });
 
   await formApi.resetForm();
-  if (isEdit.value && data?.id) {
-    const detail = await getRoleDetailApi(data.id);
-    await formApi.setValues(detail);
+  if (detail) {
+    await formApi.setValues({ ...detail, deptIds: scope?.deptIds ?? [] });
     if (roleKeyValue === 'super') {
       formApi.setFieldValue('roleKey', roleKeyValue);
+      formApi.setFieldValue('dataScope', '1');
     }
   }
 }
 
 async function handleSubmit() {
   const values = (await formApi.getValues()) as any;
+  const { dataScope, deptIds, ...roleValues } = values;
   modalApi.lock();
   try {
+    let roleId: number;
     if (isEdit.value) {
-      await updateRoleApi({ id: (modalApi.getData() as any).id, ...values });
+      roleId = (modalApi.getData() as any).id;
+      await updateRoleApi({ id: roleId, ...roleValues });
     } else {
-      await createRoleApi(values);
+      roleId = await createRoleApi(roleValues);
     }
+    await updateDataScopeApi(roleId, dataScope, deptIds ?? []);
+    ElMessage.success('保存成功');
     emit('saved');
     modalApi.close();
   } finally {

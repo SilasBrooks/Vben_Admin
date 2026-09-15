@@ -3,17 +3,12 @@ import type { VbenFormSchema } from '@vben/common-ui';
 
 import { computed, ref } from 'vue';
 
-import {
-  AuthenticationLogin,
-  SliderTranslateCaptcha,
-  useVbenModal,
-  z,
-} from '@vben/common-ui';
+import { AuthenticationLogin, SliderTranslateCaptcha, useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
 import { useAuthStore } from '#/store';
 
-defineOptions({ name: 'Login' });
+defineOptions({ name: 'Login', inheritAttrs: false });
 
 const authStore = useAuthStore();
 
@@ -37,13 +32,11 @@ function handleCaptchaConfirm() {
   }
   captchaModalApi.lock();
   // 真正调登录接口
-  authStore
-    .authLogin(pendingLoginValues.value ?? {})
-    .finally(() => {
-      captchaModalApi.unlock();
-      captchaModalApi.close();
-      pendingLoginValues.value = null;
-    });
+  authStore.authLogin(pendingLoginValues.value ?? {}).finally(() => {
+    captchaModalApi.unlock();
+    captchaModalApi.close();
+    pendingLoginValues.value = null;
+  });
 }
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -87,27 +80,32 @@ function onCaptchaSuccess() {
 </script>
 
 <template>
-  <AuthenticationLogin
-    :form-schema="formSchema"
-    :loading="authStore.loginLoading"
-    @submit="handleSubmit"
-  />
+  <!-- 单根包裹：修复 Transition 动画警告；$attrs（外部 class/data-side）原样透传给登录表单 -->
+  <div>
+    <AuthenticationLogin
+      v-bind="$attrs"
+      :form-schema="formSchema"
+      :loading="authStore.loginLoading"
+      @submit="handleSubmit"
+    />
 
-  <CaptchaModal
-    :title="$t('ui.captcha.sliderTranslateDefaultTip')"
-    :show-cancel-button="true"
-    :show-confirm-button="true"
-    :confirm-disabled="!captchaPassed"
-    class="w-[420px]"
-  >
-    <div class="py-2">
-      <SliderTranslateCaptcha
-        src="https://picsum.photos/seed/vben-captcha/420/280"
-        :canvas-width="360"
-        :canvas-height="220"
-        :diff-distance="5"
-        @success="onCaptchaSuccess"
-      />
-    </div>
-  </CaptchaModal>
+    <CaptchaModal
+      :title="$t('ui.captcha.sliderTranslateDefaultTip')"
+      :show-cancel-button="true"
+      :show-confirm-button="true"
+      :confirm-disabled="!captchaPassed"
+      class="w-[420px]"
+    >
+      <div class="py-2">
+        <!-- 本地图片：避免依赖外网 picsum 导致验证码图挂掉 -->
+        <SliderTranslateCaptcha
+          src="/captcha-bg.jpg"
+          :canvas-width="360"
+          :canvas-height="220"
+          :diff-distance="5"
+          @success="onCaptchaSuccess"
+        />
+      </div>
+    </CaptchaModal>
+  </div>
 </template>

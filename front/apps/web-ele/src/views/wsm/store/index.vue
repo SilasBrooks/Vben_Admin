@@ -7,10 +7,14 @@ import {
   ElForm,
   ElFormItem,
   ElInput,
+  ElOption,
+  ElSelect,
   ElTable,
   ElTableColumn,
   ElTag,
 } from 'element-plus';
+
+import { useDict } from '#/hooks/use-dict';
 
 interface StockItem {
   id: number;
@@ -20,9 +24,23 @@ interface StockItem {
   status: number;
 }
 
+/** 字典实例：库存状态下拉与表格标签均由 wsm_stock_status 字典驱动 */
+const { options: statusOptions } = useDict('wsm_stock_status');
+
+/** 字典值 -> el-tag 类型（正常绿 / 缺货红 / 预警黄） */
+const statusTagType: Record<string, 'success' | 'danger' | 'warning'> = {
+  0: 'success',
+  1: 'danger',
+  2: 'warning',
+};
+
+function statusLabel(value: number) {
+  return statusOptions.value.find((o) => o.value === String(value))?.label ?? value;
+}
+
 const loading = ref(false);
 const list = ref<StockItem[]>([]);
-const query = ref({ keyword: '' });
+const query = ref({ keyword: '', status: '' });
 
 function loadList() {
   loading.value = true;
@@ -30,6 +48,7 @@ function loadList() {
   list.value = [
     { id: 1, sku: 'WSM-001', name: '示例物料 A', quantity: 120, status: 0 },
     { id: 2, sku: 'WSM-002', name: '示例物料 B', quantity: 0, status: 1 },
+    { id: 3, sku: 'WSM-003', name: '示例物料 C', quantity: 15, status: 2 },
   ];
   loading.value = false;
 }
@@ -44,11 +63,18 @@ function loadList() {
 
       <el-form :inline="true" class="mb-3">
         <el-form-item label="关键字">
-          <el-input
-            v-model="query.keyword"
-            placeholder="搜索 SKU / 名称"
-            clearable
-          />
+          <el-input v-model="query.keyword" placeholder="搜索 SKU / 名称" clearable />
+        </el-form-item>
+        <el-form-item label="状态">
+          <!-- 字典驱动的搜索下拉：options 是响应式数组，模板自动解包 -->
+          <el-select v-model="query.status" placeholder="全部状态" clearable style="width: 140px">
+            <el-option
+              v-for="opt in statusOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="loadList">查询</el-button>
@@ -62,8 +88,9 @@ function loadList() {
         <el-table-column prop="quantity" label="数量" width="100" />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
-            <el-tag :type="row.status === 0 ? 'success' : 'danger'">
-              {{ row.status === 0 ? '正常' : '缺货' }}
+            <!-- 字典驱动的状态标签 -->
+            <el-tag :type="statusTagType[String(row.status)] ?? 'info'">
+              {{ statusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>

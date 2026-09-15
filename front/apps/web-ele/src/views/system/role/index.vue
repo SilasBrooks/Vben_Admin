@@ -25,6 +25,15 @@ const [RoleMenuAuthModal, roleMenuAuthApi] = useVbenModal({
   connectedComponent: RoleMenuAuth,
 });
 
+// 数据范围中文映射（1全部 2自定义部门 3本部门 4本部门及以下 5仅本人）
+const DATA_SCOPE_LABELS: Record<string, string> = {
+  1: '全部数据',
+  2: '自定义部门',
+  3: '本部门',
+  4: '本部门及以下',
+  5: '仅本人',
+};
+
 const gridOptions: VxeTableGridOptions<RoleItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
@@ -32,6 +41,13 @@ const gridOptions: VxeTableGridOptions<RoleItem> = {
     { field: 'roleKey', title: '角色标识', minWidth: 140 },
     { field: 'roleName', title: '角色名称', minWidth: 140 },
     { field: 'sortNum', title: '排序', width: 80 },
+    {
+      field: 'dataScope',
+      title: '数据范围',
+      width: 110,
+      formatter: ({ cellValue }) =>
+        DATA_SCOPE_LABELS[cellValue as string] ?? '仅本人',
+    },
     {
       field: 'status',
       title: '状态',

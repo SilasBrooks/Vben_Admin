@@ -6,12 +6,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vben.service.common.BizException;
 import com.vben.service.module.system.entity.SysRole;
+import com.vben.service.module.system.entity.SysRoleDept;
 import com.vben.service.module.system.entity.SysRoleMenu;
 import com.vben.service.module.system.entity.SysUserRole;
+import com.vben.service.module.system.mapper.SysRoleDeptMapper;
 import com.vben.service.module.system.mapper.SysRoleMapper;
 import com.vben.service.module.system.mapper.SysRoleMenuMapper;
 import com.vben.service.module.system.mapper.SysUserRoleMapper;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,6 +39,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
 
   private final SysRoleMenuMapper roleMenuMapper;
   private final SysUserRoleMapper userRoleMapper;
+  private final SysRoleDeptMapper roleDeptMapper;
 
   public IPage<SysRole> page(long pageNo, long pageSize, String roleName, Integer status) {
     LambdaQueryWrapper<SysRole> q = new LambdaQueryWrapper<SysRole>()
@@ -57,7 +62,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   }
 
   @Transactional
-  public void saveRole(SysRole role) {
+  public Long saveRole(SysRole role) {
     if (role.getSortNum() == null) {
       role.setSortNum(1);
     }
@@ -65,6 +70,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
       role.setStatus(0);
     }
     save(role);
+    return role.getId();
   }
 
   @Transactional
@@ -112,6 +118,53 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
     return roleMenuMapper.selectList(
             new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, roleId))
         .stream().map(SysRoleMenu::getMenuId).collect(Collectors.toList());
+  }
+
+  /** 角色数据范围配置：dataScope + 自定义部门集合（仅范围 2 非空） */
+  public Map<String, Object> dataScopeDetail(Long roleId) {
+    SysRole role = getById(roleId);
+    if (role == null) {
+      throw BizException.badRequest("角色不存在");
+    }
+    List<Long> deptIds = roleDeptMapper.selectList(
+            new LambdaQueryWrapper<SysRoleDept>().eq(SysRoleDept::getRoleId, roleId))
+        .stream().map(SysRoleDept::getDeptId).collect(Collectors.toList());
+    Map<String, Object> result = new LinkedHashMap<>();
+    result.put("dataScope", role.getDataScope() == null ? "5" : role.getDataScope());
+    result.put("deptIds", deptIds);
+    return result;
+  }
+
+  /** 更新角色数据范围；范围=2 时保存自定义部门集合，否则清空关联记录 */
+  @Transactional
+  public void updateDataScope(Long roleId, String dataScope, List<Long> deptIds) {
+    SysRole role = getById(roleId);
+    if (role == null) {
+      throw BizException.badRequest("角色不存在");
+    }
+    if (dataScope == null || !"12345".contains(dataScope) || dataScope.length() != 1) {
+      throw BizException.badRequest("数据范围取值非法");
+    }
+    if ("super".equals(role.getRoleKey()) && !"1".equals(dataScope)) {
+      throw BizException.badRequest("super 角色数据范围恒为全部数据");
+    }
+    if ("2".equals(dataScope) && (deptIds == null || deptIds.isEmpty())) {
+      throw BizException.badRequest("自定义部门范围至少选择一个部门");
+    }
+    SysRole patch = new SysRole();
+    patch.setId(roleId);
+    patch.setDataScope(dataScope);
+    updateById(patch);
+    roleDeptMapper.delete(
+        new LambdaQueryWrapper<SysRoleDept>().eq(SysRoleDept::getRoleId, roleId));
+    if ("2".equals(dataScope)) {
+      for (Long deptId : deptIds) {
+        SysRoleDept rd = new SysRoleDept();
+        rd.setRoleId(roleId);
+        rd.setDeptId(deptId);
+        roleDeptMapper.insert(rd);
+      }
+    }
   }
 
   /** 重新分配角色菜单（先删后插） */

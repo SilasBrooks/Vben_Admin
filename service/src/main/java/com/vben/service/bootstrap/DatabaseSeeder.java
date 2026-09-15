@@ -1,10 +1,16 @@
 package com.vben.service.bootstrap;
 
+import com.vben.service.module.system.entity.SysDept;
+import com.vben.service.module.system.entity.SysDictData;
+import com.vben.service.module.system.entity.SysDictType;
 import com.vben.service.module.system.entity.SysMenu;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.entity.SysRoleMenu;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.entity.SysUserRole;
+import com.vben.service.module.system.mapper.SysDeptMapper;
+import com.vben.service.module.system.mapper.SysDictDataMapper;
+import com.vben.service.module.system.mapper.SysDictTypeMapper;
 import com.vben.service.module.system.mapper.SysMenuMapper;
 import com.vben.service.module.system.mapper.SysRoleMapper;
 import com.vben.service.module.system.mapper.SysRoleMenuMapper;
@@ -40,8 +46,11 @@ public class DatabaseSeeder implements ApplicationRunner {
   private final SysUserMapper userMapper;
   private final SysRoleMapper roleMapper;
   private final SysMenuMapper menuMapper;
+  private final SysDeptMapper deptMapper;
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleMenuMapper roleMenuMapper;
+  private final SysDictTypeMapper dictTypeMapper;
+  private final SysDictDataMapper dictDataMapper;
 
   @Override
   @Transactional
@@ -55,9 +64,11 @@ public class DatabaseSeeder implements ApplicationRunner {
     // ------------------------------------------------------------------
     // 1. 角色
     // ------------------------------------------------------------------
-    Long superRoleId = insertRole("super", "超级管理员", 1);
-    Long adminRoleId = insertRole("admin", "管理员", 2);
-    Long userRoleId = insertRole("user", "普通用户", 3);
+    Long superRoleId = insertRole("super", "超级管理员", 1, "1");
+    Long adminRoleId = insertRole("admin", "管理员", 2, "1");
+    Long userRoleId = insertRole("user", "普通用户", 3, "5");
+    // 仓管员：本部门及以下（数据范围演示角色，挂给 stockAdmin）
+    Long stockRoleId = insertRole("stock", "仓管员", 4, "4");
 
     // ------------------------------------------------------------------
     // 2. 菜单（结构对齐前端 mock：Dashboard + Demos）
@@ -82,6 +93,12 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long systemMenuId = insertMenu(leaf("SystemMenu", "菜单管理",
         "ant-design:menu-outlined", 3, "/system/menu", "/system/menu/index", systemCatalogId,
         false, false).authority("super,admin"));
+    Long systemDeptId = insertMenu(leaf("SystemDept", "部门管理",
+        "ant-design:apartment-outlined", 4, "/system/dept", "/system/dept/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long systemDictId = insertMenu(leaf("SystemDict", "数据字典",
+        "ant-design:book-outlined", 5, "/system/dict", "/system/dict/index",
+        systemCatalogId, false, false).authority("super,admin"));
     // 后端接口权限码示例（F 型挂在对应菜单下，不进路由树）
     Long systemUserListId = insertMenu(perm("System:User:List", systemUserId));
     Long userAdd = insertMenu(perm("System:User:Add", systemUserId));
@@ -97,6 +114,16 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long menuAdd = insertMenu(perm("System:Menu:Add", systemMenuId));
     Long menuEdit = insertMenu(perm("System:Menu:Edit", systemMenuId));
     Long menuDelete = insertMenu(perm("System:Menu:Delete", systemMenuId));
+    // 部门管理按钮权限码（F 型，挂在部门管理菜单下，不进路由树）
+    Long deptList = insertMenu(perm("System:Dept:List", systemDeptId));
+    Long deptAdd = insertMenu(perm("System:Dept:Add", systemDeptId));
+    Long deptEdit = insertMenu(perm("System:Dept:Edit", systemDeptId));
+    Long deptDelete = insertMenu(perm("System:Dept:Delete", systemDeptId));
+    // 数据字典按钮权限码（F 型，挂在数据字典菜单下，不进路由树）
+    Long dictList = insertMenu(perm("System:Dict:List", systemDictId));
+    Long dictAdd = insertMenu(perm("System:Dict:Add", systemDictId));
+    Long dictEdit = insertMenu(perm("System:Dict:Edit", systemDictId));
+    Long dictDelete = insertMenu(perm("System:Dict:Delete", systemDictId));
 
     // 库存管理模块（WSM）：super/admin 可见，user 不可见
     Long wsmCatalogId = insertMenu(catalog("Wsm", "库存管理",
@@ -105,27 +132,59 @@ public class DatabaseSeeder implements ApplicationRunner {
         "ic:baseline-inventory", 1, "/wsm/store", "/wsm/store/index", wsmCatalogId,
         false, false).authority("super,admin"));
 
+    // 系统监控模块（Monitor）：super/admin 可见，user 不可见
+    Long monitorCatalogId = insertMenu(catalog("Monitor", "系统监控",
+        "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
+    Long monitorOperLogId = insertMenu(leaf("MonitorOperLog", "操作日志",
+        "ant-design:file-text-outlined", 1, "/monitor/oper-log", "/monitor/oper-log/index",
+        monitorCatalogId, false, false).authority("super,admin"));
+    Long monitorLoginLogId = insertMenu(leaf("MonitorLoginLog", "登录日志",
+        "ant-design:login-outlined", 2, "/monitor/login-log", "/monitor/login-log/index",
+        monitorCatalogId, false, false).authority("super,admin"));
+    Long operLogList = insertMenu(perm("Monitor:OperLog:List", monitorOperLogId));
+    Long operLogDelete = insertMenu(perm("Monitor:OperLog:Delete", monitorOperLogId));
+    Long loginLogList = insertMenu(perm("Monitor:LoginLog:List", monitorLoginLogId));
+    Long loginLogDelete = insertMenu(perm("Monitor:LoginLog:Delete", monitorLoginLogId));
+
     // system 资源（含库存模块）对 super/admin 可见，user 不可见
     java.util.Set<Long> systemSet = java.util.Set.of(systemCatalogId, systemUserId,
-        systemRoleId, systemMenuId, systemUserListId, userAdd, userEdit, userDelete, userResetPwd,
+        systemRoleId, systemMenuId, systemDeptId, systemUserListId, userAdd, userEdit,
+        userDelete, userResetPwd,
         roleAdd, roleEdit, roleDelete, roleAuth,
-        menuAdd, menuEdit, menuDelete, wsmCatalogId, wsmStoreId);
+        menuAdd, menuEdit, menuDelete,
+        deptList, deptAdd, deptEdit, deptDelete,
+        dictList, dictAdd, dictEdit, dictDelete,
+        wsmCatalogId, wsmStoreId,
+        monitorCatalogId, monitorOperLogId, monitorLoginLogId,
+        operLogList, operLogDelete, loginLogList, loginLogDelete);
 
     // ------------------------------------------------------------------
-    // 3. 用户（密码 123456）
+    // 3. 部门种子树：总公司 → 研发部/运营部/仓储部
     // ------------------------------------------------------------------
-    Long vbenId = insertUser("vben", encoder.encode("123456"), "Vben", null);
-    Long adminId = insertUser("admin", encoder.encode("123456"), "Admin", "/workspace");
-    Long jackId = insertUser("jack", encoder.encode("123456"), "Jack", "/analytics");
+    Long hqId = insertDept(0L, "总公司", null, 1);
+    insertDept(hqId, "研发部", null, 1);
+    insertDept(hqId, "运营部", null, 2);
+    Long warehouseId = insertDept(hqId, "仓储部", null, 3);
+
+    // ------------------------------------------------------------------
+    // 4. 用户（密码 123456）
+    // ------------------------------------------------------------------
+    Long vbenId = insertUser("vben", encoder.encode("123456"), "Vben", null, null);
+    Long adminId = insertUser("admin", encoder.encode("123456"), "Admin", "/workspace", null);
+    Long jackId = insertUser("jack", encoder.encode("123456"), "Jack", "/analytics", null);
+    // 受限账号 stockAdmin：归属仓储部，stock 角色（数据范围=本部门及以下，系统管理不可见）
+    Long stockAdminId = insertUser("stockAdmin", encoder.encode("123456"), "StockAdmin",
+        null, warehouseId);
     insertUserRole(vbenId, superRoleId);
     insertUserRole(adminId, adminRoleId);
     insertUserRole(jackId, userRoleId);
+    insertUserRole(stockAdminId, stockRoleId);
 
     // ------------------------------------------------------------------
-    // 4. 角色-菜单授权
+    // 5. 角色-菜单授权
     //   super：全部菜单与权限
     //   admin：全部（含 system 与 wsm，因 authority 含 admin）
-    //   user ：仅公开资源（Dashboard + 不含 systemSet / wsm）
+    //   user / stock：仅公开资源（Dashboard + 不含 systemSet / wsm）
     // ------------------------------------------------------------------
     for (SysMenu m : menuMapper.selectList(null)) {
       Long id = m.getId();
@@ -133,13 +192,28 @@ public class DatabaseSeeder implements ApplicationRunner {
       insertRoleMenu(superRoleId, id);
       // admin：全部
       insertRoleMenu(adminRoleId, id);
-      // user：仅非 systemSet 内资源
+      // user / stock：仅非 systemSet 内资源
       if (!systemSet.contains(id)) {
         insertRoleMenu(userRoleId, id);
+        insertRoleMenu(stockRoleId, id);
       }
     }
+    // stock 额外授权：系统管理目录 + 用户管理菜单 + 查看权限码
+    // （数据范围演示角色：能进用户列表页，但只能看到本部门及以下的数据）
+    insertRoleMenu(stockRoleId, systemCatalogId);
+    insertRoleMenu(stockRoleId, systemUserId);
+    insertRoleMenu(stockRoleId, systemUserListId);
 
-    log.info("种子数据初始化完成。账号：vben/123456(super)、admin/123456(admin)、jack/123456(user)");
+    // ------------------------------------------------------------------
+    // 6. 数据字典种子：库存状态（库存页 useDict('wsm_stock_status') 示例）
+    // ------------------------------------------------------------------
+    insertDictType("wsm_stock_status", "库存状态", "库存条目状态：正常/缺货/预警");
+    insertDictData("wsm_stock_status", "正常", "0", 1);
+    insertDictData("wsm_stock_status", "缺货", "1", 2);
+    insertDictData("wsm_stock_status", "预警", "2", 3);
+
+    log.info("种子数据初始化完成。账号：vben/123456(super)、admin/123456(admin)、"
+        + "jack/123456(user)、stockAdmin/123456(stock,仓储部,数据范围=本部门及以下)");
   }
 
   // ------------------------------------------------------------------
@@ -212,26 +286,39 @@ public class DatabaseSeeder implements ApplicationRunner {
   // 其他 helpers
   // ------------------------------------------------------------------
 
-  private Long insertRole(String key, String name, int sort) {
+  private Long insertRole(String key, String name, int sort, String dataScope) {
     SysRole r = new SysRole();
     r.setRoleKey(key);
     r.setRoleName(name);
     r.setSortNum(sort);
     r.setStatus(0);
+    r.setDataScope(dataScope);
     roleMapper.insert(r);
     return r.getId();
   }
 
   private Long insertUser(String username, String passwordHash, String nickname,
-      String homePath) {
+      String homePath, Long deptId) {
     SysUser u = new SysUser();
     u.setUsername(username);
     u.setPassword(passwordHash);
     u.setNickname(nickname);
     u.setHomePath(homePath);
+    u.setDeptId(deptId);
     u.setStatus(0);
     userMapper.insert(u);
     return u.getId();
+  }
+
+  private Long insertDept(Long parentId, String deptName, String leader, int orderNum) {
+    SysDept d = new SysDept();
+    d.setParentId(parentId);
+    d.setDeptName(deptName);
+    d.setLeader(leader);
+    d.setStatus(0);
+    d.setOrderNum(orderNum);
+    deptMapper.insert(d);
+    return d.getId();
   }
 
   private void insertUserRole(Long userId, Long roleId) {
@@ -246,5 +333,24 @@ public class DatabaseSeeder implements ApplicationRunner {
     rm.setRoleId(roleId);
     rm.setMenuId(menuId);
     roleMenuMapper.insert(rm);
+  }
+
+  private void insertDictType(String dictType, String dictName, String remark) {
+    SysDictType t = new SysDictType();
+    t.setDictType(dictType);
+    t.setDictName(dictName);
+    t.setStatus(0);
+    t.setRemark(remark);
+    dictTypeMapper.insert(t);
+  }
+
+  private void insertDictData(String dictType, String label, String value, int sortNum) {
+    SysDictData d = new SysDictData();
+    d.setDictType(dictType);
+    d.setDictLabel(label);
+    d.setDictValue(value);
+    d.setSortNum(sortNum);
+    d.setStatus(0);
+    dictDataMapper.insert(d);
   }
 }

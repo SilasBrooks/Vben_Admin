@@ -1,6 +1,7 @@
 package com.vben.service.module.system.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.vben.service.common.OperLog;
 import com.vben.service.common.R;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.service.SysRoleAdminService;
@@ -56,13 +57,14 @@ public class SystemRoleController {
     return R.ok(roleService.detail(id));
   }
 
+  @OperLog(module = "角色管理", description = "新增角色")
   @RequirePermission("System:Role:Add")
   @PostMapping("/save")
-  public R<Void> save(@RequestBody SysRole role) {
-    roleService.saveRole(role);
-    return R.ok();
+  public R<Long> save(@RequestBody SysRole role) {
+    return R.ok(roleService.saveRole(role));
   }
 
+  @OperLog(module = "角色管理", description = "编辑角色")
   @RequirePermission("System:Role:Edit")
   @PutMapping("/update")
   public R<Void> update(@RequestBody SysRole role) {
@@ -70,6 +72,7 @@ public class SystemRoleController {
     return R.ok();
   }
 
+  @OperLog(module = "角色管理", description = "删除角色")
   @RequirePermission("System:Role:Delete")
   @DeleteMapping("/{id}")
   public R<Void> remove(@PathVariable Long id) {
@@ -85,11 +88,59 @@ public class SystemRoleController {
   }
 
   /** 分配菜单给角色 */
+  @OperLog(module = "角色管理", description = "分配菜单")
   @RequirePermission("System:Role:Auth")
   @PostMapping("/assign")
   public R<Void> assign(@RequestBody AssignMenuDto dto) {
     roleService.assignMenus(dto.getRoleId(), dto.getMenuIds());
     return R.ok();
+  }
+
+  /** 角色数据范围配置（dataScope + 自定义部门集合，编辑表单回显） */
+  @RequirePermission("System:Role:List")
+  @GetMapping("/data-scope/{roleId}")
+  public R<Map<String, Object>> dataScope(@PathVariable Long roleId) {
+    return R.ok(roleService.dataScopeDetail(roleId));
+  }
+
+  /** 更新角色数据范围 */
+  @OperLog(module = "角色管理", description = "设置数据范围")
+  @RequirePermission("System:Role:Auth")
+  @PutMapping("/data-scope")
+  public R<Void> updateDataScope(@RequestBody DataScopeDto dto) {
+    roleService.updateDataScope(dto.getRoleId(), dto.getDataScope(), dto.getDeptIds());
+    return R.ok();
+  }
+
+  /** 数据范围更新入参 */
+  public static class DataScopeDto {
+    private Long roleId;
+    private String dataScope;
+    private List<Long> deptIds;
+
+    public Long getRoleId() {
+      return roleId;
+    }
+
+    public void setRoleId(Long roleId) {
+      this.roleId = roleId;
+    }
+
+    public String getDataScope() {
+      return dataScope;
+    }
+
+    public void setDataScope(String dataScope) {
+      this.dataScope = dataScope;
+    }
+
+    public List<Long> getDeptIds() {
+      return deptIds;
+    }
+
+    public void setDeptIds(List<Long> deptIds) {
+      this.deptIds = deptIds;
+    }
   }
 
   /** 授权入参 */
