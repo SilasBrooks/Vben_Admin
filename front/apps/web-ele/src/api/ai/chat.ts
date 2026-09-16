@@ -121,6 +121,26 @@ export async function executeAiToolApi(
   return requestClient.post<ExecuteToolResult>('/ai/tool/execute', params);
 }
 
+export interface SummarizeParams {
+  /** 被窗口移出的历史消息 */
+  messages: AiWireMessage[];
+  /** 已有的上一份摘要（可空） */
+  priorSummary?: string;
+}
+
+export interface SummarizeResult {
+  summary: string;
+}
+
+/** 会话滚动摘要：把被窗口移出的历史与已有摘要合并为新摘要（同步，耗时数秒） */
+export async function summarizeAiChatApi(
+  params: SummarizeParams,
+): Promise<SummarizeResult> {
+  return requestClient.post<SummarizeResult>('/ai/chat/summarize', params, {
+    timeout: 30_000,
+  });
+}
+
 // ------------------------------------------------------------------
 
 /** 解析单个 SSE 事件块（event: 名称 + data: JSON） */

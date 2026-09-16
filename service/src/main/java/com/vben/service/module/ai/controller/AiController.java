@@ -29,8 +29,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 /**
  * AI 智能助手接口：
  * <ul>
- *   <li>POST /ai/chat          SSE 流式对话（事件 delta/history/toolcall/done/error）</li>
- *   <li>POST /ai/tool/execute  用户确认后执行写操作</li>
+ *   <li>POST /ai/chat            SSE 流式对话（事件 delta/history/toolcall/done/error）</li>
+ *   <li>POST /ai/chat/summarize  会话滚动摘要（被窗口移出的历史与已有摘要合并）</li>
+ *   <li>POST /ai/tool/execute    用户确认后执行写操作</li>
  * </ul>
  * 均要求登录；细粒度权限在工具执行器内按权限码校验。
  */
@@ -62,6 +63,13 @@ public class AiController {
   }
 
   public record ToolExecuteVo(boolean ok, String summary) {
+  }
+
+  /** 摘要请求：priorSummary 为已有摘要（可空），messages 为被窗口移出的历史轮次 */
+  public record SummarizeDto(String priorSummary, List<AiMessageDto> messages) {
+  }
+
+  public record SummarizeVo(String summary) {
   }
 
   @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -113,6 +121,13 @@ public class AiController {
     String argsJson = dto.args() == null ? "{}" : dto.args().toString();
     AiToolResult result = toolExecutor.runStrict(dto.toolName(), argsJson);
     return R.ok(new ToolExecuteVo(true, result.summary()));
+  }
+
+  /** 会话滚动摘要：把被窗口移出的历史与已有摘要合并为一份新摘要（同步返回） */
+  @PostMapping("/chat/summarize")
+  public R<SummarizeVo> summarize(@RequestBody SummarizeDto dto) {
+    List<DeepMessage> inbound = toDeepMessages(dto.messages());
+    return R.ok(new SummarizeVo(chatService.summarize(dto.priorSummary(), inbound)));
   }
 
   // ------------------------------------------------------------------

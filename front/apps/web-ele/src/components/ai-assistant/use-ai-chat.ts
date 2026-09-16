@@ -1,11 +1,20 @@
 import { ref } from 'vue';
 
+import { useUserStore } from '@vben/stores';
+
 import {
   executeAiToolApi,
   streamAiChat,
+  summarizeAiChatApi,
   type AiToolCallPayload,
   type AiWireMessage,
 } from '#/api/ai/chat';
+
+import {
+  buildContextWindow,
+  MAX_WINDOW_MESSAGES,
+  type WindowMessage,
+} from './context-window';
 
 /** 确认卡片状态 */
 export type ToolCardStatus =
@@ -43,16 +52,33 @@ function nextId() {
   return messageIdSeed++;
 }
 
+/** 本地持久化 key 前缀（按用户 id 隔离），v1 为结构版本 */
+const STORAGE_PREFIX = 'vben-ai-chat-v1:';
+/** 本地最多持久化的消息条数（超出裁掉最旧头部） */
+const MAX_PERSISTED_MESSAGES = 500;
+
 /**
  * AI 会话编排：消息状态、流式生命周期（单航道 AbortController）、
- * 写操作确认/取消后的二轮对话驱动。
+ * 写操作确认/取消后的二轮对话驱动、超窗滚动摘要（见 context-window.ts）、
+ * 本地持久化（刷新后恢复，按用户隔离）。
  */
 export function useAiChat() {
+  const userStore = useUserStore();
+  const storageKey = `${STORAGE_PREFIX}${userStore.userInfo?.userId ?? 'anon'}`;
+
   const messages = ref<AiChatMessage[]>([]);
+  /** 滚动摘要：覆盖已移出窗口的历史轮次，随每次请求以 system 消息注入 */
+  const summary = ref('');
+  /** 摘要覆盖进度：messages 前 covered 条已被摘要或移出窗口 */
+  let covered = 0;
+  /** 是否正在生成摘要（防并发重复调用） */
+  let summarizing = false;
   const loading = ref(false);
   let controller: AbortController | null = null;
   /** 当前流式气泡 id（delta 归属） */
   let activeId: null | number = null;
+
+  restore();
 
   function stop() {
     controller?.abort();
@@ -67,6 +93,13 @@ export function useAiChat() {
     loading.value = false;
     activeId = null;
     messages.value = [];
+    summary.value = '';
+    covered = 0;
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // 存储不可用时忽略
+    }
   }
 
   /** 发送一条用户消息，或不带参数地继续会话（确认/取消后的二轮调用） */
@@ -78,12 +111,48 @@ export function useAiChat() {
       messages.value.push({ id: nextId(), role: 'user', content: text.trim() });
     }
 
+    // 超窗时先滚动摘要；失败降级为直接截断，不阻断当前提问
+    const plan = buildContextWindow(
+      messages.value,
+      covered,
+      MAX_WINDOW_MESSAGES,
+    );
+    if (plan.dropped.length > 0 && !summarizing) {
+      summarizing = true;
+      try {
+        const { summary: merged } = await summarizeAiChatApi({
+          messages: plan.dropped.map((m) => toWireMessage(m)),
+          priorSummary: summary.value,
+        });
+        summary.value = merged;
+        covered = plan.covered;
+      } catch {
+        // 摘要失败：旧轮次直接移出窗口（摘要不更新），对话照常继续
+        covered = plan.covered;
+      } finally {
+        summarizing = false;
+      }
+    } else if (plan.dropped.length === 0) {
+      covered = plan.covered;
+    }
+    // 摘要进行中（并发发送）：covered 保持不变，下轮重试摘要
+
+    // 摘要作为 system 元上下文注入，仅存在于发送载荷，不进 UI 列表
+    const wire: AiWireMessage[] = [];
+    if (summary.value) {
+      wire.push({
+        content: `【此前对话摘要】\n${summary.value}`,
+        role: 'system',
+      });
+    }
+    wire.push(...plan.window.map((m) => toWireMessage(m)));
+
     controller = new AbortController();
     loading.value = true;
     activeId = null;
 
     await streamAiChat(
-      toWireMessages(messages.value),
+      wire,
       {
         onDelta: (delta) => {
           const bubble = ensureActiveBubble();
@@ -124,6 +193,8 @@ export function useAiChat() {
     } catch (error: any) {
       card.status = 'error';
       card.errorMsg = error?.message || '执行失败，请稍后重试';
+    } finally {
+      persist();
     }
   }
 
@@ -169,6 +240,7 @@ export function useAiChat() {
     finalizeActive();
     loading.value = false;
     controller = null;
+    persist();
   }
 
   /**
@@ -240,25 +312,69 @@ export function useAiChat() {
     });
   }
 
-  /** UI 消息 → 线上协议消息；截断最近 20 条 */
-  function toWireMessages(list: AiChatMessage[]): AiWireMessage[] {
-    return list.slice(-20).map((m) => {
-      const wire: AiWireMessage = {
-        content: m.content ?? null,
-        role: m.role,
+  /** 单条 UI 消息 → 线上协议消息（接受窗口模块的结构化类型） */
+  function toWireMessage(m: WindowMessage): AiWireMessage {
+    const wire: AiWireMessage = {
+      content: m.content ?? null,
+      role: m.role,
+    };
+    if (m.toolCalls?.length) {
+      wire.tool_calls = m.toolCalls.map((tc) => ({
+        function: { arguments: tc.arguments, name: tc.name },
+        id: tc.id,
+        type: 'function' as const,
+      }));
+    }
+    if (m.toolCallId) {
+      wire.tool_call_id = m.toolCallId;
+    }
+    return wire;
+  }
+
+  /** 刷新后恢复会话（消息、摘要、覆盖进度），id 种子续号 */
+  function restore() {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+      const data = JSON.parse(raw) as {
+        covered?: number;
+        messages?: AiChatMessage[];
+        summary?: string;
+        v?: number;
       };
-      if (m.toolCalls?.length) {
-        wire.tool_calls = m.toolCalls.map((tc) => ({
-          function: { arguments: tc.arguments, name: tc.name },
-          id: tc.id,
-          type: 'function' as const,
-        }));
-      }
-      if (m.toolCallId) {
-        wire.tool_call_id = m.toolCallId;
-      }
-      return wire;
-    });
+      if (data?.v !== 1 || !Array.isArray(data.messages)) return;
+      messages.value = data.messages;
+      summary.value = typeof data.summary === 'string' ? data.summary : '';
+      covered = Math.min(
+        Math.max(Math.trunc(data.covered ?? 0) || 0, 0),
+        messages.value.length,
+      );
+      const maxId = messages.value.reduce((m, x) => Math.max(m, x?.id ?? 0), 0);
+      messageIdSeed = Math.max(messageIdSeed, maxId + 1);
+    } catch {
+      // 本地数据损坏时忽略，使用全新会话
+    }
+  }
+
+  /** 持久化到本地存储（轮次结束/卡片终态时触发，不在流式 delta 中频繁写入） */
+  function persist() {
+    try {
+      // 上限保护：裁掉最旧头部，同步平移摘要覆盖进度
+      let list = messages.value;
+      const trim = Math.max(0, list.length - MAX_PERSISTED_MESSAGES);
+      if (trim > 0) list = list.slice(trim);
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({
+          covered: Math.max(0, covered - trim),
+          messages: list,
+          summary: summary.value,
+          v: 1,
+        }),
+      );
+    } catch {
+      // 存储满/禁用等场景忽略
+    }
   }
 
   return {

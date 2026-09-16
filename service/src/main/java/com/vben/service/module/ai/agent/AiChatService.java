@@ -1,5 +1,6 @@
 package com.vben.service.module.ai.agent;
 
+import com.vben.service.module.ai.client.AiUpstreamException;
 import com.vben.service.module.ai.client.CancelToken;
 import com.vben.service.module.ai.client.DeepMessage;
 import com.vben.service.module.ai.client.DeepSeekClient;
@@ -33,8 +34,11 @@ public class AiChatService {
 
   /** 单条用户消息最大字符数 */
   private static final int MAX_MESSAGE_CHARS = 1000;
-  /** 回传历史消息条数上限（不含本轮新输入由前端保证，此处再兜底） */
-  private static final int MAX_HISTORY_MESSAGES = 20;
+  /**
+   * 回传历史消息条数兜底上限（正常由前端窗口保证 ≤50 并按轮截断，
+   * 此处仅作服务端防线，略大于前端窗口；裁剪时清理孤立 tool 消息保证协议配对）。
+   */
+  private static final int MAX_HISTORY_MESSAGES = 60;
 
   private static final String SYSTEM_PROMPT = """
       你是 sgy 管理系统内置的智能助手，通过对话帮助用户完成系统管理操作。
@@ -138,6 +142,85 @@ public class AiChatService {
       }
       // 仅查询工具：带着结果继续下一轮模型调用
     }
+  }
+
+  /**
+   * 会话滚动摘要：把「已有摘要 + 本批被移出窗口的历史」合并为一份新摘要（同步调用）。
+   * 由前端在历史超窗时调用；服务端不保存任何会话状态。
+   */
+  public String summarize(String priorSummary, List<DeepMessage> history) {
+    StringBuilder prompt = new StringBuilder();
+    if (priorSummary != null && !priorSummary.isBlank()) {
+      prompt.append("【已有摘要】\n").append(priorSummary.trim()).append("\n\n");
+    }
+    prompt.append("【新增对话】\n");
+    List<DeepMessage> list = history == null ? List.of() : history;
+    // 超长兜底：最多取最近 80 条进入摘要，控制成本
+    int skipped = Math.max(0, list.size() - MAX_SUMMARY_MESSAGES);
+    if (skipped > 0) {
+      prompt.append("（更早的 ").append(skipped).append(" 条已略）\n");
+    }
+    for (int i = skipped; i < list.size(); i++) {
+      DeepMessage m = list.get(i);
+      String content = m.getContent() == null ? "" : m.getContent();
+      switch (m.getRole()) {
+        case "user" -> prompt.append("用户：").append(truncate(content, 500)).append('\n');
+        case "assistant" -> {
+          if (m.getToolCalls() != null && !m.getToolCalls().isEmpty()) {
+            StringBuilder names = new StringBuilder();
+            for (ToolCall tc : m.getToolCalls()) {
+              if (names.length() > 0) {
+                names.append('、');
+              }
+              names.append(tc.function().name());
+            }
+            prompt.append("助手：[调用工具 ").append(names).append("]\n");
+          } else {
+            prompt.append("助手：").append(truncate(content, 500)).append('\n');
+          }
+        }
+        case "tool" -> prompt.append("工具结果：").append(truncate(content, 120)).append('\n');
+        default -> {
+          // 忽略 system 等其他角色
+        }
+      }
+    }
+
+    StringBuilder summary = new StringBuilder();
+    deepSeekClient.streamChat(
+        List.of(DeepMessage.system(SUMMARY_SYSTEM_PROMPT), DeepMessage.user(prompt.toString())),
+        List.of(),
+        new StreamHandler() {
+          @Override
+          public void onText(String delta) {
+            summary.append(delta);
+          }
+
+          @Override
+          public void onToolCalls(List<ToolCall> toolCalls) {
+            // 摘要请求不提供工具，不会触发
+          }
+        },
+        new CancelToken());
+    String result = summary.toString().trim();
+    if (result.isEmpty()) {
+      throw new AiUpstreamException("AI 摘要生成失败，请稍后重试");
+    }
+    return result;
+  }
+
+  /** 摘要系统提示词：合并式压缩，只保留结论性信息 */
+  private static final String SUMMARY_SYSTEM_PROMPT = """
+      你是管理后台 AI 助手的会话摘要器。把给定对话与已有摘要合并为一份不超过 300 字的中文摘要，
+      保留：用户关注的对象与目标、已执行的操作及其结果、关键参数（如用户/角色/菜单名称）、未完成事项。
+      只输出摘要正文，不要任何解释、前缀或格式标记；禁止编造对话中不存在的信息。
+      """;
+
+  /** 摘要输入最多包含的消息条数 */
+  private static final int MAX_SUMMARY_MESSAGES = 80;
+
+  private static String truncate(String text, int max) {
+    return text.length() <= max ? text : text.substring(0, max) + "…";
   }
 
   /**
