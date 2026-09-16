@@ -13,10 +13,10 @@ spring:
       # PG 会把小写标识符折叠，关闭种子初始化时的继续报错行为由应用自行处理
       continue-on-error: false
 
-# DeepSeek 大模型（AI 智能助手）；api-key 仅存后端，生产用 DEEPSEEK_API_KEY 环境变量注入
+# DeepSeek 大模型（AI 智能助手）；api-key 仅存后端，通过 DEEPSEEK_API_KEY 环境变量注入（不在仓库中保存任何真实 Key）
 deepseek:
   base-url: https://api.deepseek.com
-  api-key: ${DEEPSEEK_API_KEY:sk-8921d783b2e04d398e5a21a0410115eb}
+  api-key: ${DEEPSEEK_API_KEY:}
   model: deepseek-chat
   timeout-seconds: 60
   max-tool-rounds: 3

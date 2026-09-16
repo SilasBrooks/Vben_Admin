@@ -1,0 +1,25 @@
+# ---- IDE / 编辑器 ----
+.trae/
+.idea/
+*.iml
+
+# ---- 操作系统 ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ---- 本地数据 / 日志（早期 H2 数据库文件与临时运行日志）----
+/data/
+*.mv.db
+*.trace.db
+*.log
+
+# ---- 构建产物 ----
+target/
+node_modules/
+dist/
+.turbo/
+coverage/
+
+# ---- 本地环境文件 ----
+*.local
