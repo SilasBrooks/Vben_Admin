@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vben.service.common.OperLog;
 import com.vben.service.common.R;
+import com.vben.service.common.ratelimit.RateLimit;
 import com.vben.service.module.ai.agent.AiChatService;
 import com.vben.service.module.ai.agent.AiChatSink;
 import com.vben.service.module.ai.agent.PendingToolCall;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +39,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @Slf4j
 @RestController
+@Tag(name = "AI 助手", description = "AI 对话（SSE 流式）、工具执行确认、会话摘要")
 @RequestMapping("/ai")
 @RequiredArgsConstructor
 public class AiController {
@@ -72,6 +75,7 @@ public class AiController {
   public record SummarizeVo(String summary) {
   }
 
+  @RateLimit(name = "ai:chat", limit = 10, windowSeconds = 60, scope = RateLimit.Scope.USER)
   @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
   public SseEmitter chat(@RequestBody AiChatDto dto) {
     // 在请求线程捕获登录用户，传播到异步工作线程（LoginUserHolder 是 ThreadLocal）

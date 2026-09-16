@@ -29,11 +29,13 @@
 | 模块 | 内容 |
 |---|---|
 | 认证 | 登录 / 双 Token 刷新 / 登出 / BCrypt 密码加密 |
+| 登录安全 | 服务端图形验证码（一次性 + 2 分钟有效期）、失败锁定（用户名/IP 双维度 15 分钟 5 次）、声明式接口限流 `@RateLimit` |
 | 系统管理 | 用户、角色、菜单、部门管理（CRUD + 树形结构 + 分页） |
 | 权限 | 按钮级 RBAC 权限码、菜单驱动动态路由、角色授权 |
 | 数据权限 | 部门粒度行级数据隔离（stockAdmin 角色为演示账号） |
 | 监控 | 操作日志、登录日志（声明式采集） |
 | 数据字典 | 可维护字典 + 前端 `useDict` hook（自动缓存共享） |
+| API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
 
 ## 快速开始
@@ -108,10 +110,10 @@ pnpm dev
 ### 安全红线（部署/公开前必做）
 
 1. **更换 JWT 密钥**：`application.yml` 中 `vben.jwt.*-token-secret` 是占位值，生产必须替换为至少 32 字节随机串，且 access/refresh 使用不同密钥
-2. **大模型 Key 不要入库**：`application-dev.yml` 中的 `deepseek.api-key` 有一个开发用默认值——**公开仓库或交付前必须删除该默认值**，仅通过环境变量 `DEEPSEEK_API_KEY` 注入，并到 DeepSeek 控制台撤销已暴露的 Key
+2. **大模型 Key 只走环境变量**：配置已无默认 Key（`${DEEPSEEK_API_KEY:}`），本地启动前需 `setx DEEPSEEK_API_KEY "<你的Key>"` 后重开终端；**历史提交中出现过旧 Key，公开仓库前必须到 DeepSeek 控制台作废**
 3. **修改默认账号密码**：vben / stockAdmin 等种子账号仅用于演示
 4. 数据库密码、Cookie 安全策略（`same-site`/`secure`）按部署形态调整：本地 http 用 `Lax + false`，https 跨域部署用 `None + true`
-5. 生产配置切 `application-prod.yml`（MySQL），关闭 MyBatis-Plus SQL 控制台打印
+5. 生产配置切 `application-prod.yml`（MySQL），关闭 MyBatis-Plus SQL 控制台打印；prod 已自动关闭 API 文档端点
 
 ### 开发须知（踩坑经验）
 
@@ -125,7 +127,8 @@ pnpm dev
 ### 生产部署 Checklist
 
 - [ ] 更换 JWT 密钥、数据库密码、所有默认账号密码
-- [ ] `DEEPSEEK_API_KEY` 环境变量注入，删除 yml 内默认 Key
+- [ ] `DEEPSEEK_API_KEY` 环境变量注入（配置无默认值）；作废历史提交中暴露过的旧 Key
+- [ ] 确认 `vben.captcha.echo-enabled` 为 false（prod 默认关闭，勿在 prod 开启验证码回显）
 - [ ] `application-prod.yml`（MySQL）并执行对应 schema
 - [ ] 前端 `pnpm build:ele` 产物走 nginx，`/api` 反代到 8080
 - [ ] Cookie `same-site=None + secure=true`

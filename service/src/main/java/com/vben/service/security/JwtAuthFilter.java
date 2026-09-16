@@ -32,7 +32,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
   /** 无需认证的路径（相对 context-path） */
   private static final List<String> WHITE_LIST =
-      List.of("/auth/login", "/auth/refresh", "/auth/logout", "/h2-console/**", "/error");
+      List.of("/auth/login", "/auth/captcha", "/auth/refresh", "/auth/logout", "/h2-console/**",
+          "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html");
 
   private final JwtTokenService jwtTokenService;
   private final SysPermissionService permissionService;

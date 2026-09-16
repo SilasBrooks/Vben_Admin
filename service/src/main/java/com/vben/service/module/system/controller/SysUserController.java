@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
  * password 字段在所有出参中已清空。
  */
 @RestController
+@Tag(name = "系统用户", description = "用户管理：增删改查、重置密码、分配角色")
 @RequestMapping("/system/user")
 @RequiredArgsConstructor
 public class SysUserController {

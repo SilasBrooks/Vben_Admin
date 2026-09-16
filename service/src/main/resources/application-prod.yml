@@ -17,6 +17,13 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
 
+springdoc:
+  # 生产环境关闭 API 文档（端点返回 404）
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 vben:
   jwt:
     access-token-secret: "${VBEN_JWT_ACCESS_SECRET}"

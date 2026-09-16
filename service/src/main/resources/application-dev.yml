@@ -20,3 +20,8 @@ deepseek:
   model: deepseek-chat
   timeout-seconds: 60
   max-tool-rounds: 3
+
+# 开发联调：登录验证码接口回显明文（dev 专用，生产不开启）
+vben:
+  captcha:
+    echo-enabled: true

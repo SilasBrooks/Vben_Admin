@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * </ul>
  */
 @RestController
+@Tag(name = "系统部门", description = "部门管理：树查询、增删改查")
 @RequestMapping("/system/dept")
 @RequiredArgsConstructor
 public class SystemDeptController {

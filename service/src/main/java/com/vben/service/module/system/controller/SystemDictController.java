@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>options 接口仅要求登录（业务下拉人人可用，不含敏感信息）。
  */
 @RestController
+@Tag(name = "数据字典", description = "字典类型与字典项管理")
 @RequestMapping("/system/dict")
 @RequiredArgsConstructor
 public class SystemDictController {

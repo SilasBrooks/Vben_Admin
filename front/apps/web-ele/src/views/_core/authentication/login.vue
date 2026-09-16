@@ -3,40 +3,68 @@ import type { VbenFormSchema } from '@vben/common-ui';
 
 import { computed, ref } from 'vue';
 
-import { AuthenticationLogin, SliderTranslateCaptcha, useVbenModal, z } from '@vben/common-ui';
+import { AuthenticationLogin, useVbenModal, z } from '@vben/common-ui';
+import { ElInput } from 'element-plus';
 import { $t } from '@vben/locales';
 
+import { getCaptchaApi } from '#/api';
 import { useAuthStore } from '#/store';
 
 defineOptions({ name: 'Login', inheritAttrs: false });
 
 const authStore = useAuthStore();
 
-// 拼图验证码弹窗：点登录 → 校验账号密码 → 弹拼图 → 通过后才真正调登录接口
-const captchaPassed = ref(false);
+// 服务端图形验证码弹窗：点登录 → 校验账号密码格式 → 弹出验证码 → 输码确认后才真正调登录接口
 const pendingLoginValues = ref<Record<string, any> | null>(null);
+const captchaImage = ref('');
+const captchaCode = ref('');
+const captchaId = ref('');
+const captchaLoading = ref(false);
 
 const [CaptchaModal, captchaModalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
-    if (!isOpen) {
-      // 关闭时重置通过标志，下次需重新验证
-      captchaPassed.value = false;
+    if (isOpen) {
+      // 每次弹窗打开都取新验证码
+      refreshCaptcha();
+    } else {
+      captchaCode.value = '';
+      captchaId.value = '';
+      captchaImage.value = '';
     }
   },
   onConfirm: handleCaptchaConfirm,
 });
 
+async function refreshCaptcha() {
+  captchaLoading.value = true;
+  try {
+    const res = await getCaptchaApi();
+    captchaId.value = res.captchaId;
+    captchaImage.value = res.image;
+    captchaCode.value = '';
+  } finally {
+    captchaLoading.value = false;
+  }
+}
+
 function handleCaptchaConfirm() {
-  if (!captchaPassed.value) {
+  if (!captchaCode.value) {
     return;
   }
   captchaModalApi.lock();
-  // 真正调登录接口
-  authStore.authLogin(pendingLoginValues.value ?? {}).finally(() => {
-    captchaModalApi.unlock();
-    captchaModalApi.close();
-    pendingLoginValues.value = null;
-  });
+  // 真正调登录接口：携带验证码；失败（如验证码错）保持弹窗并换码重试
+  authStore
+    .authLogin({
+      ...(pendingLoginValues.value ?? {}),
+      captchaId: captchaId.value,
+      captchaCode: captchaCode.value,
+    })
+    .then(() => {
+      captchaModalApi.close();
+      pendingLoginValues.value = null;
+    })
+    .catch(() => refreshCaptcha())
+    .finally(() => captchaModalApi.unlock());
 }
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -63,19 +91,12 @@ const formSchema = computed((): VbenFormSchema[] => {
 });
 
 /**
- * 登录按钮提交：先校验表单，通过则弹出拼图验证码。
+ * 登录按钮提交：先校验表单，通过则弹出验证码弹窗。
  * AuthenticationLogin 内部会先 formApi.validate()，valid 才 emit('submit', values)。
  */
 function handleSubmit(values: Record<string, any>) {
   pendingLoginValues.value = values;
-  captchaPassed.value = false;
   captchaModalApi.open();
-}
-
-function onCaptchaSuccess() {
-  captchaPassed.value = true;
-  // 自动触发确认（用户也可手动点弹窗的"确定"）
-  handleCaptchaConfirm();
 }
 </script>
 
@@ -90,20 +111,34 @@ function onCaptchaSuccess() {
     />
 
     <CaptchaModal
-      :title="$t('ui.captcha.sliderTranslateDefaultTip')"
+      title="请输入图形验证码"
       :show-cancel-button="true"
       :show-confirm-button="true"
-      :confirm-disabled="!captchaPassed"
-      class="w-[420px]"
+      :confirm-disabled="!captchaCode"
+      class="w-[400px]"
     >
       <div class="py-2">
-        <!-- 本地图片：避免依赖外网 picsum 导致验证码图挂掉 -->
-        <SliderTranslateCaptcha
-          src="/captcha-bg.jpg"
-          :canvas-width="360"
-          :canvas-height="220"
-          :diff-distance="5"
-          @success="onCaptchaSuccess"
+        <!-- 点击图片刷新验证码 -->
+        <div class="cursor-pointer" title="点击刷新" @click="refreshCaptcha">
+          <img
+            v-if="captchaImage && !captchaLoading"
+            :src="captchaImage"
+            alt="验证码"
+            class="h-[52px] w-full rounded-md border"
+          />
+          <div
+            v-else
+            class="flex h-[52px] w-full items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground"
+          >
+            验证码加载中…
+          </div>
+        </div>
+
+        <ElInput
+          v-model="captchaCode"
+          class="mt-3"
+          placeholder="请输入图中的 4 位字符（不区分大小写）"
+          @keyup.enter="handleCaptchaConfirm"
         />
       </div>
     </CaptchaModal>

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>权限码：System:Role:List / Add / Edit / Delete / Auth（分配菜单）。
  */
 @RestController
+@Tag(name = "系统角色", description = "角色管理：增删改查、菜单授权、分配数据权限")
 @RequestMapping("/system/role")
 @RequiredArgsConstructor
 public class SystemRoleController {

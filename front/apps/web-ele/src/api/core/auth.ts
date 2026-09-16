@@ -5,6 +5,19 @@ export namespace AuthApi {
   export interface LoginParams {
     password?: string;
     username?: string;
+    /** 服务端图形验证码 id（GET /auth/captcha 返回） */
+    captchaId?: string;
+    /** 用户输入的验证码 */
+    captchaCode?: string;
+  }
+
+  /** 图形验证码返回值 */
+  export interface CaptchaResult {
+    captchaId: string;
+    /** base64 PNG（data:image/png;base64,...） */
+    image: string;
+    /** 开发联调回显明文（生产 profile 为空） */
+    devCode?: string;
   }
 
   /** 登录接口返回值 */
@@ -16,6 +29,13 @@ export namespace AuthApi {
     data: string;
     status: number;
   }
+}
+
+/**
+ * 获取登录图形验证码（2 分钟有效、一次性使用）
+ */
+export async function getCaptchaApi() {
+  return requestClient.get<AuthApi.CaptchaResult>('/auth/captcha');
 }
 
 /**

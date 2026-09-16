@@ -30,4 +30,9 @@ public class BizException extends RuntimeException {
   public static BizException badRequest(String message) {
     return new BizException(400, message);
   }
+
+  /** 429：请求过于频繁（限流 / 登录锁定） */
+  public static BizException tooManyRequests(String message) {
+    return new BizException(429, message);
+  }
 }
