@@ -9,7 +9,7 @@
 ## 项目亮点
 
 - **按钮级 RBAC + 动态路由**：菜单驱动前端路由生成，接口层自定义拦截器按权限码（如 `System:User:Add`）校验，前端按钮用 `v-access:code` 指令同步显隐，前后端权限一码贯通
-- **JWT 双 Token 无状态认证**：accessToken 走响应体、refreshToken 走 httpOnly Cookie，服务端零会话存储，水平扩展友好
+- **JWT 双 Token + token 版本号即时失效**：accessToken 走响应体、refreshToken 走 httpOnly Cookie；改密/重置密码/禁用用户/强制下线通过 Redis 中的版本号让已签发 token 立即作废，兼顾无状态水平扩展与"服务端可控失效"
 - **数据权限（行级）**：`@DataScope` 注解 + AOP 切面 + ThreadLocal 上下文，按部门/角色动态改写 SQL 过滤范围，支持"仅本人/本部门/本部门及以下/自定义"多种粒度
 - **AI 智能助手**：DeepSeek 流式 SSE + 工具调用（Function Call）Agent 编排——查询类工具自动执行回喂，写操作类工具生成确认卡片、用户确认后才落库；服务端按权限码双重校验；会话支持按轮截断 + 滚动摘要 + 本地持久化
 - **声明式操作审计**：`@OperLog` 注解 + 切面自动记录操作人/入参/结果/耗时/IP，密码字段自动脱敏，异步落库不影响主流程
@@ -21,6 +21,7 @@
 |---|---|
 | 后端 | Java 21、Spring Boot 3.5.6、MyBatis-Plus 3.5.12、JJWT 0.12.6、spring-security-crypto（BCrypt） |
 | 数据库 | PostgreSQL 18（开发，Docker）、MySQL（生产就绪，`schema-mysql.sql`） |
+| 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话（集中式状态，重启不丢、多实例共享） |
 | 前端 | Vue 3、Vite、Element Plus、Pinia、Vue Router、Vben Admin 5.7 monorepo（pnpm + turbo） |
 | AI | DeepSeek Chat（OpenAI 兼容协议，SSE 流式 + Function Call） |
 
@@ -28,12 +29,12 @@
 
 | 模块 | 内容 |
 |---|---|
-| 认证 | 登录 / 双 Token 刷新 / 登出 / BCrypt 密码加密 |
-| 登录安全 | 服务端图形验证码（一次性 + 2 分钟有效期）、失败锁定（用户名/IP 双维度 15 分钟 5 次）、声明式接口限流 `@RateLimit` |
+| 认证 | 登录 / 双 Token 刷新 / 登出 / BCrypt 密码加密 / 凭证变更与强退后旧 token 即时失效（版本号机制） |
+| 登录安全 | 服务端图形验证码（一次性 + 2 分钟有效期）、失败锁定（用户名/IP 双维度 15 分钟 5 次）、声明式接口限流 `@RateLimit`——状态存 Redis，重启不丢、多实例共享 |
 | 系统管理 | 用户、角色、菜单、部门管理（CRUD + 树形结构 + 分页） |
 | 权限 | 按钮级 RBAC 权限码、菜单驱动动态路由、角色授权 |
 | 数据权限 | 部门粒度行级数据隔离（stockAdmin 角色为演示账号） |
-| 监控 | 操作日志、登录日志（声明式采集） |
+| 监控 | 操作日志、登录日志（声明式采集）、在线用户（实时会话列表 + 强制下线） |
 | 数据字典 | 可维护字典 + 前端 `useDict` hook（自动缓存共享） |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
@@ -44,15 +45,17 @@
 
 - JDK 21、Maven 3.9+（全局安装即可）
 - Node.js 20+、pnpm 9+
-- Docker（运行 PostgreSQL）
+- Docker（运行 PostgreSQL 与 Redis）
 
-### 1. 启动数据库
+### 1. 启动数据库与 Redis
 
 ```bash
 docker run -d --name vben5 -p 5444:5432 -e POSTGRESQL_PASSWORD=123456 -e POSTGRESQL_DATABASE=vben5 bitnami/postgresql:18
+docker run -d --name vben-redis -p 6379:6379 redis:7-alpine   # 国内拉不动可换镜像源，如 docker.1ms.run/library/redis:8.8.0
 ```
 
 > 表结构与种子数据由后端启动时自动执行（`schema-postgres.sql` + `data.sql`，全部幂等可重复执行）。
+> Redis 承载验证码/登录锁定/限流/token 版本号/在线会话，后端启动时连不上会直接失败。
 
 ### 2. 启动后端（端口 8080）
 
@@ -117,7 +120,8 @@ pnpm dev
 
 ### 开发须知（踩坑经验）
 
-- **先起 Docker 再起后端**：PostgreSQL 跑在容器 `vben5`（端口 5444），后端启动时连不上会直接失败
+- **先起 Docker 再起后端**：PostgreSQL 跑在容器 `vben5`（端口 5444）、Redis 跑在容器 `vben-redis`（端口 6379），任一容器未启动后端都会直接失败
+- **Redis 不要随意 FLUSHALL**：token 版本号与在线会话存于 Redis，清空会让已"踢下线/改密"用户的旧 token 重新变为有效（回到自然过期语义）
 - **前端端口固定用 5777**：后端 CORS 白名单只放行 `localhost:5777` / `5666`（`application.yml > vben.cors`），换端口会被拦截
 - **不要用数据库触发器填充时间字段**：Spring SQL 初始化器按分号切 SQL 会截断 PostgreSQL `$$...$$` 函数体，createTime/updateTime 由 `MetaObjectHandler` 在应用层自动填充
 - **AI 会话窗口必须按轮截断**：禁止按消息条数硬切（会把 `tool_calls` 与 `tool` 结果拆散导致上游 400），窗口逻辑见 `front/apps/web-ele/src/components/ai-assistant/context-window.ts`

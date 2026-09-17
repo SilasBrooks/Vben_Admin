@@ -1,4 +1,9 @@
 spring:
+  data:
+    # Redis：验证码/登录锁定/限流/token 版本号/在线会话的集中式存储（本地容器 vben-redis :6379）
+    redis:
+      host: 127.0.0.1
+      port: 6379
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://127.0.0.1:5444/vben5

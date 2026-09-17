@@ -15,6 +15,8 @@ import com.vben.service.module.system.service.SysPermissionService;
 import com.vben.service.security.JwtTokenService;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
+import com.vben.service.security.OnlineSessionService;
+import com.vben.service.security.TokenVersionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -48,6 +50,8 @@ public class AuthController {
   private final MonitorLoginLogService loginLogService;
   private final CaptchaService captchaService;
   private final LoginAttemptService loginAttemptService;
+  private final TokenVersionService tokenVersionService;
+  private final OnlineSessionService onlineSessionService;
 
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -90,11 +94,14 @@ public class AuthController {
 
     List<String> roles = userMapper.selectRoleKeysByUserId(user.getId());
     loginLogService.record(user.getUsername(), true, "登录成功", request);
+    long ver = tokenVersionService.current(user.getId());
     String accessToken =
-        jwtTokenService.generateAccessToken(user.getId(), user.getUsername(), roles);
+        jwtTokenService.generateAccessToken(user.getId(), user.getUsername(), roles, ver);
     String refreshToken =
-        jwtTokenService.generateRefreshToken(user.getId(), user.getUsername(), roles);
+        jwtTokenService.generateRefreshToken(user.getId(), user.getUsername(), roles, ver);
     cookieService.write(response, refreshToken);
+    // 登记在线会话（覆盖旧会话 → 同账号单会话语义）
+    onlineSessionService.register(user.getId(), user.getUsername(), user.getNickname(), ip, ver);
 
     return R.ok(LoginResult.builder()
         .id(user.getId())
@@ -128,21 +135,42 @@ public class AuthController {
       cookieService.clear(response);
       throw BizException.forbidden("Forbidden Exception");
     }
+    // refresh 同样校验版本号：被改密/禁用/强退用户的 refreshToken 无法换发新 accessToken
+    long currentVer;
+    try {
+      currentVer = tokenVersionService.current(user.getUserId());
+    } catch (org.springframework.dao.DataAccessException e) {
+      // fail-closed：版本读取失败视为凭证无效
+      cookieService.clear(response);
+      throw BizException.forbidden("Forbidden Exception");
+    }
+    if (payload.getTokenVersion() != currentVer) {
+      cookieService.clear(response);
+      throw BizException.forbidden("Forbidden Exception");
+    }
 
     String newAccessToken =
         jwtTokenService.generateAccessToken(user.getUserId(), user.getUsername(),
-            user.getRoles());
+            user.getRoles(), currentVer);
     // 续期 refresh cookie
     cookieService.write(response, refreshToken);
     return newAccessToken;
   }
 
   /**
-   * 登出：清除 refreshToken Cookie。幂等，未登录也返回成功。
+   * 登出：清除 refreshToken Cookie 并移除在线会话。幂等，未登录也返回成功。
    */
-  @Operation(summary = "登出", description = "清除 refreshToken Cookie；幂等")
+  @Operation(summary = "登出", description = "清除 refreshToken Cookie 并移除在线会话；幂等")
   @PostMapping("/logout")
   public R<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    // logout 在白名单中不经过认证过滤器，这里尽力解析 access token 以定位在线会话
+    String header = request.getHeader("Authorization");
+    if (header != null && header.startsWith("Bearer ")) {
+      LoginUser payload = jwtTokenService.parseAccessToken(header.substring(7));
+      if (payload != null) {
+        onlineSessionService.remove(payload.getUserId());
+      }
+    }
     cookieService.clear(response);
     return R.ok("");
   }
@@ -182,6 +210,8 @@ public class AuthController {
     patch.setId(user.getId());
     patch.setPassword(passwordEncoder.encode(body.getNewPassword()));
     userMapper.updateById(patch);
+    // 改密成功：版本 +1，本人已签发的全部 token 立即失效（需重新登录）
+    tokenVersionService.bump(user.getId());
     return R.ok();
   }
 

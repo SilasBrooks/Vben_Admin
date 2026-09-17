@@ -15,6 +15,7 @@ import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.module.system.mapper.SysUserRoleMapper;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
+import com.vben.service.security.TokenVersionService;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +44,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleMapper roleMapper;
   private final SysDeptAdminService deptService;
+  private final TokenVersionService tokenVersionService;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   /** 用户分页列表（密码字段已清空，支持按用户名模糊 + 状态过滤；回填部门名；按数据范围过滤） */
@@ -161,6 +163,10 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     }
     checkDept(user.getDeptId());
     updateById(user);
+    // 停用用户：版本 +1，其已签发 token 立即失效（被保护逻辑已确保不会停用最后一个 super）
+    if (exist.getStatus() != null && exist.getStatus() == 0 && user.getStatus() == 1) {
+      tokenVersionService.bump(user.getId());
+    }
 
     // 仅当显式传了 roleIds 才重分配；不传 = 不动角色（避免误清空）
     if (user.getRoleIds() != null) {
@@ -204,6 +210,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     patch.setId(userId);
     patch.setPassword(passwordEncoder.encode(newPassword));
     updateById(patch);
+    // 重置密码成功：版本 +1，目标用户已签发 token 立即失效
+    tokenVersionService.bump(userId);
   }
 
   /** 重新分配用户角色（先删后插） */

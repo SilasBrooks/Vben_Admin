@@ -49,6 +49,6 @@ public class SysPermissionService {
         .map(SysMenu::getPerm)
         .filter(p -> p != null && !p.isBlank())
         .collect(Collectors.toSet());
-    return new LoginUser(user.getId(), user.getUsername(), roles, permissions);
+    return new LoginUser(user.getId(), user.getUsername(), roles, permissions, 0L);
   }
 }

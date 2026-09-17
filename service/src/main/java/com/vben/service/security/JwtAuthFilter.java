@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,8 @@ import java.util.List;
  * <p>白名单（登录、刷新、登出、预检请求）直接放行；
  * 无效 token 统一返回 401 + R 结构，与前端 backend-mock 行为一致，
  * 前端拦截器检测到 401 会自动尝试 refresh。
+ * 另校验 token 版本号（ver 声明）与 Redis 当前版本一致，实现改密/禁用/强退后旧 token 即时失效；
+ * 版本读取异常时 fail-closed（拒绝请求），避免宕机窗口被利用。
  */
 @Component
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
           "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html");
 
   private final JwtTokenService jwtTokenService;
+  private final TokenVersionService tokenVersionService;
   private final SysPermissionService permissionService;
   private final ObjectMapper objectMapper;
 
@@ -58,6 +62,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     String token = header.substring(7);
     LoginUser payload = jwtTokenService.parseAccessToken(token);
     if (payload == null) {
+      writeUnauthorized(response);
+      return;
+    }
+
+    // 版本号比对：改密/重置密码/禁用/强退后 bump，旧 token 在此被拒。
+    // Redis 不可用时拒绝请求（fail-closed），不放行无版本校验的流量
+    try {
+      if (payload.getTokenVersion() != tokenVersionService.current(payload.getUserId())) {
+        writeUnauthorized(response);
+        return;
+      }
+    } catch (DataAccessException e) {
       writeUnauthorized(response);
       return;
     }

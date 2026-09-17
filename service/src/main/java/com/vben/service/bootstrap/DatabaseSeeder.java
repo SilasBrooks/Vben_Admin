@@ -141,10 +141,15 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long monitorLoginLogId = insertMenu(leaf("MonitorLoginLog", "登录日志",
         "ant-design:login-outlined", 2, "/monitor/login-log", "/monitor/login-log/index",
         monitorCatalogId, false, false).authority("super,admin"));
+    Long monitorOnlineId = insertMenu(leaf("MonitorOnline", "在线用户",
+        "ant-design:team-outlined", 3, "/monitor/online", "/monitor/online/index",
+        monitorCatalogId, false, false).authority("super,admin"));
     Long operLogList = insertMenu(perm("Monitor:OperLog:List", monitorOperLogId));
     Long operLogDelete = insertMenu(perm("Monitor:OperLog:Delete", monitorOperLogId));
     Long loginLogList = insertMenu(perm("Monitor:LoginLog:List", monitorLoginLogId));
     Long loginLogDelete = insertMenu(perm("Monitor:LoginLog:Delete", monitorLoginLogId));
+    Long onlineList = insertMenu(perm("Monitor:Online:List", monitorOnlineId));
+    Long onlineKick = insertMenu(perm("Monitor:Online:Kick", monitorOnlineId));
 
     // system 资源（含库存模块）对 super/admin 可见，user 不可见
     java.util.Set<Long> systemSet = java.util.Set.of(systemCatalogId, systemUserId,
@@ -155,8 +160,8 @@ public class DatabaseSeeder implements ApplicationRunner {
         deptList, deptAdd, deptEdit, deptDelete,
         dictList, dictAdd, dictEdit, dictDelete,
         wsmCatalogId, wsmStoreId,
-        monitorCatalogId, monitorOperLogId, monitorLoginLogId,
-        operLogList, operLogDelete, loginLogList, loginLogDelete);
+        monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
+        operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
 
     // ------------------------------------------------------------------
     // 3. 部门种子树：总公司 → 研发部/运营部/仓储部

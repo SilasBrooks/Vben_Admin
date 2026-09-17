@@ -1,8 +1,10 @@
 package com.vben.service.module.auth;
 
 import com.vben.service.common.BizException;
+import com.vben.service.common.redis.RedisKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -14,17 +16,16 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.Base64;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 服务端图形验证码：生成（AWT 绘制）→ 发放 → 一次性校验。
  *
  * <p>有效期默认 120 秒（vben.captcha.ttl-seconds）；校验即销毁，防重放。
- * 验证码池有规模上限并惰性清理过期项，防止内存无限增长。
- * 内存态属单实例语义，多实例部署需迁移集中式存储（如 Redis）。
+ * 验证码状态存于 Redis（SET EX + GETDEL），TTL 到期自动清理；
+ * 配合 /auth/captcha 接口限流（30 次/分/IP）即可约束规模，无需额外池上限。
  */
 @Slf4j
 @Service
@@ -33,10 +34,9 @@ public class CaptchaService {
   /** 字符集：剔除 0/o、1/l/i 等易混字符 */
   private static final String CHARS = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
   private static final int CODE_LENGTH = 4;
-  private static final int MAX_POOL = 10_000;
 
   private final SecureRandom random = new SecureRandom();
-  private final ConcurrentHashMap<String, Entry> pool = new ConcurrentHashMap<>();
+  private final StringRedisTemplate redis;
 
   /** 有效期（秒） */
   @Value("${vben.captcha.ttl-seconds:120}")
@@ -46,20 +46,17 @@ public class CaptchaService {
   @Value("${vben.captcha.echo-enabled:false}")
   private boolean echoEnabled;
 
+  public CaptchaService(StringRedisTemplate redis) {
+    this.redis = redis;
+  }
+
   /**
    * 生成一张验证码：返回 captchaId、base64 PNG 图片；echo 开启时附带 devCode 明文。
    */
-  public synchronized CaptchaImage generate() {
-    if (pool.size() >= MAX_POOL) {
-      long now = System.currentTimeMillis();
-      pool.entrySet().removeIf(e -> now >= e.getValue().expiresAt());
-      if (pool.size() >= MAX_POOL) {
-        throw BizException.tooManyRequests("验证码获取过于频繁，请稍后再试");
-      }
-    }
+  public CaptchaImage generate() {
     String code = randomCode();
     String id = UUID.randomUUID().toString().replace("-", "");
-    pool.put(id, new Entry(code, System.currentTimeMillis() + ttlSeconds * 1000L));
+    redis.opsForValue().set(RedisKeys.captcha(id), code, Duration.ofSeconds(ttlSeconds));
     return new CaptchaImage(id, draw(code), echoEnabled ? code : null);
   }
 
@@ -68,11 +65,12 @@ public class CaptchaService {
     if (captchaId == null || captchaId.isBlank() || input == null || input.isBlank()) {
       return false;
     }
-    Entry entry = pool.remove(captchaId);
-    if (entry == null || System.currentTimeMillis() > entry.expiresAt()) {
+    // GETDEL：原子"取出即销毁"，并发校验同一验证码只有一次能命中
+    String code = redis.opsForValue().getAndDelete(RedisKeys.captcha(captchaId));
+    if (code == null) {
       return false;
     }
-    return entry.code().equalsIgnoreCase(input.trim());
+    return code.equalsIgnoreCase(input.trim());
   }
 
   private String randomCode() {
@@ -130,10 +128,6 @@ public class CaptchaService {
     int range = max - min;
     return new Color(min + random.nextInt(range), min + random.nextInt(range),
         min + random.nextInt(range));
-  }
-
-  /** 验证码条目：明文 + 过期时间 */
-  private record Entry(String code, long expiresAt) {
   }
 
   /** 对外发放的验证码载荷 */

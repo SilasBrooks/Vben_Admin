@@ -24,6 +24,8 @@ import java.util.List;
 public class JwtTokenService {
 
   public static final String CLAIM_ROLES = "roles";
+  /** token 版本号声明：与 Redis 中用户当前版本比对，实现凭证变更/强退后旧 token 即时失效 */
+  public static final String CLAIM_VER = "ver";
 
   private final VbenProperties properties;
 
@@ -37,23 +39,24 @@ public class JwtTokenService {
         properties.getJwt().getRefreshTokenSecret().getBytes(StandardCharsets.UTF_8));
   }
 
-  public String generateAccessToken(Long userId, String username, List<String> roles) {
-    return buildToken(userId, username, roles,
+  public String generateAccessToken(Long userId, String username, List<String> roles, long ver) {
+    return buildToken(userId, username, roles, ver,
         properties.getJwt().getAccessTokenValidity().toMillis(), accessKey());
   }
 
-  public String generateRefreshToken(Long userId, String username, List<String> roles) {
-    return buildToken(userId, username, roles,
+  public String generateRefreshToken(Long userId, String username, List<String> roles, long ver) {
+    return buildToken(userId, username, roles, ver,
         properties.getJwt().getRefreshTokenValidity().toMillis(), refreshKey());
   }
 
-  private String buildToken(Long userId, String username, List<String> roles,
+  private String buildToken(Long userId, String username, List<String> roles, long ver,
       long ttlMillis, SecretKey key) {
     Date now = new Date();
     return Jwts.builder()
         .subject(username)
         .id(String.valueOf(userId))
         .claim(CLAIM_ROLES, roles)
+        .claim(CLAIM_VER, ver)
         .issuedAt(now)
         .expiration(new Date(now.getTime() + ttlMillis))
         .signWith(key)
@@ -86,7 +89,11 @@ public class JwtTokenService {
       String username = claims.getSubject();
       @SuppressWarnings("unchecked")
       List<String> roles = claims.get(CLAIM_ROLES, List.class);
-      return new LoginUser(userId, username, roles, null);
+      // 历史升级前签发的 token 无 ver 声明，视为版本 0（与 Redis 初始版本匹配，无需强制重登）
+      Number ver = claims.get(CLAIM_VER, Number.class);
+      LoginUser user = new LoginUser(userId, username, roles, null, 0L);
+      user.setTokenVersion(ver == null ? 0L : ver.longValue());
+      return user;
     } catch (JwtException | IllegalArgumentException e) {
       return null;
     }
