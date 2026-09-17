@@ -52,7 +52,7 @@
 
 ```bash
 docker run -d --name vben5 -p 5444:5432 -e POSTGRESQL_PASSWORD=123456 -e POSTGRESQL_DATABASE=vben5 bitnami/postgresql:18
-docker run -d --name vben-redis -p 6379:6379 redis:7-alpine   # 国内拉不动可换镜像源，如 docker.1ms.run/library/redis:8.8.0
+docker run -d --name vben-redis -p 6379:6379 -v vben-redis-data:/data redis:7-alpine --appendonly yes   # 国内拉不动可换镜像源，如 docker.1ms.run/library/redis:8.8.0
 ```
 
 > 表结构与种子数据由后端启动时自动执行（`schema-postgres.sql` + `data.sql`，全部幂等可重复执行）。
