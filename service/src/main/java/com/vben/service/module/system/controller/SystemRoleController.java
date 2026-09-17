@@ -47,10 +47,24 @@ public class SystemRoleController {
     return R.ok(data);
   }
 
-  @RequirePermission("System:Role:List")
+  /**
+   * 角色下拉选项：登录即可访问（用户表单/菜单表单的授权下拉需要），
+   * 只暴露非敏感字段，不要求 System:Role:List。
+   */
   @GetMapping("/options")
-  public R<List<SysRole>> options() {
-    return R.ok(roleService.options());
+  public R<List<Map<String, Object>>> options() {
+    List<Map<String, Object>> data = roleService.options().stream()
+        .map(r -> {
+          Map<String, Object> m = new LinkedHashMap<>();
+          m.put("id", r.getId());
+          m.put("roleKey", r.getRoleKey());
+          m.put("roleName", r.getRoleName());
+          m.put("sortNum", r.getSortNum());
+          m.put("status", r.getStatus());
+          return m;
+        })
+        .toList();
+    return R.ok(data);
   }
 
   @RequirePermission("System:Role:List")

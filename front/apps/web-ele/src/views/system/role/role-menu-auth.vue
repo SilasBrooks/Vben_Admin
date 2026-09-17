@@ -71,7 +71,6 @@ async function handleSubmit() {
       value-field="id"
       children-field="children"
       multiple
-      check-strictly
       bordered
       transition
     />

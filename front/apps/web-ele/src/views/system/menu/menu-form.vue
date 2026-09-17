@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VbenFormSchema } from '#/adapter/form';
 import type { MenuNode } from '#/api/system/menu';
+import type { RoleItem } from '#/api/system/role';
 
 import { ref } from 'vue';
 
@@ -13,6 +14,7 @@ import {
   getMenuTreeApi,
   updateMenuApi,
 } from '#/api/system/menu';
+import { getRoleOptionsApi } from '#/api/system/role';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -27,6 +29,7 @@ const [Modal, modalApi] = useVbenModal({
 
 const isEdit = ref(false);
 const menuTree = ref<MenuNode[]>([]);
+const roleOptions = ref<RoleItem[]>([]);
 
 const [Form, formApi] = useVbenForm({
   schema: [],
@@ -42,6 +45,10 @@ async function init() {
 
   if (menuTree.value.length === 0) {
     menuTree.value = await getMenuTreeApi();
+  }
+  // 角色下拉选项（访问角色只能从已存在角色中选）
+  if (roleOptions.value.length === 0) {
+    roleOptions.value = await getRoleOptionsApi();
   }
   // 父级菜单下拉树：套一个虚拟根节点
   const parentOptions = [
@@ -80,7 +87,7 @@ async function init() {
       fieldName: 'menuName',
       label: '菜单标识',
       component: 'Input',
-      componentProps: { placeholder: '路由 name，全局唯一' },
+      componentProps: { placeholder: '全局唯一：目录/菜单=路由 name，按钮=按钮标识' },
       rules: z.string().min(1, { message: '请输入菜单标识' }),
     },
     {
@@ -90,11 +97,16 @@ async function init() {
       componentProps: { placeholder: '如 菜单管理' },
       rules: z.string().min(1, { message: '请输入显示名称' }),
     },
+    // 图标：仅 M/C 显示（按钮不渲染菜单，无需图标）
     {
       fieldName: 'icon',
       label: '图标',
       component: 'Input',
       componentProps: { placeholder: '如 ant-design:menu-outlined' },
+      dependencies: {
+        triggerFields: ['menuType'],
+        if: (values) => values.menuType !== 'F',
+      },
     },
     {
       fieldName: 'orderNum',
@@ -139,9 +151,17 @@ async function init() {
     {
       fieldName: 'authority',
       label: '访问角色',
-      component: 'Input',
+      component: 'Select',
+      defaultValue: [],
       componentProps: {
-        placeholder: '逗号分隔，留空 = 当前用户角色 + super',
+        multiple: true,
+        collapseTags: true,
+        collapseTagsTooltip: true,
+        options: roleOptions.value.map((r) => ({
+          label: `${r.roleName}（${r.roleKey}）`,
+          value: r.roleKey,
+        })),
+        placeholder: '不选 = 当前登录用户的角色 + super',
       },
     },
     {
@@ -174,14 +194,22 @@ async function init() {
   await formApi.resetForm();
   if (isEdit.value && data?.id) {
     const detail = await getMenuDetailApi(data.id);
-    await formApi.setValues(detail);
+    // 后端 authority 是逗号分隔字符串，回填为多选数组
+    await formApi.setValues({
+      ...detail,
+      authority: detail.authority
+        ? detail.authority.split(',').map((s) => s.trim()).filter(Boolean)
+        : [],
+    });
   } else if (data?.parentId) {
     await formApi.setValues({ parentId: data.parentId });
   }
 }
 
 async function handleSubmit() {
-  const values = (await formApi.getValues()) as Partial<MenuNode>;
+  const values = (await formApi.getValues()) as Partial<MenuNode> & {
+    authority?: string[];
+  };
   // 类型校验：C 必填 component；F 必填 perm；M/C 必填 path
   if (values.menuType === 'C' && !values.component?.trim()) {
     return;
@@ -192,12 +220,17 @@ async function handleSubmit() {
   if (values.menuType !== 'F' && !values.path?.trim()) {
     return;
   }
+  // 多选数组转回逗号分隔字符串（与后端 authority 存储格式一致）
+  const authority = Array.isArray(values.authority)
+    ? values.authority.join(',')
+    : '';
+  const payload: Partial<MenuNode> = { ...values, authority };
   modalApi.lock();
   try {
     if (isEdit.value) {
-      await updateMenuApi({ id: (modalApi.getData() as any).id, ...values });
+      await updateMenuApi({ id: (modalApi.getData() as any).id, ...payload });
     } else {
-      await createMenuApi(values);
+      await createMenuApi(payload);
     }
     emit('saved');
     modalApi.close();
