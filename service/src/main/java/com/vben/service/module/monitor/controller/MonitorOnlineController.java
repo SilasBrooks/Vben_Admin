@@ -1,7 +1,10 @@
 package com.vben.service.module.monitor.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vben.service.common.BizException;
 import com.vben.service.common.R;
+import com.vben.service.module.system.entity.SysUser;
+import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
 import com.vben.service.security.OnlineSessionService;
@@ -13,6 +16,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,6 +43,7 @@ public class MonitorOnlineController {
 
   private final OnlineSessionService onlineSessionService;
   private final TokenVersionService tokenVersionService;
+  private final SysUserMapper userMapper;
 
   /** 在线用户列表（Redis 实时会话，用户名模糊 + 手动分页，按登录时间倒序） */
   @Operation(summary = "在线用户列表", description = "来源于 Redis 在线会话；支持用户名模糊过滤与分页")
@@ -48,7 +54,19 @@ public class MonitorOnlineController {
       @RequestParam(defaultValue = "10") long pageSize,
       @RequestParam(required = false) String username) {
 
-    List<OnlineSessionService.OnlineUserView> all = onlineSessionService.listAll().stream()
+    List<OnlineSessionService.OnlineUserView> sessions = onlineSessionService.listAll();
+    // 幽灵会话自愈：用户已不存在（重置种子库/删用户后 Redis 残留 key，TTL 比数据活得久）
+    // → 从列表剔除并顺带删除残留会话，避免同账号出现多条记录
+    Set<Long> existingIds = userMapper.selectObjs(
+            new LambdaQueryWrapper<SysUser>().select(SysUser::getId)).stream()
+        .map(id -> (Long) id)
+        .collect(Collectors.toSet());
+    sessions.stream()
+        .filter(u -> !existingIds.contains(u.userId()))
+        .forEach(u -> onlineSessionService.remove(u.userId()));
+
+    List<OnlineSessionService.OnlineUserView> all = sessions.stream()
+        .filter(u -> existingIds.contains(u.userId()))
         .filter(u -> username == null || username.isBlank()
             || (u.username() != null && u.username().contains(username)))
         .sorted(Comparator.comparing(OnlineSessionService.OnlineUserView::loginTime,
