@@ -14,6 +14,9 @@ Desktop.ini
 *.trace.db
 *.log
 
+# ---- 本地文件存储目录（文件上传落盘）----
+files/
+
 # ---- 构建产物 ----
 target/
 node_modules/

@@ -142,3 +142,26 @@ CREATE TABLE IF NOT EXISTS sys_dict_data (
   UNIQUE KEY uk_dict_value (dict_type, dict_value),
   INDEX idx_dict_data_type (dict_type)
 ) ENGINE = InnoDB COMMENT ='字典数据表';
+
+CREATE TABLE IF NOT EXISTS sys_file (
+  id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+  original_name VARCHAR(255) NOT NULL COMMENT '原始文件名',
+  storage_key   VARCHAR(255) NOT NULL COMMENT '存储键(存储实现内部标识,如日期分桶+UUID)',
+  size          BIGINT       NOT NULL COMMENT '文件大小(字节)',
+  content_type  VARCHAR(128) NOT NULL COMMENT '内容类型(上传时由原始名推导)',
+  biz_type      VARCHAR(32)  NOT NULL DEFAULT 'general' COMMENT '业务类型:avatar头像 general通用',
+  uploader_id   BIGINT       NOT NULL COMMENT '上传人id(sys_user.id)',
+  create_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_file_key (storage_key),
+  INDEX idx_file_uploader (uploader_id)
+) ENGINE = InnoDB COMMENT ='文件记录表';
+
+-- 头像列（幂等添加：MySQL 不支持 ADD COLUMN IF NOT EXISTS，用动态 SQL 判断）
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'avatar');
+SET @ddl = IF(@col_exists = 0,
+  'ALTER TABLE sys_user ADD COLUMN avatar VARCHAR(64) NULL COMMENT ''头像文件id(sys_file.id),NULL=未设置''',
+  'SELECT 1');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

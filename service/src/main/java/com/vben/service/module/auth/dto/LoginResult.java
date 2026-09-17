@@ -26,5 +26,8 @@ public class LoginResult {
 
   private String homePath;
 
+  /** 头像访问路径（/api/file/{id}/content），未设置时为 null */
+  private String avatar;
+
   private String accessToken;
 }

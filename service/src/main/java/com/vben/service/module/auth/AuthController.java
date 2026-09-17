@@ -109,6 +109,7 @@ public class AuthController {
         .realName(user.getNickname())
         .roles(roles)
         .homePath(user.getHomePath())
+        .avatar(user.getAvatar() == null ? null : "/api/file/" + user.getAvatar() + "/content")
         .accessToken(accessToken)
         .build());
   }

@@ -24,7 +24,7 @@ public class UserController {
   private final SysPermissionService permissionService;
 
   /**
-   * 返回结构：{ id, username, realName, roles, homePath }，与 mock 的 UserInfo 一致
+   * 返回结构：{ id, username, realName, roles, homePath, avatar }，与 mock 的 UserInfo 一致
    */
   @GetMapping("/info")
   public R<Map<String, Object>> info() {
@@ -41,6 +41,9 @@ public class UserController {
     data.put("roles", login.getRoles());
     if (user.getHomePath() != null) {
       data.put("homePath", user.getHomePath());
+    }
+    if (user.getAvatar() != null) {
+      data.put("avatar", "/api/file/" + user.getAvatar() + "/content");
     }
     return R.ok(data);
   }

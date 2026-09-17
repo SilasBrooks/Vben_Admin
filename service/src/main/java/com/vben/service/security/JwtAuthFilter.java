@@ -26,6 +26,10 @@ import java.util.List;
  * 前端拦截器检测到 401 会自动尝试 refresh。
  * 另校验 token 版本号（ver 声明）与 Redis 当前版本一致，实现改密/禁用/强退后旧 token 即时失效；
  * 版本读取异常时 fail-closed（拒绝请求），避免宕机窗口被利用。
+ *
+ * <p>定向 Cookie 回退：GET /file/{id}/content（头像 <img src> 直链场景）在无 Authorization 头时，
+ * 接受 httpOnly jwt Cookie（refresh token）作为凭据——refresh 同样验签 + 比对版本号，
+ * 不是匿名放行；其余请求无 Bearer 头一律 401。
  */
 @Component
 @RequiredArgsConstructor
@@ -38,9 +42,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       List.of("/auth/login", "/auth/captcha", "/auth/refresh", "/auth/logout", "/h2-console/**",
           "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html");
 
+  /** 允许 Cookie 回退的路径（头像/文件直链，仅 GET） */
+  private static final List<String> COOKIE_FALLBACK_PATHS = List.of("/file/*/content");
+
   private final JwtTokenService jwtTokenService;
   private final TokenVersionService tokenVersionService;
   private final SysPermissionService permissionService;
+  private final com.vben.service.module.auth.RefreshTokenCookieService cookieService;
   private final ObjectMapper objectMapper;
 
   @Override
@@ -54,13 +62,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     String header = request.getHeader("Authorization");
-    if (header == null || !header.startsWith("Bearer ")) {
+    String token = null;
+    boolean refreshCookieFallback = false;
+    if (header != null && header.startsWith("Bearer ")) {
+      token = header.substring(7);
+    } else if (isCookieFallbackAllowed(request)) {
+      // <img src> 无法携带 Authorization 头，用 httpOnly refresh Cookie 作为凭据
+      token = cookieService.read(request);
+      refreshCookieFallback = token != null && !token.isBlank();
+    }
+    if (token == null || token.isBlank()) {
       writeUnauthorized(response);
       return;
     }
 
-    String token = header.substring(7);
-    LoginUser payload = jwtTokenService.parseAccessToken(token);
+    LoginUser payload = refreshCookieFallback
+        ? jwtTokenService.parseRefreshToken(token)
+        : jwtTokenService.parseAccessToken(token);
     if (payload == null) {
       writeUnauthorized(response);
       return;
@@ -97,6 +115,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     String path = request.getRequestURI()
         .substring(request.getContextPath().length());
     return WHITE_LIST.stream().anyMatch(p -> MATCHER.match(p, path));
+  }
+
+  private boolean isCookieFallbackAllowed(HttpServletRequest request) {
+    if (!"GET".equalsIgnoreCase(request.getMethod())) {
+      return false;
+    }
+    String path = request.getRequestURI()
+        .substring(request.getContextPath().length());
+    return COOKIE_FALLBACK_PATHS.stream().anyMatch(p -> MATCHER.match(p, path));
   }
 
   private void writeUnauthorized(HttpServletResponse response) throws IOException {

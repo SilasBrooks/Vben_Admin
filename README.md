@@ -36,6 +36,7 @@
 | 数据权限 | 部门粒度行级数据隔离（stockAdmin 角色为演示账号） |
 | 监控 | 操作日志、登录日志（声明式采集）、在线用户（实时会话列表 + 强制下线） |
 | 数据字典 | 可维护字典 + 前端 `useDict` hook（自动缓存共享） |
+| 文件存储 | 可插拔存储抽象（`StorageService`，本地实现起步，预留 OSS/MinIO）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
 
@@ -98,7 +99,7 @@ pnpm dev
 ├── service/                  # 后端（Spring Boot 3.5）
 │   └── src/main/java/com/vben/service/
 │       ├── bootstrap/        # 启动与数据初始化（种子数据）
-│       ├── common/           # 统一响应/异常/操作日志切面
+│       ├── common/           # 统一响应/异常/操作日志切面/storage 存储抽象（local 实现）
 │       ├── config/           # Web/MyBatis-Plus 配置
 │       ├── security/         # JWT 过滤器、权限拦截器、登录用户上下文
 │       └── module/           # 业务模块：auth / user / system(角色部门) / menu / monitor / ai
@@ -127,6 +128,7 @@ pnpm dev
 - **AI 会话窗口必须按轮截断**：禁止按消息条数硬切（会把 `tool_calls` 与 `tool` 结果拆散导致上游 400），窗口逻辑见 `front/apps/web-ele/src/components/ai-assistant/context-window.ts`
 - **前端按钮权限**：新增按钮时必须配套使用 `v-access:code` 指令 + 菜单管理里登记权限码
 - **多根节点组件**：在 `<Transition>`/`<KeepAlive>` 内使用的组件必须有单一根元素，否则动画与属性继承失效
+- **文件上传/下载**：下载接口 `GET /file/{id}/content` 需登录（未加入 JwtAuthFilter 白名单）；扩展名白名单不校验文件魔数，生产部署请在 Nginx 层禁止上传目录执行脚本，且大文件场景建议改为对象存储签名直链；本地存储目录默认 `./files`（已加入 .gitignore）
 
 ### 生产部署 Checklist
 

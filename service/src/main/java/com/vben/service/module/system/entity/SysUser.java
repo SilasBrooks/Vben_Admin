@@ -34,6 +34,9 @@ public class SysUser {
   /** 所属部门 id（可选，NULL = 未归属部门） */
   private Long deptId;
 
+  /** 头像文件 id（sys_file.id，可选，NULL = 未设置） */
+  private String avatar;
+
   /** 0 正常 1 停用 */
   private Integer status;
 

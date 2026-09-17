@@ -38,6 +38,12 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(R.fail(msg, msg));
   }
 
+  /** 上传大小超限（spring.servlet.multipart 约束）：统一转 400 错误结构，不落 500 */
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  public ResponseEntity<R<Void>> handleMaxUpload(Exception e) {
+    return ResponseEntity.badRequest().body(R.fail("文件大小超过限制", "Maximum upload size exceeded"));
+  }
+
   /** 兜底 */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<R<Void>> handleOther(Exception e) {

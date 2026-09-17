@@ -99,6 +99,9 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long systemDictId = insertMenu(leaf("SystemDict", "数据字典",
         "ant-design:book-outlined", 5, "/system/dict", "/system/dict/index",
         systemCatalogId, false, false).authority("super,admin"));
+    Long systemFileId = insertMenu(leaf("SystemFile", "文件管理",
+        "ant-design:file-outlined", 6, "/system/file", "/system/file/index",
+        systemCatalogId, false, false).authority("super,admin"));
     // 后端接口权限码示例（F 型挂在对应菜单下，不进路由树）
     Long systemUserListId = insertMenu(perm("System:User:List", systemUserId));
     Long userAdd = insertMenu(perm("System:User:Add", systemUserId));
@@ -124,6 +127,10 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long dictAdd = insertMenu(perm("System:Dict:Add", systemDictId));
     Long dictEdit = insertMenu(perm("System:Dict:Edit", systemDictId));
     Long dictDelete = insertMenu(perm("System:Dict:Delete", systemDictId));
+    // 文件管理按钮权限码（F 型，挂在文件管理菜单下，不进路由树）
+    Long fileList = insertMenu(perm("System:File:List", systemFileId));
+    Long fileUpload = insertMenu(perm("System:File:Upload", systemFileId));
+    Long fileDelete = insertMenu(perm("System:File:Delete", systemFileId));
 
     // 库存管理模块（WSM）：super/admin 可见，user 不可见
     Long wsmCatalogId = insertMenu(catalog("Wsm", "库存管理",
@@ -159,6 +166,7 @@ public class DatabaseSeeder implements ApplicationRunner {
         menuAdd, menuEdit, menuDelete,
         deptList, deptAdd, deptEdit, deptDelete,
         dictList, dictAdd, dictEdit, dictDelete,
+        systemFileId, fileList, fileUpload, fileDelete,
         wsmCatalogId, wsmStoreId,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
