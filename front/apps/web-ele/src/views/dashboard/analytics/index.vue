@@ -1,90 +1,161 @@
 <script lang="ts" setup>
-import type { AnalysisOverviewItem } from '@vben/common-ui';
-import type { TabOption } from '@vben/types';
+import type { EchartsUIType } from '@vben/plugins/echarts';
 
-import {
-  AnalysisChartCard,
-  AnalysisChartsTabs,
-  AnalysisOverview,
-} from '@vben/common-ui';
-import {
-  SvgBellIcon,
-  SvgCakeIcon,
-  SvgCardIcon,
-  SvgDownloadIcon,
-} from '@vben/icons';
+import type { DashboardSummary } from '#/api/dashboard';
 
-import AnalyticsTrends from './analytics-trends.vue';
-import AnalyticsVisitsData from './analytics-visits-data.vue';
-import AnalyticsVisitsSales from './analytics-visits-sales.vue';
-import AnalyticsVisitsSource from './analytics-visits-source.vue';
-import AnalyticsVisits from './analytics-visits.vue';
+import { onMounted, ref } from 'vue';
 
-const overviewItems: AnalysisOverviewItem[] = [
-  {
-    icon: SvgCardIcon,
-    title: '用户量',
-    totalTitle: '总用户量',
-    totalValue: 120_000,
-    value: 2000,
-  },
-  {
-    icon: SvgCakeIcon,
-    title: '访问量',
-    totalTitle: '总访问量',
-    totalValue: 500_000,
-    value: 20_000,
-  },
-  {
-    icon: SvgDownloadIcon,
-    title: '下载量',
-    totalTitle: '总下载量',
-    totalValue: 120_000,
-    value: 8000,
-  },
-  {
-    icon: SvgBellIcon,
-    title: '使用量',
-    totalTitle: '总使用量',
-    totalValue: 50_000,
-    value: 5000,
-  },
-];
+import { Page } from '@vben/common-ui';
+import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 
-const chartTabs: TabOption[] = [
-  {
-    label: '流量趋势',
-    value: 'trends',
-  },
-  {
-    label: '月访问量',
-    value: 'visits',
-  },
-];
+import { ElCard, ElTable, ElTableColumn, ElTag } from 'element-plus';
+
+import { getDashboardSummaryApi } from '#/api/dashboard';
+
+const summary = ref<DashboardSummary>();
+
+const trendRef = ref<EchartsUIType>();
+const { renderEcharts: renderTrend } = useEcharts(trendRef);
+
+const deptRef = ref<EchartsUIType>();
+const { renderEcharts: renderDept } = useEcharts(deptRef);
+
+const moduleRef = ref<EchartsUIType>();
+const { renderEcharts: renderModule } = useEcharts(moduleRef);
+
+/** 4 张概览卡 */
+const overviewCards = ref([
+  { color: '#409eff', label: '总用户', value: 0 },
+  { color: '#67c23a', label: '总角色', value: 0 },
+  { color: '#e6a23c', label: '累计登录', value: 0 },
+  { color: '#f56c6c', label: '累计操作', value: 0 },
+]);
+
+function formatTime(value?: string) {
+  return value ? value.split('.')[0].replace('T', ' ') : '';
+}
+
+onMounted(async () => {
+  summary.value = await getDashboardSummaryApi();
+  const { loginTrend, totals } = summary.value;
+
+  overviewCards.value = [
+    { color: '#409eff', label: '总用户', value: totals.userCount },
+    { color: '#67c23a', label: '总角色', value: totals.roleCount },
+    { color: '#e6a23c', label: '累计登录', value: totals.loginCount },
+    { color: '#f56c6c', label: '累计操作', value: totals.operCount },
+  ];
+
+  // 柱线组合：柱=登录成功，线=登录失败
+  renderTrend({
+    grid: { bottom: 0, containLabel: true, left: '1%', right: '2%', top: '36px' },
+    legend: { data: ['登录成功', '登录失败'], top: 0 },
+    series: [
+      {
+        barMaxWidth: 24,
+        data: loginTrend.map((item) => item.success),
+        itemStyle: { color: '#409eff' },
+        name: '登录成功',
+        type: 'bar',
+      },
+      {
+        data: loginTrend.map((item) => item.fail),
+        itemStyle: { color: '#f56c6c' },
+        name: '登录失败',
+        smooth: true,
+        type: 'line',
+      },
+    ],
+    tooltip: { trigger: 'axis' },
+    xAxis: {
+      axisTick: { show: false },
+      data: loginTrend.map((item) => item.date.slice(5)),
+      type: 'category',
+    },
+    yAxis: { minInterval: 1, type: 'value' },
+  });
+
+  // 部门人数分布饼图
+  renderDept({
+    legend: { bottom: 0, type: 'scroll' },
+    series: [
+      {
+        data: summary.value.deptDistribution,
+        name: '部门人数',
+        radius: '62%',
+        type: 'pie',
+      },
+    ],
+    tooltip: { trigger: 'item', formatter: '{b}: {c} 人 ({d}%)' },
+  });
+
+  // 操作模块分布环形图
+  renderModule({
+    legend: { bottom: 0, type: 'scroll' },
+    series: [
+      {
+        data: summary.value.moduleDistribution,
+        name: '操作次数',
+        radius: ['38%', '62%'],
+        type: 'pie',
+      },
+    ],
+    tooltip: { trigger: 'item', formatter: '{b}: {c} 次 ({d}%)' },
+  });
+});
 </script>
 
 <template>
-  <div class="p-5">
-    <AnalysisOverview :items="overviewItems" />
-    <AnalysisChartsTabs :tabs="chartTabs" class="mt-5">
-      <template #trends>
-        <AnalyticsTrends />
-      </template>
-      <template #visits>
-        <AnalyticsVisits />
-      </template>
-    </AnalysisChartsTabs>
-
-    <div class="mt-5 w-full md:flex">
-      <AnalysisChartCard class="mt-5 md:mt-0 md:mr-4 md:w-1/3" title="访问数量">
-        <AnalyticsVisitsData />
-      </AnalysisChartCard>
-      <AnalysisChartCard class="mt-5 md:mt-0 md:mr-4 md:w-1/3" title="访问来源">
-        <AnalyticsVisitsSource />
-      </AnalysisChartCard>
-      <AnalysisChartCard class="mt-5 md:mt-0 md:w-1/3" title="访问来源">
-        <AnalyticsVisitsSales />
-      </AnalysisChartCard>
+  <Page>
+    <!-- 概览卡 -->
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <ElCard v-for="card in overviewCards" :key="card.label" shadow="hover">
+        <div class="text-sm text-gray-500">{{ card.label }}</div>
+        <div class="mt-2 text-2xl font-bold" :style="{ color: card.color }">
+          {{ card.value }}
+        </div>
+      </ElCard>
     </div>
-  </div>
+
+    <!-- 登录趋势柱线图 -->
+    <ElCard class="mt-5" shadow="never">
+      <template #header>近 14 天登录趋势</template>
+      <EchartsUI ref="trendRef" />
+    </ElCard>
+
+    <!-- 部门饼图 + 模块环形图 -->
+    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <ElCard shadow="never">
+        <template #header>部门人数分布</template>
+        <EchartsUI ref="deptRef" />
+      </ElCard>
+      <ElCard shadow="never">
+        <template #header>操作模块分布（近 14 天 Top5）</template>
+        <EchartsUI ref="moduleRef" />
+      </ElCard>
+    </div>
+
+    <!-- 最近操作 -->
+    <ElCard class="mt-5" shadow="never">
+      <template #header>最近操作</template>
+      <ElTable :data="summary?.recentOpers ?? []">
+        <ElTableColumn prop="operName" label="操作人" width="120" />
+        <ElTableColumn prop="module" label="模块" width="140" />
+        <ElTableColumn prop="description" label="动作" min-width="160" />
+        <ElTableColumn label="耗时" width="100">
+          <template #default="{ row }">{{ row.costMs }} ms</template>
+        </ElTableColumn>
+        <ElTableColumn label="时间" min-width="160">
+          <template #default="{ row }">{{ formatTime(row.operTime) }}</template>
+        </ElTableColumn>
+        <ElTableColumn label="状态" width="90">
+          <template #default="{ row }">
+            <ElTag :type="row.status === 0 ? 'success' : 'danger'">
+              {{ row.status === 0 ? '成功' : '失败' }}
+            </ElTag>
+          </template>
+        </ElTableColumn>
+      </ElTable>
+    </ElCard>
+  </Page>
 </template>
