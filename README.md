@@ -66,7 +66,7 @@ docker compose up -d
 #### 环境要求
 
 - JDK 21、Maven 3.9+（全局安装即可）
-- Node.js 20+、pnpm 9+
+- Node.js 22.18+ / 24、pnpm 10+（以 `front/package.json` 的 engines 为准）
 - Docker（运行 PostgreSQL 与 Redis）
 
 #### 1. 启动数据库与 Redis
