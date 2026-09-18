@@ -69,3 +69,10 @@ export async function logoutApi() {
 export async function getAccessCodesApi() {
   return requestClient.get<string[]>('/auth/codes');
 }
+
+/**
+ * 修改自己的密码（成功后本人所有 token 立即失效，需重新登录）
+ */
+export async function changePasswordApi(oldPassword: string, newPassword: string) {
+  return requestClient.post<void>('/auth/change-password', { newPassword, oldPassword });
+}

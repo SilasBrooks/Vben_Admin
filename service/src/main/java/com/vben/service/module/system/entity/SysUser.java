@@ -37,6 +37,9 @@ public class SysUser {
   /** 头像文件 id（sys_file.id，可选，NULL = 未设置） */
   private String avatar;
 
+  /** 个人简介（可选，NULL = 未填写） */
+  private String introduction;
+
   /** 0 正常 1 停用 */
   private Integer status;
 

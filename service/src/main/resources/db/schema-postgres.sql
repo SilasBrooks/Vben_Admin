@@ -216,3 +216,7 @@ COMMENT ON COLUMN sys_file.uploader_id IS '上传人id(sys_user.id)';
 -- 头像列（幂等添加，历史库升级用）
 ALTER TABLE sys_user ADD COLUMN IF NOT EXISTS avatar VARCHAR(64) NULL;
 COMMENT ON COLUMN sys_user.avatar IS '头像文件id(sys_file.id),NULL=未设置';
+
+-- 个人简介列（幂等添加，历史库升级用）
+ALTER TABLE sys_user ADD COLUMN IF NOT EXISTS introduction VARCHAR(255) NULL;
+COMMENT ON COLUMN sys_user.introduction IS '个人简介,NULL=未填写';

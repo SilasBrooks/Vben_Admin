@@ -165,3 +165,13 @@ SET @ddl = IF(@col_exists = 0,
 PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- 个人简介列（幂等添加：MySQL 不支持 ADD COLUMN IF NOT EXISTS，用动态 SQL 判断）
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'introduction');
+SET @ddl = IF(@col_exists = 0,
+  'ALTER TABLE sys_user ADD COLUMN introduction VARCHAR(255) NULL COMMENT ''个人简介,NULL=未填写''',
+  'SELECT 1');
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;

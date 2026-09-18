@@ -52,6 +52,29 @@ const coreRoutes: RouteRecordRaw[] = [
     children: [],
   },
   {
+    component: BasicLayout,
+    meta: {
+      hideInBreadcrumb: true,
+      hideInMenu: true,
+      hideInTab: true,
+      title: $t('page.auth.profile'),
+    },
+    name: 'ProfileParent',
+    path: '/profile',
+    children: [
+      {
+        component: () => import('#/views/_core/profile/index.vue'),
+        meta: {
+          hideInBreadcrumb: true,
+          hideInMenu: true,
+          title: $t('page.auth.profile'),
+        },
+        name: 'Profile',
+        path: '',
+      },
+    ],
+  },
+  {
     component: AuthPageLayout,
     meta: {
       hideInTab: true,

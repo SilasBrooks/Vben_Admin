@@ -59,7 +59,7 @@ const statCards = computed(() => {
 });
 
 function formatTime(value?: string) {
-  return value ? value.split('.')[0].replace('T', ' ') : '';
+  return value ? (value.split('.')[0] ?? '').replace('T', ' ') : '';
 }
 
 onMounted(async () => {

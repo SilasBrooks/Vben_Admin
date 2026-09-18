@@ -12,6 +12,11 @@ interface UserInfo extends BasicUserInfo {
   homePath: string;
 
   /**
+   * 个人简介
+   */
+  introduction?: string;
+
+  /**
    * accessToken
    */
   token: string;

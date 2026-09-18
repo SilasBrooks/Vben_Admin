@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { Recordable } from '@vben/types';
+
 import type { VbenFormSchema } from '#/adapter/form';
 
 import { computed } from 'vue';
@@ -6,6 +8,11 @@ import { computed } from 'vue';
 import { ProfilePasswordSetting, z } from '@vben/common-ui';
 
 import { ElMessage } from 'element-plus';
+
+import { changePasswordApi } from '#/api/core/auth';
+import { useAuthStore } from '#/store';
+
+const authStore = useAuthStore();
 
 const formSchema = computed((): VbenFormSchema[] => {
   return [
@@ -50,8 +57,11 @@ const formSchema = computed((): VbenFormSchema[] => {
   ];
 });
 
-function handleSubmit() {
-  ElMessage.success('密码修改成功');
+/** 改密成功后 token 全部失效，主动登出（logout 内部跳转登录页） */
+async function handleSubmit(values: Recordable<any>) {
+  await changePasswordApi(values.oldPassword, values.newPassword);
+  ElMessage.success('密码已修改，请重新登录');
+  await authStore.logout(false);
 }
 </script>
 <template>
