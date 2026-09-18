@@ -38,18 +38,36 @@
 | 数据字典 | 可维护字典 + 前端 `useDict` hook（自动缓存共享） |
 | 文件存储 | 可插拔存储抽象（`StorageService`，本地实现起步，预留 OSS/MinIO）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
 | 仪表盘 | 工作台/分析页真实数据版（`GET /dashboard/summary` 登录即可全员同版）：统计卡 + 今日概况 + 近 14 天登录趋势 + 部门/模块分布 + 最近登录/操作，替代模板演示数据 |
+| 个人中心 | 头像上传（登录即可，同步 header）、昵称/个人简介编辑（`PATCH /user/profile` 登录即可，仅限本人）、修改密码（成功后强制重新登录，旧 token 即时失效） |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
+| 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：`docker compose up -d` 起全套演示环境，docker profile 自动建库、安全开关默认关闭 |
 
 ## 快速开始
 
-### 环境要求
+### 方式一：Docker 一键部署（推荐演示）
+
+```bash
+docker compose up -d
+```
+
+访问 http://localhost:5888 ，账号见下表。说明：
+
+- 编排四服务：PostgreSQL + Redis + 后端（Spring Boot，docker profile）+ 前端（nginx 托管产物并 `/api` 同源反代），首次构建需拉取基础镜像并全量构建，耗时较长
+- 与本地开发完全隔离：前端 **5888**、后端直连 **18080**（调试用），PG/Redis 不映射宿主端口；数据存 named volume（`vben-deploy-*`），不影响开发容器 vben5 / vben-redis，`docker compose down -v` 可彻底清空
+- 首次启动自动建表 + 种子数据；验证码回显、SQL 日志、API 文档均已关闭（与生产语义一致）
+- AI 助手：宿主机 `setx DEEPSEEK_API_KEY "<你的Key>"` 后**重开终端**再执行 compose 命令即可透传，未配置时仅 AI 功能提示未配置
+- 镜像构建走国内镜像源前缀 `docker.1ms.run`，海外环境可自行去掉；基础镜像拉取或 pnpm 安装受限时参照文件内注释换源
+
+### 方式二：本地开发
+
+#### 环境要求
 
 - JDK 21、Maven 3.9+（全局安装即可）
 - Node.js 20+、pnpm 9+
 - Docker（运行 PostgreSQL 与 Redis）
 
-### 1. 启动数据库与 Redis
+#### 1. 启动数据库与 Redis
 
 ```bash
 docker run -d --name vben5 -p 5444:5432 -e POSTGRESQL_PASSWORD=123456 -e POSTGRESQL_DATABASE=vben5 bitnami/postgresql:18
@@ -59,13 +77,13 @@ docker run -d --name vben-redis -p 6379:6379 -v vben-redis-data:/data redis:7-al
 > 表结构与种子数据由后端启动时自动执行（`schema-postgres.sql` + `data.sql`，全部幂等可重复执行）。
 > Redis 承载验证码/登录锁定/限流/token 版本号/在线会话，后端启动时连不上会直接失败。
 
-### 2. 启动后端（端口 8080）
+#### 2. 启动后端（端口 8080）
 
 ```bash
 mvn spring-boot:run -f service/pom.xml
 ```
 
-### 3. 启动前端（端口 5777）
+#### 3. 启动前端（端口 5777）
 
 ```bash
 cd front
@@ -136,7 +154,8 @@ pnpm dev
 - [ ] 更换 JWT 密钥、数据库密码、所有默认账号密码
 - [ ] `DEEPSEEK_API_KEY` 环境变量注入（配置无默认值）；作废历史提交中暴露过的旧 Key
 - [ ] 确认 `vben.captcha.echo-enabled` 为 false（prod 默认关闭，勿在 prod 开启验证码回显）
-- [ ] `application-prod.yml`（MySQL）并执行对应 schema
+- [ ] 数据库以 PostgreSQL 为准（`schema-postgres.sql`）；`application-prod.yml` 中的 MySQL 配置仅为预留，未经验证，生产部署请改写为 PostgreSQL 或先完成验证
+- [ ] 演示/交付环境可直接用根目录 `docker compose up -d`（docker profile：PostgreSQL 自动建库 + 安全开关关闭）；生产公网部署请另行评估并更换全部演示默认值
 - [ ] 前端 `pnpm build:ele` 产物走 nginx，`/api` 反代到 8080
 - [ ] Cookie `same-site=None + secure=true`
 - [ ] 关闭 SQL 日志与 debug 级别日志

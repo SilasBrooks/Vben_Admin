@@ -1,0 +1,7 @@
+# 构建上下文瘦身：本地构建产物与 IDE 文件不进入镜像构建
+target/
+.git/
+.idea/
+*.iml
+*.log
+files/

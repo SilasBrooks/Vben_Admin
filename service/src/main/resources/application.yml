@@ -51,9 +51,12 @@ vben:
     secure: false
   cors:
     # 允许跨域携带 Cookie 的来源（走前端代理时无需跨域，此配置用于直连/分离部署）
+    # 注意：同源部署（如 docker 前端 5888 经 nginx 反代）浏览器的 POST/PUT/PATCH/DELETE
+    # 也会自动携带 Origin 头，后端 CORS 会按此白名单校验，故部署端口必须登记在此
     allowed-origins:
       - http://localhost:5777
       - http://localhost:5666
+      - http://localhost:5888
   captcha:
     # 图形验证码有效期（秒）；echo-enabled 为开发联调回显开关，生产 profile 必须为 false
     ttl-seconds: 120

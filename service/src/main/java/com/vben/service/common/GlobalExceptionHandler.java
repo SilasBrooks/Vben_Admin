@@ -44,6 +44,18 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(R.fail("文件大小超过限制", "Maximum upload size exceeded"));
   }
 
+  /** 请求体不可读（如非法 JSON）：统一转 400，不落 500 */
+  @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+  public ResponseEntity<R<Void>> handleUnreadable(Exception e) {
+    return ResponseEntity.badRequest().body(R.fail("请求体格式错误", "Malformed request body"));
+  }
+
+  /** 静态资源/路径不存在（如 springdoc 关闭后的 swagger 端点）：按 404 返回，不落 500 */
+  @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+  public ResponseEntity<R<Void>> handleNoResource(Exception e) {
+    return ResponseEntity.notFound().build();
+  }
+
   /** 兜底 */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<R<Void>> handleOther(Exception e) {

@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------
+# Docker 一键部署专用 profile（docker compose 编排内使用）
+# - 数据源/Redis 默认指向 compose 服务名，均可用环境变量覆盖
+# - 首次启动幂等执行建表与种子数据（与 dev 同一套 SQL）
+# - 安全开关全部关闭：验证码回显 / SQL 控制台日志 / API 文档
+# ---------------------------------------------------------------------------
+spring:
+  data:
+    redis:
+      host: "${REDIS_HOST:redis}"
+      port: "${REDIS_PORT:6379}"
+      password: "${REDIS_PASSWORD:}"
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: "${DB_URL:jdbc:postgresql://postgres:5432/vben5}"
+    username: "${DB_USERNAME:postgres}"
+    password: "${DB_PASSWORD:123456}"
+  sql:
+    init:
+      # schema-postgres.sql / data.sql 全部幂等（IF NOT EXISTS），可重复执行
+      mode: always
+      schema-locations: classpath:db/schema-postgres.sql
+      data-locations: optional:classpath:db/data.sql
+      continue-on-error: false
+
+# DeepSeek 大模型（AI 智能助手）；api-key 通过环境变量注入，未配置时 AI 功能提示未配置
+deepseek:
+  base-url: https://api.deepseek.com
+  api-key: ${DEEPSEEK_API_KEY:}
+  model: deepseek-chat
+  timeout-seconds: 60
+  max-tool-rounds: 3
+
+vben:
+  jwt:
+    # 演示默认密钥仅用于本地 compose 环境，公开部署前必须通过环境变量更换（至少 32 字节、access/refresh 不同）
+    access-token-secret: "${VBEN_JWT_ACCESS_SECRET:docker-demo-access-token-secret-key-32bytes!}"
+    refresh-token-secret: "${VBEN_JWT_REFRESH_SECRET:docker-demo-refresh-token-secret-key-32bytes}"
+  captcha:
+    # 与生产一致：验证码不回显明文
+    echo-enabled: false
+
+mybatis-plus:
+  configuration:
+    # 关闭 SQL 控制台打印
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+springdoc:
+  # 容器化演示环境关闭 API 文档端点（返回 404）
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+logging:
+  level:
+    com.vben.service: info

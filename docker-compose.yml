@@ -1,0 +1,99 @@
+# ---------------------------------------------------------------------------
+# Vben Admin 一键部署编排：postgres + redis + backend + frontend(nginx)
+# 启动：docker compose up -d（首次构建耗时较长）
+# 访问：http://localhost:5888（种子账号 vben / 123456）
+# 与本地开发环境完全隔离：独立端口（前端 5888 / 后端直连 18080）、
+# 独立 named volume、不映射 PG/Redis 宿主端口
+# ---------------------------------------------------------------------------
+name: vben-deploy
+
+services:
+  postgres:
+    image: docker.1ms.run/bitnami/postgresql:latest # 海外环境可改 bitnami/postgresql:18
+    container_name: vben-deploy-pg
+    environment:
+      POSTGRESQL_PASSWORD: "123456"
+      POSTGRESQL_DATABASE: vben5
+    volumes:
+      - vben-deploy-pg-data:/bitnami/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vben5"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - vben-deploy
+
+  redis:
+    image: docker.1ms.run/library/redis:8.8.0 # 海外环境可改 redis:8.8.0
+    container_name: vben-deploy-redis
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes:
+      - vben-deploy-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - vben-deploy
+
+  backend:
+    build:
+      context: ./service
+      dockerfile: Dockerfile
+    image: vben-deploy-backend:latest
+    container_name: vben-deploy-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      TZ: Asia/Shanghai
+      # AI 助手大模型 Key：宿主机已导出则自动透传，未配置时 AI 功能提示未配置
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      # 公开部署前必须更换（见 README 安全红线）
+      VBEN_JWT_ACCESS_SECRET: "${VBEN_JWT_ACCESS_SECRET:-docker-demo-access-token-secret-key-32bytes!}"
+      VBEN_JWT_REFRESH_SECRET: "${VBEN_JWT_REFRESH_SECRET:-docker-demo-refresh-token-secret-key-32bytes}"
+    volumes:
+      - vben-deploy-files:/app/files
+    ports:
+      - "18080:8080" # 调试/E2E 直连后端用；日常访问走前端 5888 同源反代
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # 探测公开端点 /api/auth/captcha：兼验 Web 栈与 Redis 可用性
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/auth/captcha >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - vben-deploy
+
+  frontend:
+    build:
+      context: ./front
+      dockerfile: apps/web-ele/Dockerfile
+    image: vben-deploy-frontend:latest
+    container_name: vben-deploy-frontend
+    ports:
+      - "5888:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - vben-deploy
+
+volumes:
+  vben-deploy-pg-data:
+  vben-deploy-redis-data:
+  vben-deploy-files:
+
+networks:
+  vben-deploy:
+    name: vben-deploy
