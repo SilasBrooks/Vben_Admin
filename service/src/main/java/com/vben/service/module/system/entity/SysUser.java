@@ -40,6 +40,9 @@ public class SysUser {
   /** 个人简介（可选，NULL = 未填写） */
   private String introduction;
 
+  /** 邮箱（可选，用于展示与联系） */
+  private String email;
+
   /** 0 正常 1 停用 */
   private Integer status;
 

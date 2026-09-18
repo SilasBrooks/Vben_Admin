@@ -220,3 +220,7 @@ COMMENT ON COLUMN sys_user.avatar IS '头像文件id(sys_file.id),NULL=未设置
 -- 个人简介列（幂等添加，历史库升级用）
 ALTER TABLE sys_user ADD COLUMN IF NOT EXISTS introduction VARCHAR(255) NULL;
 COMMENT ON COLUMN sys_user.introduction IS '个人简介,NULL=未填写';
+
+-- 邮箱列（幂等添加，历史库升级用）
+ALTER TABLE sys_user ADD COLUMN IF NOT EXISTS email VARCHAR(255) NULL;
+COMMENT ON COLUMN sys_user.email IS '邮箱,NULL=未填写';

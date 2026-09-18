@@ -51,11 +51,12 @@ public class UserController {
       data.put("avatar", "/api/file/" + user.getAvatar() + "/content");
     }
     data.put("introduction", user.getIntroduction() == null ? "" : user.getIntroduction());
+    data.put("email", user.getEmail() == null ? "" : user.getEmail());
     return R.ok(data);
   }
 
   /**
-   * 修改本人资料：仅允许改 nickname / introduction。
+   * 修改本人资料：仅允许改 nickname / introduction / email。
    *
    * <p>无需权限码，任何已登录用户均可调用；只能改自己的。username、password、avatar
    * 不在此接口范围内（头像走 POST /file/avatar，改密走 POST /auth/change-password）。
@@ -72,6 +73,8 @@ public class UserController {
     patch.setId(user.getId());
     patch.setNickname(body.getNickname());
     patch.setIntroduction(body.getIntroduction());
+    // 空串归一为 NULL，避免下拉/详情显示占位空白
+    patch.setEmail(body.getEmail() == null || body.getEmail().isBlank() ? null : body.getEmail().trim());
     userMapper.updateById(patch);
     return info();
   }
@@ -85,5 +88,9 @@ public class UserController {
 
     @jakarta.validation.constraints.Size(max = 200)
     private String introduction;
+
+    @jakarta.validation.constraints.Email(message = "邮箱格式不正确")
+    @jakarta.validation.constraints.Size(max = 255)
+    private String email;
   }
 }

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { UploadRequestOptions } from 'element-plus';
+
 import type { Recordable } from '@vben/types';
 
 import type { VbenFormSchema } from '#/adapter/form';
@@ -10,7 +12,7 @@ import { useUserStore } from '@vben/stores';
 
 import { ProfileBaseSetting } from '@vben/common-ui';
 
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElUpload } from 'element-plus';
 
 import { updateProfileApi } from '#/api/core/user';
 import { uploadAvatarApi } from '#/api/system/file';
@@ -21,7 +23,6 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 
 const profileBaseSettingRef = ref();
-const fileInputRef = ref<HTMLInputElement>();
 const uploading = ref(false);
 
 const formSchema = computed((): VbenFormSchema[] => {
@@ -39,6 +40,16 @@ const formSchema = computed((): VbenFormSchema[] => {
         disabled: true,
       },
       label: '角色',
+    },
+    {
+      fieldName: 'email',
+      component: 'Input',
+      componentProps: {
+        maxlength: 255,
+        placeholder: '用于展示与联系（选填）',
+      },
+      label: '邮箱',
+      rules: z.string().email({ message: '邮箱格式不正确' }).or(z.literal('')),
     },
     {
       fieldName: 'introduction',
@@ -60,6 +71,7 @@ onMounted(async () => {
   await authStore.fetchUserInfo();
   await nextTick();
   profileBaseSettingRef.value?.getFormApi().setValues({
+    email: userStore.userInfo?.email ?? '',
     introduction: userStore.userInfo?.introduction ?? '',
     nickname: userStore.userInfo?.realName ?? '',
     roles: (userStore.userInfo?.roles ?? []).join(' / '),
@@ -68,25 +80,16 @@ onMounted(async () => {
 
 /** 提交本人资料修改，成功后刷新 store 使头部昵称同步 */
 async function handleProfileSubmit(values: Recordable<any>) {
-  await updateProfileApi(values.nickname, values.introduction ?? '');
+  await updateProfileApi(values.nickname, values.introduction ?? '', values.email ?? '');
   await authStore.fetchUserInfo();
   ElMessage.success('资料已更新');
 }
 
-function pickAvatar() {
-  fileInputRef.value?.click();
-}
-
-/** 上传头像（仅图片 + 5MB 由后端校验），成功后刷新 store 使头部头像同步 */
-async function onAvatarChange(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  // 清空 value，确保同一文件可重复选择
-  input.value = '';
-  if (!file) return;
+/** ElUpload 自定义上传：仅图片 + 5MB 由后端校验，成功后刷新 store 使头部头像同步 */
+async function onAvatarUpload(options: UploadRequestOptions) {
   uploading.value = true;
   try {
-    await uploadAvatarApi(file);
+    await uploadAvatarApi(options.file as File);
     await authStore.fetchUserInfo();
     ElMessage.success('头像已更新');
   } finally {
@@ -96,32 +99,31 @@ async function onAvatarChange(event: Event) {
 </script>
 <template>
   <div class="max-w-md">
-    <div class="mb-6 flex items-center gap-4">
-      <img
-        :src="userStore.userInfo?.avatar ?? preferences.app.defaultAvatar"
-        class="size-16 cursor-pointer rounded-full object-cover"
-        alt="头像"
-        @click="pickAvatar"
-      />
-      <div>
-        <button
-          class="border-border hover:border-primary hover:text-primary rounded-md border px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-          :disabled="uploading"
-          type="button"
-          @click="pickAvatar"
-        >
-          {{ uploading ? '上传中...' : '更换头像' }}
-        </button>
-        <p class="text-foreground/60 mt-1 text-xs">仅支持图片，最大 5MB</p>
+    <!-- ElUpload 托管文件选择：点头像或按钮均可靠弹出选择框，accept 限定图片 -->
+    <ElUpload
+      accept="image/*"
+      :disabled="uploading"
+      :http-request="onAvatarUpload"
+      :show-file-list="false"
+    >
+      <div class="flex items-center gap-4">
+        <img
+          :src="userStore.userInfo?.avatar ?? preferences.app.defaultAvatar"
+          alt="头像"
+          class="size-16 cursor-pointer rounded-full object-cover"
+        />
+        <div>
+          <button
+            class="border-border hover:border-primary hover:text-primary rounded-md border px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="uploading"
+            type="button"
+          >
+            {{ uploading ? '上传中...' : '更换头像' }}
+          </button>
+          <p class="text-foreground/60 mt-1 text-xs">仅支持图片，最大 5MB</p>
+        </div>
       </div>
-      <input
-        ref="fileInputRef"
-        type="file"
-        accept="image/*"
-        class="absolute size-px opacity-0"
-        @change="onAvatarChange"
-      />
-    </div>
+    </ElUpload>
     <ProfileBaseSetting
       ref="profileBaseSettingRef"
       :form-schema="formSchema"

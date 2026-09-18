@@ -17,6 +17,11 @@ interface UserInfo extends BasicUserInfo {
   introduction?: string;
 
   /**
+   * 邮箱（用于用户下拉展示，选填）
+   */
+  email?: string;
+
+  /**
    * accessToken
    */
   token: string;

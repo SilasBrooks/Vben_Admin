@@ -10,8 +10,16 @@ export async function getUserInfoApi() {
 }
 
 /**
- * 修改本人资料（昵称 + 个人简介），返回更新后的用户信息
+ * 修改本人资料（昵称 + 个人简介 + 邮箱），返回更新后的用户信息
  */
-export async function updateProfileApi(nickname: string, introduction: string) {
-  return requestClient.patch<UserInfo>('/user/profile', { introduction, nickname });
+export async function updateProfileApi(
+  nickname: string,
+  introduction: string,
+  email: string,
+) {
+  return requestClient.patch<UserInfo>('/user/profile', {
+    email,
+    introduction,
+    nickname,
+  });
 }
