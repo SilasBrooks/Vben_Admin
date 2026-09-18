@@ -35,4 +35,9 @@ public class BizException extends RuntimeException {
   public static BizException tooManyRequests(String message) {
     return new BizException(429, message);
   }
+
+  /** 409：重复提交（幂等窗口内拒绝重复请求） */
+  public static BizException conflict(String message) {
+    return new BizException(409, message);
+  }
 }

@@ -72,7 +72,7 @@ public class SysFileService {
       throw BizException.badRequest("文件大小超过限制（最大 " + (maxSize / 1024 / 1024) + "MB）");
     }
     // 存储名随机 UUID，防路径穿越与文件名猜测；content_type 由原始名推导，不取客户端字段
-    StoredFile stored = storageService.store(in, originalName);
+    StoredFile stored = storageService.store(in, originalName, size);
     SysFile entity = new SysFile();
     entity.setOriginalName(truncate(originalName, 255));
     entity.setStorageKey(stored.key());

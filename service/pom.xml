@@ -89,6 +89,13 @@
       <artifactId>spring-security-crypto</artifactId>
     </dependency>
 
+    <!-- MinIO 对象存储（vben.file.storage=minio 时启用，默认 local 不加载） -->
+    <dependency>
+      <groupId>io.minio</groupId>
+      <artifactId>minio</artifactId>
+      <version>8.5.17</version>
+    </dependency>
+
     <!-- 开发环境数据库（PostgreSQL，Docker 容器 vben5 :5444） -->
     <dependency>
       <groupId>org.postgresql</groupId>

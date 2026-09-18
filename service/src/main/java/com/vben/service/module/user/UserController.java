@@ -62,6 +62,7 @@ public class UserController {
    * 不在此接口范围内（头像走 POST /file/avatar，改密走 POST /auth/change-password）。
    * 成功后返回最新的本人信息，便于前端直接刷新 store。
    */
+  @com.vben.service.common.idempotent.Idempotent(name = "user:profile")
   @PatchMapping("/profile")
   public R<Map<String, Object>> profile(@Valid @RequestBody UpdateProfileDto body) {
     LoginUser login = LoginUserHolder.require();

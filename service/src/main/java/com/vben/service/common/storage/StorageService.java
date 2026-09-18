@@ -13,9 +13,10 @@ public interface StorageService {
    *
    * @param in          文件内容流（调用方负责关闭）
    * @param originalName 原始文件名（用于保留扩展名）
+   * @param size        文件字节数（上传场景调用方已知，供实现按需使用）
    * @return 存储结果（key + 实际字节数）
    */
-  StoredFile store(InputStream in, String originalName);
+  StoredFile store(InputStream in, String originalName, long size);
 
   /**
    * 打开指定 key 的文件读取流。文件不存在时抛出 {@link StorageException}。

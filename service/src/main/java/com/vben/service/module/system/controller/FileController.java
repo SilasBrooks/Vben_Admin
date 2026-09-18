@@ -59,6 +59,7 @@ public class FileController {
   @Operation(summary = "上传文件", description = "扩展名白名单（图片/文档/压缩包），单文件最大 10MB；返回文件 id 与访问路径")
   @RequirePermission("System:File:Upload")
   @RateLimit(name = "file:upload", limit = 20, windowSeconds = 60)
+  @com.vben.service.common.idempotent.Idempotent(name = "file:upload", intervalSeconds = 5)
   @PostMapping("/upload")
   public R<SysFileService.FileItem> upload(@RequestParam("file") MultipartFile file) throws IOException {
     if (file == null || file.isEmpty()) {

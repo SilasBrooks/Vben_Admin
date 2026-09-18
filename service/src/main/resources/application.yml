@@ -62,11 +62,17 @@ vben:
     ttl-seconds: 120
     echo-enabled: false
   file:
-    # 存储实现：local（本地磁盘，默认）｜oss/minio（预留，暂未实现）
+    # 存储实现：local（本地磁盘，默认）｜minio（对象存储，启用下方 minio 配置并改 storage）
     storage: local
     local:
       # 本地存储根目录（相对服务运行目录），按 日期分桶/UUID.扩展名 组织
       base-path: ./files
+    # 切换 minio 时取消注释（bucket 需提前创建；切换不迁移存量本地文件）
+    #minio:
+    #  endpoint: http://127.0.0.1:9000
+    #  access-key: minioadmin
+    #  secret-key: minioadmin
+    #  bucket: vben
 
 springdoc:
   # API 文档：dev 打开（/api/v3/api-docs + /api/swagger-ui/index.html），prod profile 关闭

@@ -29,14 +29,14 @@ public class LocalStorageService implements StorageService {
   }
 
   @Override
-  public StoredFile store(InputStream in, String originalName) {
+  public StoredFile store(InputStream in, String originalName, long size) {
     String ext = StringUtils.getFilenameExtension(originalName);
     String key = LocalDate.now().format(BUCKET) + "/" + UUID.randomUUID() + (ext != null ? "." + ext.toLowerCase() : "");
     Path target = resolve(key);
     try {
       Files.createDirectories(target.getParent());
-      long size = Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
-      return new StoredFile(key, size);
+      long written = Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+      return new StoredFile(key, written);
     } catch (IOException e) {
       throw new StorageException("文件写入失败: " + key, e);
     }

@@ -26,6 +26,11 @@ public final class RedisKeys {
     return PREFIX + "ratelimit:" + name + ":" + principal;
   }
 
+  /** 防重复提交占位：vben:idempotent:{name}:{principal}，TTL = 幂等窗口 */
+  public static String idempotent(String name, String principal) {
+    return PREFIX + "idempotent:" + name + ":" + principal;
+  }
+
   /** 用户 token 版本号：vben:token:ver:{userId}，无键视为 0 */
   public static String tokenVer(Long userId) {
     return PREFIX + "token:ver:" + userId;

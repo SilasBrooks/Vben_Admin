@@ -31,17 +31,19 @@
 |---|---|
 | 认证 | 登录 / 双 Token 刷新 / 登出 / BCrypt 密码加密 / 凭证变更与强退后旧 token 即时失效（版本号机制） |
 | 登录安全 | 服务端图形验证码（一次性 + 2 分钟有效期）、失败锁定（用户名/IP 双维度 15 分钟 5 次）、声明式接口限流 `@RateLimit`——状态存 Redis，重启不丢、多实例共享 |
+| 防重复提交 | `@Idempotent` 注解 + Redis SETNX 原子占位：同用户在时间窗内重复提交返回 409（未登录降级 IP 维度），资料修改、文件上传等写接口已接入 |
 | 系统管理 | 用户、角色、菜单、部门管理（CRUD + 树形结构 + 分页） |
 | 权限 | 按钮级 RBAC 权限码、菜单驱动动态路由、角色授权 |
 | 数据权限 | 部门粒度行级数据隔离（stockAdmin 角色为演示账号） |
 | 监控 | 操作日志、登录日志（声明式采集）、在线用户（实时会话列表 + 强制下线） |
 | 数据字典 | 可维护字典 + 前端 `useDict` hook（自动缓存共享） |
-| 文件存储 | 可插拔存储抽象（`StorageService`，本地实现起步，预留 OSS/MinIO）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
+| 文件存储 | 可插拔存储抽象（`StorageService`）：本地磁盘 / MinIO 对象存储（`vben.file.storage=minio` 切换，启动自动建桶，对象存储解决多实例文件不共享与单机丢失）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
 | 仪表盘 | 工作台/分析页真实数据版（`GET /dashboard/summary` 登录即可全员同版）：统计卡 + 今日概况 + 近 14 天登录趋势 + 部门/模块分布 + 最近登录/操作，替代模板演示数据 |
 | 个人中心 | 头像上传（登录即可，同步 header）、昵称/个人简介编辑（`PATCH /user/profile` 登录即可，仅限本人）、修改密码（成功后强制重新登录，旧 token 即时失效） |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
 | 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：`docker compose up -d` 起全套演示环境，docker profile 自动建库、安全开关默认关闭 |
+| CI | GitHub Actions 双流水线：后端 `mvn test`（幂等切面/IP 工具等单测）+ 前端 `pnpm build`，push/PR 自动执行 |
 
 ## 快速开始
 

@@ -18,9 +18,23 @@ public class StorageProperties {
 
   private final Local local = new Local();
 
+  private final Minio minio = new Minio();
+
   @Data
   public static class Local {
     /** 本地存储根目录（相对服务运行目录或绝对路径） */
     private String basePath = "./files";
+  }
+
+  @Data
+  public static class Minio {
+    /** MinIO 服务地址，如 http://127.0.0.1:9000 */
+    private String endpoint = "http://127.0.0.1:9000";
+    /** 访问密钥 */
+    private String accessKey = "";
+    /** 私有密钥 */
+    private String secretKey = "";
+    /** 存储桶（需提前创建） */
+    private String bucket = "vben";
   }
 }
