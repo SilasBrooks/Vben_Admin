@@ -9,6 +9,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { clearLoginLogApi, deleteLoginLogApi, getLoginLogListApi } from '#/api/monitor/log';
 
+import { $t } from '#/locales';
+
 // 时间范围表单值拆为 beginTime/endTime
 function splitRange(
   formValues?: Record<string, any>,
@@ -22,19 +24,21 @@ function splitRange(
 const gridOptions: VxeTableGridOptions<LoginLogItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'username', title: '用户名', minWidth: 120 },
+    { field: 'username', title: $t('monitor.common.username'), minWidth: 120 },
     {
       field: 'status',
-      title: '结果',
+      title: $t('monitor.common.result'),
       width: 80,
       formatter: ({ cellValue }) =>
-        cellValue === 0 ? '成功' : '失败',
+        cellValue === 0
+          ? $t('monitor.common.success')
+          : $t('monitor.common.fail'),
     },
-    { field: 'message', title: '消息', minWidth: 140 },
-    { field: 'ip', title: 'IP', width: 130 },
-    { field: 'userAgent', title: '浏览器/设备', minWidth: 200, showOverflow: true },
-    { field: 'loginTime', title: '登录时间', width: 170 },
-    { title: '操作', width: 90, fixed: 'right', slots: { default: 'action' } },
+    { field: 'message', title: $t('monitor.loginLog.message'), minWidth: 140 },
+    { field: 'ip', title: $t('monitor.common.ip'), width: 130 },
+    { field: 'userAgent', title: $t('monitor.loginLog.browser'), minWidth: 200, showOverflow: true },
+    { field: 'loginTime', title: $t('monitor.common.loginTime'), width: 170 },
+    { title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -64,48 +68,52 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入用户名' },
+        componentProps: { placeholder: $t('monitor.common.usernamePlaceholder') },
         fieldName: 'username',
-        label: '用户名',
+        label: $t('monitor.common.username'),
       },
       {
         component: 'Select',
         componentProps: {
-          placeholder: '请选择结果',
+          placeholder: $t('monitor.common.resultPlaceholder'),
           clearable: true,
           options: [
-            { label: '成功', value: 0 },
-            { label: '失败', value: 1 },
+            { label: $t('monitor.common.success'), value: 0 },
+            { label: $t('monitor.common.fail'), value: 1 },
           ],
         },
         fieldName: 'status',
-        label: '结果',
+        label: $t('monitor.common.result'),
       },
       {
         component: 'DatePicker',
         componentProps: { type: 'daterange', valueFormat: 'YYYY-MM-DD' },
         fieldName: 'timeRange',
-        label: '时间',
+        label: $t('monitor.common.time'),
       },
     ],
   },
 });
 
 async function remove(row: LoginLogItem) {
-  await ElMessageBox.confirm(`确认删除该条登录日志？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('monitor.loginLog.deleteConfirm'),
+    $t('monitor.common.confirmTitle'),
+    { type: 'warning' },
+  );
   await deleteLoginLogApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('monitor.common.deleteSuccess'));
   gridApi.reload();
 }
 
 async function clearAll() {
-  await ElMessageBox.confirm('确认清空全部登录日志？该操作不可恢复！', '警告', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('monitor.loginLog.clearConfirm'),
+    $t('monitor.common.warningTitle'),
+    { type: 'warning' },
+  );
   await clearLoginLogApi();
-  ElMessage.success('已清空');
+  ElMessage.success($t('monitor.common.cleared'));
   gridApi.reload();
 }
 </script>
@@ -120,7 +128,7 @@ async function clearAll() {
           class="text-destructive"
           @click="clearAll"
         >
-          清空日志
+          {{ $t('monitor.common.clearLogs') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -131,7 +139,7 @@ async function clearAll() {
           class="text-destructive"
           @click="remove(row as LoginLogItem)"
         >
-          删除
+          {{ $t('monitor.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

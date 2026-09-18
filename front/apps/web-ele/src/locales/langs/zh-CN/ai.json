@@ -1,0 +1,23 @@
+{
+  "chat": {
+    "title": "智能助手",
+    "openAria": "打开智能助手",
+    "closeAria": "关闭智能助手",
+    "clearSession": "清空会话",
+    "clear": "清空",
+    "close": "关闭",
+    "welcome": "你好！我是系统管理助手，可以帮你查询和创建数据。",
+    "suggestionDepartments": "系统里有哪些部门？",
+    "suggestionCreateRole": "帮我创建一个角色：标识 testrole，名称测试角色",
+    "suggestionUsers": "查一下有哪些用户",
+    "placeholder": "输入消息，Enter 发送，Shift+Enter 换行",
+    "send": "发送",
+    "stop": "停止"
+  },
+  "card": {
+    "confirmExecute": "确认执行",
+    "cancel": "取消",
+    "executing": "执行中...",
+    "cancelled": "已取消"
+  }
+}

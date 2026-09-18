@@ -1,0 +1,45 @@
+{
+  "common": {
+    "action": "Actions",
+    "success": "Success",
+    "fail": "Failure",
+    "result": "Result",
+    "username": "Username",
+    "ip": "IP",
+    "usernamePlaceholder": "Please enter username",
+    "resultPlaceholder": "Please select result",
+    "time": "Time",
+    "loginTime": "Login Time",
+    "delete": "Delete",
+    "deleteSuccess": "Deleted successfully",
+    "clearLogs": "Clear Logs",
+    "cleared": "Cleared",
+    "confirmTitle": "Notice",
+    "warningTitle": "Warning"
+  },
+  "loginLog": {
+    "message": "Message",
+    "browser": "Browser/Device",
+    "deleteConfirm": "Are you sure you want to delete this login log?",
+    "clearConfirm": "Are you sure you want to clear all login logs? This action cannot be undone!"
+  },
+  "operLog": {
+    "operName": "Operator",
+    "module": "Module",
+    "operation": "Operation",
+    "method": "Method",
+    "url": "URL",
+    "cost": "Cost (ms)",
+    "operTime": "Operation Time",
+    "operNamePlaceholder": "Please enter operator",
+    "deleteConfirm": "Are you sure you want to delete this operation log?",
+    "clearConfirm": "Are you sure you want to clear all operation logs? This action cannot be undone!"
+  },
+  "online": {
+    "nickname": "Nickname",
+    "loginIp": "Login IP",
+    "kick": "Force Offline",
+    "kickConfirm": "Are you sure you want to force user \"{name}\" offline? Their current login will be invalidated immediately.",
+    "kickSuccess": "Forced offline"
+  }
+}

@@ -16,6 +16,7 @@ import { ElMessage, ElUpload } from 'element-plus';
 
 import { updateProfileApi } from '#/api/core/user';
 import { uploadAvatarApi } from '#/api/system/file';
+import { $t } from '#/locales';
 import { z } from '#/adapter/form';
 import { useAuthStore } from '#/store';
 
@@ -30,8 +31,8 @@ const formSchema = computed((): VbenFormSchema[] => {
     {
       fieldName: 'nickname',
       component: 'Input',
-      label: '昵称',
-      rules: z.string().min(1, { message: '请输入昵称' }),
+      label: $t('profile.base.nickname'),
+      rules: z.string().min(1, { message: $t('profile.base.nicknameRequired') }),
     },
     {
       fieldName: 'roles',
@@ -39,29 +40,29 @@ const formSchema = computed((): VbenFormSchema[] => {
       componentProps: {
         disabled: true,
       },
-      label: '角色',
+      label: $t('profile.base.role'),
     },
     {
       fieldName: 'email',
       component: 'Input',
       componentProps: {
         maxlength: 255,
-        placeholder: '用于展示与联系（选填）',
+        placeholder: $t('profile.base.emailPlaceholder'),
       },
-      label: '邮箱',
-      rules: z.string().email({ message: '邮箱格式不正确' }).or(z.literal('')),
+      label: $t('profile.base.email'),
+      rules: z.string().email({ message: $t('profile.base.emailInvalid') }).or(z.literal('')),
     },
     {
       fieldName: 'introduction',
       component: 'Input',
       componentProps: {
         maxlength: 200,
-        placeholder: '介绍一下自己（最多 200 字）',
+        placeholder: $t('profile.base.introductionPlaceholder'),
         rows: 3,
         showWordLimit: true,
         type: 'textarea',
       },
-      label: '个人简介',
+      label: $t('profile.base.introduction'),
     },
   ];
 });
@@ -82,7 +83,7 @@ onMounted(async () => {
 async function handleProfileSubmit(values: Recordable<any>) {
   await updateProfileApi(values.nickname, values.introduction ?? '', values.email ?? '');
   await authStore.fetchUserInfo();
-  ElMessage.success('资料已更新');
+  ElMessage.success($t('profile.base.profileUpdated'));
 }
 
 /** ElUpload 自定义上传：仅图片 + 5MB 由后端校验，成功后刷新 store 使头部头像同步 */
@@ -91,7 +92,7 @@ async function onAvatarUpload(options: UploadRequestOptions) {
   try {
     await uploadAvatarApi(options.file as File);
     await authStore.fetchUserInfo();
-    ElMessage.success('头像已更新');
+    ElMessage.success($t('profile.base.avatarUpdated'));
   } finally {
     uploading.value = false;
   }
@@ -109,7 +110,7 @@ async function onAvatarUpload(options: UploadRequestOptions) {
       <div class="flex items-center gap-4">
         <img
           :src="userStore.userInfo?.avatar ?? preferences.app.defaultAvatar"
-          alt="头像"
+          :alt="$t('profile.base.avatar')"
           class="size-16 cursor-pointer rounded-full object-cover"
         />
         <div>
@@ -118,9 +119,9 @@ async function onAvatarUpload(options: UploadRequestOptions) {
             :disabled="uploading"
             type="button"
           >
-            {{ uploading ? '上传中...' : '更换头像' }}
+            {{ uploading ? $t('profile.base.uploading') : $t('profile.base.changeAvatar') }}
           </button>
-          <p class="text-foreground/60 mt-1 text-xs">仅支持图片，最大 5MB</p>
+          <p class="text-foreground/60 mt-1 text-xs">{{ $t('profile.base.avatarTip') }}</p>
         </div>
       </div>
     </ElUpload>

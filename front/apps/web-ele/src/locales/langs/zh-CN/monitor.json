@@ -1,0 +1,45 @@
+{
+  "common": {
+    "action": "操作",
+    "success": "成功",
+    "fail": "失败",
+    "result": "结果",
+    "username": "用户名",
+    "ip": "IP",
+    "usernamePlaceholder": "请输入用户名",
+    "resultPlaceholder": "请选择结果",
+    "time": "时间",
+    "loginTime": "登录时间",
+    "delete": "删除",
+    "deleteSuccess": "删除成功",
+    "clearLogs": "清空日志",
+    "cleared": "已清空",
+    "confirmTitle": "提示",
+    "warningTitle": "警告"
+  },
+  "loginLog": {
+    "message": "消息",
+    "browser": "浏览器/设备",
+    "deleteConfirm": "确认删除该条登录日志？",
+    "clearConfirm": "确认清空全部登录日志？该操作不可恢复！"
+  },
+  "operLog": {
+    "operName": "操作人",
+    "module": "模块",
+    "operation": "操作",
+    "method": "方式",
+    "url": "URL",
+    "cost": "耗时(ms)",
+    "operTime": "操作时间",
+    "operNamePlaceholder": "请输入操作人",
+    "deleteConfirm": "确认删除该条操作日志？",
+    "clearConfirm": "确认清空全部操作日志？该操作不可恢复！"
+  },
+  "online": {
+    "nickname": "昵称",
+    "loginIp": "登录 IP",
+    "kick": "强制下线",
+    "kickConfirm": "确认将用户「{name}」强制下线？其当前登录将立即失效。",
+    "kickSuccess": "已强制下线"
+  }
+}

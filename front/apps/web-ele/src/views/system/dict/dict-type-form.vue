@@ -12,6 +12,7 @@ import {
   getDictTypeListApi,
   updateDictTypeApi,
 } from '#/api/system/dict';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -37,42 +38,46 @@ async function init() {
   isEdit.value = !!data?.id;
   editId.value = data?.id;
   modalApi.setState({
-    title: isEdit.value ? '编辑字典类型' : '新增字典类型',
+    title: isEdit.value ? $t('system.dict.editDictType') : $t('system.dict.addDictType'),
   });
 
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'dictName',
-      label: '字典名称',
+      label: $t('system.dict.dictName'),
       component: 'Input',
-      componentProps: { placeholder: '如 库存类型' },
-      rules: z.string().min(1, { message: '请输入字典名称' }),
+      componentProps: {
+        placeholder: $t('system.dict.dictNamePlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.dict.enterDictName') }),
     },
     {
       fieldName: 'dictType',
-      label: '类型键',
+      label: $t('system.dict.typeKey'),
       component: 'Input',
-      componentProps: { placeholder: '全局唯一，如 wsm_stock_type' },
+      componentProps: {
+        placeholder: $t('system.dict.typeKeyPlaceholder'),
+      },
       rules: z
         .string()
-        .min(1, { message: '请输入类型键' })
-        .regex(/^[\w:]+$/, { message: '仅支持字母/数字/下划线/冒号' }),
+        .min(1, { message: $t('system.dict.enterTypeKey') })
+        .regex(/^[\w:]+$/, { message: $t('system.dict.typeKeyRule') }),
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,
     },
     {
       fieldName: 'remark',
-      label: '备注',
+      label: $t('system.common.remark'),
       component: 'Input',
       componentProps: { type: 'textarea', rows: 2 },
     },

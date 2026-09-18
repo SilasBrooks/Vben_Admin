@@ -16,6 +16,7 @@ import {
   type UserItem,
 } from '#/api/system/user';
 import { getRoleOptionsApi } from '#/api/system/role';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -42,7 +43,7 @@ async function init() {
   const data = modalApi.getData<{ id?: number }>();
   isEdit.value = !!data?.id;
   modalApi.setState({
-    title: isEdit.value ? '编辑用户' : '新增用户',
+    title: isEdit.value ? $t('system.user.edit') : $t('system.user.add'),
   });
 
   // 加载角色选项（首次打开时缓存）
@@ -58,43 +59,47 @@ async function init() {
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'username',
-      label: '用户名',
+      label: $t('system.user.username'),
       component: 'Input',
       componentProps: {
-        placeholder: '登录用户名',
+        placeholder: $t('system.user.usernamePlaceholder'),
         disabled: isEdit.value,
       },
-      rules: z.string().min(1, { message: '请输入用户名' }),
+      rules: z.string().min(1, { message: $t('system.user.enterUsername') }),
     },
     {
       fieldName: 'password',
-      label: '密码',
+      label: $t('system.user.password'),
       component: 'Input',
       componentProps: {
         type: 'password',
         showPassword: true,
-        placeholder: isEdit.value ? '留空不修改' : '至少 6 位',
+        placeholder: isEdit.value
+          ? $t('system.user.passwordEditPlaceholder')
+          : $t('system.user.passwordCreatePlaceholder'),
       },
       rules: isEdit.value
         ? z.string().optional()
-        : z.string().min(6, { message: '密码至少 6 位' }),
+        : z.string().min(6, { message: $t('system.user.passwordMinMessage') }),
     },
     {
       fieldName: 'nickname',
-      label: '昵称',
+      label: $t('system.user.nickname'),
       component: 'Input',
-      componentProps: { placeholder: '显示名' },
-      rules: z.string().min(1, { message: '请输入昵称' }),
+      componentProps: { placeholder: $t('system.user.nicknamePlaceholder') },
+      rules: z.string().min(1, { message: $t('system.user.enterNickname') }),
     },
     {
       fieldName: 'homePath',
-      label: '首页路径',
+      label: $t('system.user.homePath'),
       component: 'Input',
-      componentProps: { placeholder: '如 /workspace，可留空' },
+      componentProps: {
+        placeholder: $t('system.user.homePathPlaceholder'),
+      },
     },
     {
       fieldName: 'deptId',
-      label: '所属部门',
+      label: $t('system.user.dept'),
       component: 'TreeSelect',
       componentProps: {
         data: deptTree.value,
@@ -103,12 +108,12 @@ async function init() {
         checkStrictly: true,
         defaultExpandAll: true,
         clearable: true,
-        placeholder: '可选，归属到某个部门，清空 = 不归属',
+        placeholder: $t('system.user.deptPlaceholder'),
       },
     },
     {
       fieldName: 'roleIds',
-      label: '角色',
+      label: $t('system.user.roles'),
       component: 'Select',
       componentProps: {
         multiple: true,
@@ -118,17 +123,17 @@ async function init() {
           label: `${r.roleName}（${r.roleKey}）`,
           value: r.id,
         })),
-        placeholder: '选择角色（可多选）',
+        placeholder: $t('system.user.rolesPlaceholder'),
       },
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,

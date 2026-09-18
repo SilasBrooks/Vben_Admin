@@ -9,6 +9,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { deleteDictTypeApi, getDictTypeListApi } from '#/api/system/dict';
 import { clearDictCache } from '#/hooks/use-dict';
+import { $t } from '#/locales';
 
 import DictDataModalComponent from './dict-data-modal.vue';
 import DictTypeForm from './dict-type-form.vue';
@@ -25,17 +26,20 @@ const gridOptions: VxeTableGridOptions<DictTypeItem> = {
   rowConfig: { keyField: 'id', isHover: true },
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'dictName', title: '字典名称', minWidth: 160 },
-    { field: 'dictType', title: '类型键', minWidth: 180 },
+    { field: 'dictName', title: $t('system.dict.dictName'), minWidth: 160 },
+    { field: 'dictType', title: $t('system.dict.typeKey'), minWidth: 180 },
     {
       field: 'status',
-      title: '状态',
+      title: $t('system.common.status'),
       width: 90,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '正常' : '停用'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.common.enabled')
+          : $t('system.common.disabled'),
     },
-    { field: 'remark', title: '备注', minWidth: 160 },
-    { field: 'createTime', title: '创建时间', width: 170 },
-    { title: '操作', width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: 'remark', title: $t('system.common.remark'), minWidth: 160 },
+    { field: 'createTime', title: $t('system.common.createdAt'), width: 170 },
+    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {
@@ -70,13 +74,13 @@ function openData(row: DictTypeItem) {
 
 async function remove(row: DictTypeItem) {
   await ElMessageBox.confirm(
-    `确认删除字典类型「${row.dictName}」？其下全部字典数据将一并删除，不可恢复！`,
-    '警告',
+    $t('system.dict.deleteTypeConfirm', { name: row.dictName }),
+    $t('system.common.warning'),
     { type: 'warning' },
   );
   await deleteDictTypeApi(row.id);
   clearDictCache(row.dictType);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   gridApi.reload();
 }
 
@@ -97,12 +101,12 @@ function onSaved() {
           variant="default"
           @click="openCreate"
         >
-          新增类型
+          {{ $t('system.dict.addType') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
         <VbenButton variant="link" size="sm" @click="openData(row as DictTypeItem)">
-          数据
+          {{ $t('system.dict.data') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Dict:Edit'"
@@ -110,7 +114,7 @@ function onSaved() {
           size="sm"
           @click="openEdit(row as DictTypeItem)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Dict:Delete'"
@@ -119,7 +123,7 @@ function onSaved() {
           class="text-destructive"
           @click="remove(row as DictTypeItem)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

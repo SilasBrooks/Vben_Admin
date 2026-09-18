@@ -9,6 +9,8 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { clearOperLogApi, deleteOperLogApi, getOperLogListApi } from '#/api/monitor/log';
 
+import { $t } from '#/locales';
+
 // 时间范围表单值拆为 beginTime/endTime
 function splitRange(
   formValues?: Record<string, any>,
@@ -22,22 +24,24 @@ function splitRange(
 const gridOptions: VxeTableGridOptions<OperLogItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'operName', title: '操作人', width: 110 },
-    { field: 'module', title: '模块', width: 110 },
-    { field: 'description', title: '操作', minWidth: 120 },
-    { field: 'requestMethod', title: '方式', width: 70 },
-    { field: 'requestUrl', title: 'URL', minWidth: 180, showOverflow: true },
+    { field: 'operName', title: $t('monitor.operLog.operName'), width: 110 },
+    { field: 'module', title: $t('monitor.operLog.module'), width: 110 },
+    { field: 'description', title: $t('monitor.operLog.operation'), minWidth: 120 },
+    { field: 'requestMethod', title: $t('monitor.operLog.method'), width: 70 },
+    { field: 'requestUrl', title: $t('monitor.operLog.url'), minWidth: 180, showOverflow: true },
     {
       field: 'status',
-      title: '结果',
+      title: $t('monitor.common.result'),
       width: 80,
       formatter: ({ cellValue }) =>
-        cellValue === 0 ? '成功' : '失败',
+        cellValue === 0
+          ? $t('monitor.common.success')
+          : $t('monitor.common.fail'),
     },
-    { field: 'ip', title: 'IP', width: 120 },
-    { field: 'costMs', title: '耗时(ms)', width: 90 },
-    { field: 'operTime', title: '操作时间', width: 170 },
-    { title: '操作', width: 90, fixed: 'right', slots: { default: 'action' } },
+    { field: 'ip', title: $t('monitor.common.ip'), width: 120 },
+    { field: 'costMs', title: $t('monitor.operLog.cost'), width: 90 },
+    { field: 'operTime', title: $t('monitor.operLog.operTime'), width: 170 },
+    { title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -67,48 +71,52 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入操作人' },
+        componentProps: { placeholder: $t('monitor.operLog.operNamePlaceholder') },
         fieldName: 'operName',
-        label: '操作人',
+        label: $t('monitor.operLog.operName'),
       },
       {
         component: 'Select',
         componentProps: {
-          placeholder: '请选择结果',
+          placeholder: $t('monitor.common.resultPlaceholder'),
           clearable: true,
           options: [
-            { label: '成功', value: 0 },
-            { label: '失败', value: 1 },
+            { label: $t('monitor.common.success'), value: 0 },
+            { label: $t('monitor.common.fail'), value: 1 },
           ],
         },
         fieldName: 'status',
-        label: '结果',
+        label: $t('monitor.common.result'),
       },
       {
         component: 'DatePicker',
         componentProps: { type: 'daterange', valueFormat: 'YYYY-MM-DD' },
         fieldName: 'timeRange',
-        label: '时间',
+        label: $t('monitor.common.time'),
       },
     ],
   },
 });
 
 async function remove(row: OperLogItem) {
-  await ElMessageBox.confirm(`确认删除该条操作日志？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('monitor.operLog.deleteConfirm'),
+    $t('monitor.common.confirmTitle'),
+    { type: 'warning' },
+  );
   await deleteOperLogApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('monitor.common.deleteSuccess'));
   gridApi.reload();
 }
 
 async function clearAll() {
-  await ElMessageBox.confirm('确认清空全部操作日志？该操作不可恢复！', '警告', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('monitor.operLog.clearConfirm'),
+    $t('monitor.common.warningTitle'),
+    { type: 'warning' },
+  );
   await clearOperLogApi();
-  ElMessage.success('已清空');
+  ElMessage.success($t('monitor.common.cleared'));
   gridApi.reload();
 }
 </script>
@@ -123,7 +131,7 @@ async function clearAll() {
           class="text-destructive"
           @click="clearAll"
         >
-          清空日志
+          {{ $t('monitor.common.clearLogs') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -134,7 +142,7 @@ async function clearAll() {
           class="text-destructive"
           @click="remove(row as OperLogItem)"
         >
-          删除
+          {{ $t('monitor.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

@@ -1,0 +1,15 @@
+{
+  "store": {
+    "title": "Inventory Management",
+    "keyword": "Keyword",
+    "searchPlaceholder": "Search SKU / name",
+    "status": "Status",
+    "allStatus": "All statuses",
+    "search": "Search",
+    "name": "Name",
+    "quantity": "Quantity"
+  },
+  "transport": {
+    "test": "Test"
+  }
+}

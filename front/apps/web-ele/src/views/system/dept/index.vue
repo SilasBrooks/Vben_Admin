@@ -8,6 +8,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteDeptApi, getDeptTreeApi } from '#/api/system/dept';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { $t } from '#/locales';
 
 import DeptForm from './dept-form.vue';
 
@@ -24,18 +25,21 @@ const gridOptions: VxeTableGridOptions<DeptNode> = {
     expandAll: true,
   },
   columns: [
-    { field: 'deptName', title: '部门名称', minWidth: 220, treeNode: true },
-    { field: 'leader', title: '负责人', width: 120 },
-    { field: 'orderNum', title: '排序', width: 80 },
+    { field: 'deptName', title: $t('system.dept.deptName'), minWidth: 220, treeNode: true },
+    { field: 'leader', title: $t('system.dept.leader'), width: 120 },
+    { field: 'orderNum', title: $t('system.common.sort'), width: 80 },
     {
       field: 'status',
-      title: '状态',
+      title: $t('system.common.status'),
       width: 90,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '正常' : '停用'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.common.enabled')
+          : $t('system.common.disabled'),
     },
-    { field: 'remark', title: '备注', minWidth: 160 },
-    { field: 'createTime', title: '创建时间', width: 170 },
-    { title: '操作', width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: 'remark', title: $t('system.common.remark'), minWidth: 160 },
+    { field: 'createTime', title: $t('system.common.createdAt'), width: 170 },
+    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {
@@ -63,11 +67,15 @@ function openEdit(row: DeptNode) {
 }
 
 async function remove(row: DeptNode) {
-  await ElMessageBox.confirm(`确认删除部门「${row.deptName}」？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('system.dept.deleteConfirm', { name: row.deptName }),
+    $t('system.common.notice'),
+    {
+      type: 'warning',
+    },
+  );
   await deleteDeptApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   gridApi.reload();
 }
 
@@ -82,7 +90,7 @@ function onFormSaved() {
     <Grid>
       <template #toolbar-actions>
         <VbenButton v-access:code="'System:Dept:Add'" variant="default" @click="openCreate(0)">
-          新增根部门
+          {{ $t('system.dept.addRoot') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -92,7 +100,7 @@ function onFormSaved() {
           size="sm"
           @click="openCreate((row as DeptNode).id)"
         >
-          新增子部门
+          {{ $t('system.dept.addChild') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Dept:Edit'"
@@ -100,7 +108,7 @@ function onFormSaved() {
           size="sm"
           @click="openEdit(row as DeptNode)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Dept:Delete'"
@@ -109,7 +117,7 @@ function onFormSaved() {
           class="text-destructive"
           @click="remove(row as DeptNode)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

@@ -8,6 +8,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteMenuApi, getMenuTreeApi } from '#/api/system/menu';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { $t } from '#/locales';
 
 import MenuForm from './menu-form.vue';
 
@@ -24,27 +25,34 @@ const gridOptions: VxeTableGridOptions<MenuNode> = {
     expandAll: true,
   },
   columns: [
-    { field: 'title', title: '显示名称', minWidth: 200, treeNode: true },
-    { field: 'menuName', title: '菜单标识', minWidth: 140 },
+    { field: 'title', title: $t('system.menu.displayName'), minWidth: 200, treeNode: true },
+    { field: 'menuName', title: $t('system.menu.menuName'), minWidth: 140 },
     {
       field: 'menuType',
-      title: '类型',
+      title: $t('system.menu.type'),
       width: 80,
       formatter: ({ cellValue }) =>
-        cellValue === 'M' ? '目录' : cellValue === 'C' ? '菜单' : '按钮',
+        cellValue === 'M'
+          ? $t('system.menu.typeDirectory')
+          : cellValue === 'C'
+            ? $t('system.menu.typeMenu')
+            : $t('system.menu.typeButton'),
     },
-    { field: 'icon', title: '图标', width: 120 },
-    { field: 'orderNum', title: '排序', width: 70 },
-    { field: 'path', title: '路由路径', minWidth: 160 },
-    { field: 'component', title: '组件路径', minWidth: 180 },
-    { field: 'perm', title: '权限码', minWidth: 160 },
+    { field: 'icon', title: $t('system.menu.icon'), width: 120 },
+    { field: 'orderNum', title: $t('system.common.sort'), width: 70 },
+    { field: 'path', title: $t('system.menu.routePath'), minWidth: 160 },
+    { field: 'component', title: $t('system.menu.componentPath'), minWidth: 180 },
+    { field: 'perm', title: $t('system.menu.perm'), minWidth: 160 },
     {
       field: 'visible',
-      title: '显示',
+      title: $t('system.menu.show'),
       width: 70,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '显示' : '隐藏'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.menu.show')
+          : $t('system.menu.hide'),
     },
-    { title: '操作', width: 220, fixed: 'right', slots: { default: 'action' } },
+    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {
@@ -72,20 +80,24 @@ function openEdit(row: MenuNode) {
 }
 
 async function remove(row: MenuNode) {
-  await ElMessageBox.confirm(`确认删除菜单「${row.title}」？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('system.menu.deleteConfirm', { name: row.title }),
+    $t('system.common.notice'),
+    {
+      type: 'warning',
+    },
+  );
   await deleteMenuApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   // 菜单变更后需要让前端路由重新加载
-  ElMessage.info('菜单已变更，1.5 秒后自动刷新页面以加载新路由...');
+  ElMessage.info($t('system.menu.reloadNotice'));
   setTimeout(() => window.location.reload(), 1500);
 }
 
 function onFormSaved() {
   gridApi.reload();
   // 菜单变更后刷新页面以让前端路由重新生成
-  ElMessage.info('菜单已变更，1.5 秒后自动刷新页面以加载新路由...');
+  ElMessage.info($t('system.menu.reloadNotice'));
   setTimeout(() => window.location.reload(), 1500);
 }
 </script>
@@ -96,7 +108,7 @@ function onFormSaved() {
     <Grid>
       <template #toolbar-actions>
         <VbenButton v-access:code="'System:Menu:Add'" variant="default" @click="openCreate(0)">
-          新增根菜单
+          {{ $t('system.menu.addRoot') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -106,7 +118,7 @@ function onFormSaved() {
           size="sm"
           @click="openCreate((row as MenuNode).id)"
         >
-          新增子项
+          {{ $t('system.menu.addChild') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Menu:Edit'"
@@ -114,7 +126,7 @@ function onFormSaved() {
           size="sm"
           @click="openEdit(row as MenuNode)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Menu:Delete'"
@@ -123,7 +135,7 @@ function onFormSaved() {
           class="text-destructive"
           @click="remove(row as MenuNode)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

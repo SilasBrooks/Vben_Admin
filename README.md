@@ -40,6 +40,7 @@
 | 文件存储 | 可插拔存储抽象（`StorageService`）：本地磁盘 / MinIO 对象存储（`vben.file.storage=minio` 切换，启动自动建桶，对象存储解决多实例文件不共享与单机丢失）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
 | 仪表盘 | 工作台/分析页真实数据版（`GET /dashboard/summary` 登录即可全员同版）：统计卡 + 今日概况 + 近 14 天登录趋势 + 部门/模块分布 + 最近登录/操作，替代模板演示数据 |
 | 个人中心 | 头像上传（登录即可，同步 header）、昵称/个人简介编辑（`PATCH /user/profile` 登录即可，仅限本人）、修改密码（成功后强制重新登录，旧 token 即时失效） |
+| 国际化 | 前端中英双语（`zh-CN` / `en-US`）：认证、系统管理、监控、文件、仪表盘、个人中心、AI 助手全量文案走 vue-i18n 语言包（`apps/web-ele/src/locales/langs/`），头部一键切换、刷新持久；侧边栏菜单标题（数据库存 i18n key）随语言同步切换，后端错误消息暂为中文 |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
 | 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：`docker compose up -d` 起全套演示环境，docker profile 自动建库、安全开关默认关闭 |

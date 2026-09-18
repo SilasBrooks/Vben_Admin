@@ -1,0 +1,52 @@
+{
+  "workspace": {
+    "greeting": {
+      "dawn": "Good early morning",
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "welcome": "{greeting}, {name}, let's start your day!",
+    "today": "Today is {today}",
+    "date": "{w}, {m}/{d}/{y}",
+    "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
+    "stat": {
+      "user": "Total Users",
+      "role": "Total Roles",
+      "dept": "Total Departments",
+      "online": "Online Users",
+      "file": "Total Files",
+      "todayLogin": "Today's Logins"
+    },
+    "recentLogins": "Recent Logins",
+    "username": "Username"
+  },
+  "analytics": {
+    "card": {
+      "users": "Total Users",
+      "roles": "Total Roles",
+      "logins": "Total Logins",
+      "opers": "Total Operations"
+    },
+    "deptDistribution": "Department Distribution",
+    "moduleDistribution": "Top 5 Modules (Last 14 Days)",
+    "recentOpers": "Recent Operations",
+    "operUser": "Operator",
+    "module": "Module",
+    "action": "Action",
+    "cost": "Duration",
+    "deptCount": "Employees",
+    "operCount": "Operations",
+    "person": "people",
+    "times": "times"
+  },
+  "common": {
+    "loginTrend": "Login Trend (Last 14 Days)",
+    "loginSuccess": "Login Success",
+    "loginFail": "Login Failed",
+    "time": "Time",
+    "status": "Status",
+    "success": "Success",
+    "fail": "Failed"
+  }
+}

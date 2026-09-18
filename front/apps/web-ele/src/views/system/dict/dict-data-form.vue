@@ -11,6 +11,7 @@ import {
   createDictDataApi,
   updateDictDataApi,
 } from '#/api/system/dict';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -38,46 +39,50 @@ async function init() {
   editId.value = data?.id;
   dictType.value = data?.dictType ?? '';
   modalApi.setState({
-    title: isEdit.value ? '编辑字典数据' : '新增字典数据',
+    title: isEdit.value ? $t('system.dict.editDictData') : $t('system.dict.addDictData'),
   });
 
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'dictLabel',
-      label: '标签',
+      label: $t('system.dict.label'),
       component: 'Input',
-      componentProps: { placeholder: '显示名，如 电子产品' },
-      rules: z.string().min(1, { message: '请输入标签' }),
+      componentProps: {
+        placeholder: $t('system.dict.labelPlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.dict.enterLabel') }),
     },
     {
       fieldName: 'dictValue',
-      label: '键值',
+      label: $t('system.dict.value'),
       component: 'Input',
-      componentProps: { placeholder: '如 electronic（同类型下唯一）' },
-      rules: z.string().min(1, { message: '请输入键值' }),
+      componentProps: {
+        placeholder: $t('system.dict.valuePlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.dict.enterValue') }),
     },
     {
       fieldName: 'sortNum',
-      label: '排序',
+      label: $t('system.common.sort'),
       component: 'InputNumber',
       defaultValue: 0,
       componentProps: { min: 0 },
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,
     },
     {
       fieldName: 'remark',
-      label: '备注',
+      label: $t('system.common.remark'),
       component: 'Input',
       componentProps: { type: 'textarea', rows: 2 },
     },

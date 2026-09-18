@@ -11,5 +11,24 @@
     "title": "概览",
     "analytics": "分析页",
     "workspace": "工作台"
+  },
+  "system": {
+    "title": "系统管理",
+    "user": "用户管理",
+    "role": "角色管理",
+    "menu": "菜单管理",
+    "dept": "部门管理",
+    "dict": "数据字典",
+    "file": "文件管理"
+  },
+  "monitor": {
+    "title": "系统监控",
+    "operLog": "操作日志",
+    "loginLog": "登录日志",
+    "online": "在线用户"
+  },
+  "wsm": {
+    "title": "库存管理",
+    "store": "库存"
   }
 }

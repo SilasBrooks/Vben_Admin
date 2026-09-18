@@ -16,6 +16,7 @@ import {
   updateDataScopeApi,
   updateRoleApi,
 } from '#/api/system/role';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -40,7 +41,7 @@ async function init() {
   const data = modalApi.getData<{ id?: number }>();
   isEdit.value = !!data?.id;
   modalApi.setState({
-    title: isEdit.value ? '编辑角色' : '新增角色',
+    title: isEdit.value ? $t('system.role.edit') : $t('system.role.add'),
   });
 
   // 编辑时锁定 super 角色的 roleKey 不可修改
@@ -66,51 +67,51 @@ async function init() {
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'roleKey',
-      label: '角色标识',
+      label: $t('system.role.roleKey'),
       component: 'Input',
       componentProps: {
-        placeholder: '如 admin / user',
+        placeholder: $t('system.role.roleKeyPlaceholder'),
         disabled: roleKeyDisabled,
       },
-      rules: z.string().min(1, { message: '请输入角色标识' }),
+      rules: z.string().min(1, { message: $t('system.role.enterRoleKey') }),
     },
     {
       fieldName: 'roleName',
-      label: '角色名称',
+      label: $t('system.role.roleName'),
       component: 'Input',
-      componentProps: { placeholder: '如 管理员' },
-      rules: z.string().min(1, { message: '请输入角色名称' }),
+      componentProps: { placeholder: $t('system.role.roleNamePlaceholder') },
+      rules: z.string().min(1, { message: $t('system.role.enterRoleName') }),
     },
     {
       fieldName: 'sortNum',
-      label: '排序',
+      label: $t('system.common.sort'),
       component: 'InputNumber',
       defaultValue: 1,
       componentProps: { min: 0 },
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,
     },
     {
       fieldName: 'dataScope',
-      label: '数据范围',
+      label: $t('system.role.dataScope'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '全部数据', value: '1' },
-          { label: '自定义部门', value: '2' },
-          { label: '本部门', value: '3' },
-          { label: '本部门及以下', value: '4' },
-          { label: '仅本人', value: '5' },
+          { label: $t('system.role.scopeAll'), value: '1' },
+          { label: $t('system.role.scopeCustom'), value: '2' },
+          { label: $t('system.role.scopeDept'), value: '3' },
+          { label: $t('system.role.scopeDeptAndBelow'), value: '4' },
+          { label: $t('system.role.scopeSelf'), value: '5' },
         ],
         // super 角色数据范围恒为全部数据（后端强制，前端锁定）
         disabled: roleKeyValue === 'super',
@@ -119,7 +120,7 @@ async function init() {
     },
     {
       fieldName: 'deptIds',
-      label: '自定义部门',
+      label: $t('system.role.scopeCustom'),
       component: 'TreeSelect',
       componentProps: {
         data: deptTree.value,
@@ -131,9 +132,11 @@ async function init() {
         defaultExpandAll: true,
         collapseTags: true,
         collapseTagsTooltip: true,
-        placeholder: '勾选可见部门（勾选父级时子孙部门自动包含）',
+        placeholder: $t('system.role.deptIdsPlaceholder'),
       },
-      rules: z.array(z.number()).min(1, { message: '请至少选择一个部门' }),
+      rules: z
+        .array(z.number())
+        .min(1, { message: $t('system.role.selectDeptRequired') }),
       dependencies: {
         triggerFields: ['dataScope'],
         if: (values) => values.dataScope === '2',
@@ -165,7 +168,7 @@ async function handleSubmit() {
       roleId = await createRoleApi(roleValues);
     }
     await updateDataScopeApi(roleId, dataScope, deptIds ?? []);
-    ElMessage.success('保存成功');
+    ElMessage.success($t('system.common.saveSuccess'));
     emit('saved');
     modalApi.close();
   } finally {

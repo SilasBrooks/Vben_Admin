@@ -9,20 +9,22 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getOnlineUserListApi, kickUserApi } from '#/api/monitor/online';
 
+import { $t } from '#/locales';
+
 const gridOptions: VxeTableGridOptions<OnlineUserItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'username', title: '用户名', minWidth: 140 },
-    { field: 'nickname', title: '昵称', minWidth: 120 },
+    { field: 'username', title: $t('monitor.common.username'), minWidth: 140 },
+    { field: 'nickname', title: $t('monitor.online.nickname'), minWidth: 120 },
     {
       field: 'loginTime',
-      title: '登录时间',
+      title: $t('monitor.common.loginTime'),
       width: 170,
       formatter: ({ cellValue }) =>
         typeof cellValue === 'string' ? cellValue.replace('T', ' ') : (cellValue ?? ''),
     },
-    { field: 'ip', title: '登录 IP', width: 140 },
-    { title: '操作', width: 100, fixed: 'right', slots: { default: 'action' } },
+    { field: 'ip', title: $t('monitor.online.loginIp'), width: 140 },
+    { title: $t('monitor.common.action'), width: 100, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -50,9 +52,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入用户名' },
+        componentProps: { placeholder: $t('monitor.common.usernamePlaceholder') },
         fieldName: 'username',
-        label: '用户名',
+        label: $t('monitor.common.username'),
       },
     ],
   },
@@ -60,12 +62,12 @@ const [Grid, gridApi] = useVbenVxeGrid({
 
 async function kick(row: OnlineUserItem) {
   await ElMessageBox.confirm(
-    `确认将用户「${row.username}」强制下线？其当前登录将立即失效。`,
-    '强制下线',
+    $t('monitor.online.kickConfirm', { name: row.username }),
+    $t('monitor.online.kick'),
     { type: 'warning' },
   );
   await kickUserApi(row.userId);
-  ElMessage.success('已强制下线');
+  ElMessage.success($t('monitor.online.kickSuccess'));
   gridApi.reload();
 }
 </script>
@@ -81,7 +83,7 @@ async function kick(row: OnlineUserItem) {
           class="text-destructive"
           @click="kick(row as OnlineUserItem)"
         >
-          强制下线
+          {{ $t('monitor.online.kick') }}
         </VbenButton>
       </template>
     </Grid>

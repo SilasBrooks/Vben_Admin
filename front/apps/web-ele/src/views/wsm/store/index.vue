@@ -58,16 +58,25 @@ function loadList() {
   <div class="p-4">
     <el-card shadow="never">
       <template #header>
-        <span class="font-medium">库存管理</span>
+        <span class="font-medium">{{ $t('wsm.store.title') }}</span>
       </template>
 
       <el-form :inline="true" class="mb-3">
-        <el-form-item label="关键字">
-          <el-input v-model="query.keyword" placeholder="搜索 SKU / 名称" clearable />
+        <el-form-item :label="$t('wsm.store.keyword')">
+          <el-input
+            v-model="query.keyword"
+            :placeholder="$t('wsm.store.searchPlaceholder')"
+            clearable
+          />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="$t('wsm.store.status')">
           <!-- 字典驱动的搜索下拉：options 是响应式数组，模板自动解包 -->
-          <el-select v-model="query.status" placeholder="全部状态" clearable style="width: 140px">
+          <el-select
+            v-model="query.status"
+            :placeholder="$t('wsm.store.allStatus')"
+            clearable
+            style="width: 140px"
+          >
             <el-option
               v-for="opt in statusOptions"
               :key="opt.value"
@@ -77,16 +86,18 @@ function loadList() {
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="loadList">查询</el-button>
+          <el-button type="primary" @click="loadList">
+            {{ $t('wsm.store.search') }}
+          </el-button>
         </el-form-item>
       </el-form>
 
       <el-table v-loading="loading" :data="list" border stripe>
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="sku" label="SKU" min-width="140" />
-        <el-table-column prop="name" label="名称" min-width="160" />
-        <el-table-column prop="quantity" label="数量" width="100" />
-        <el-table-column label="状态" width="90">
+        <el-table-column prop="name" :label="$t('wsm.store.name')" min-width="160" />
+        <el-table-column prop="quantity" :label="$t('wsm.store.quantity')" width="100" />
+        <el-table-column :label="$t('wsm.store.status')" width="90">
           <template #default="{ row }">
             <!-- 字典驱动的状态标签 -->
             <el-tag :type="statusTagType[String(row.status)] ?? 'info'">

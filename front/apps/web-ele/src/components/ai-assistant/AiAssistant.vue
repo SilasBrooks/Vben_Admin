@@ -1,28 +1,22 @@
 <script lang="ts" setup>
-import { nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
+
+import { $t } from '#/locales';
 
 import { useAiChat } from './use-ai-chat';
 import { formatCardArgs } from './tool-labels';
 
-const {
-  messages,
-  loading,
-  send,
-  stop,
-  clear,
-  confirmCard,
-  cancelCard,
-} = useAiChat();
+const { messages, loading, send, stop, clear, confirmCard, cancelCard } = useAiChat();
 
 const open = ref(false);
 const inputText = ref('');
 const scrollRef = ref<HTMLElement>();
 
-const suggestions = [
-  '系统里有哪些部门？',
-  '帮我创建一个角色：标识 testrole，名称测试角色',
-  '查一下有哪些用户',
-];
+const suggestions = computed(() => [
+  $t('ai.chat.suggestionDepartments'),
+  $t('ai.chat.suggestionCreateRole'),
+  $t('ai.chat.suggestionUsers'),
+]);
 
 function toggle() {
   open.value = !open.value;
@@ -66,11 +60,7 @@ watch(
   () => void nextTick(scrollToBottom),
 );
 // 流式输出期间持续滚到底
-watch(
-  messages,
-  () => void nextTick(scrollToBottom),
-  { deep: true },
-);
+watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 </script>
 
 <template>
@@ -80,11 +70,11 @@ watch(
     :class="{ active: open }"
     role="button"
     tabindex="0"
-    :aria-label="open ? '关闭智能助手' : '打开智能助手'"
+    :aria-label="open ? $t('ai.chat.closeAria') : $t('ai.chat.openAria')"
     @click="toggle"
     @keydown.enter="toggle"
   >
-    <img src="/logo.png" alt="智能助手" class="ai-fab__img" />
+    <img src="/logo.png" :alt="$t('ai.chat.title')" class="ai-fab__img" />
     <span v-if="loading" class="ai-fab__dot" />
   </div>
 
@@ -95,19 +85,19 @@ watch(
       <header class="ai-panel__header">
         <div class="ai-panel__title">
           <img src="/logo.png" alt="" class="ai-panel__logo" />
-          <span>智能助手</span>
+          <span>{{ $t('ai.chat.title') }}</span>
         </div>
         <div class="ai-panel__actions">
           <button
             class="ai-panel__btn"
-            title="清空会话"
+            :title="$t('ai.chat.clearSession')"
             :disabled="loading"
             @click="clear"
           >
-            清空
+            {{ $t('ai.chat.clear') }}
           </button>
-          <button class="ai-panel__btn" title="关闭" @click="toggle">
-            关闭
+          <button class="ai-panel__btn" :title="$t('ai.chat.close')" @click="toggle">
+            {{ $t('ai.chat.close') }}
           </button>
         </div>
       </header>
@@ -116,7 +106,7 @@ watch(
       <div ref="scrollRef" class="ai-panel__body">
         <!-- 空状态 -->
         <div v-if="messages.length === 0" class="ai-empty">
-          <p>你好！我是系统管理助手，可以帮你查询和创建数据。</p>
+          <p>{{ $t('ai.chat.welcome') }}</p>
           <div class="ai-empty__chips">
             <button
               v-for="s in suggestions"
@@ -143,11 +133,7 @@ watch(
               <span v-if="msg.content" class="ai-bubble__text">{{ msg.content }}</span>
 
               <!-- 确认卡片 -->
-              <div
-                v-for="card in msg.cards"
-                :key="card.toolCallId"
-                class="ai-card"
-              >
+              <div v-for="card in msg.cards" :key="card.toolCallId" class="ai-card">
                 <div class="ai-card__title">📋 {{ card.title }}</div>
                 <table class="ai-card__table">
                   <tbody>
@@ -163,19 +149,16 @@ watch(
 
                 <!-- 状态展示 -->
                 <div v-if="card.status === 'pending'" class="ai-card__actions">
-                  <button
-                    class="ai-card__btn ai-card__btn--primary"
-                    @click="confirmCard(card)"
-                  >
-                    确认执行
+                  <button class="ai-card__btn ai-card__btn--primary" @click="confirmCard(card)">
+                    {{ $t('ai.card.confirmExecute') }}
                   </button>
                   <button class="ai-card__btn" @click="cancelCard(card)">
-                    取消
+                    {{ $t('ai.card.cancel') }}
                   </button>
                 </div>
 
                 <div v-else-if="card.status === 'executing'" class="ai-card__status">
-                  执行中...
+                  {{ $t('ai.card.executing') }}
                 </div>
 
                 <div v-else-if="card.status === 'done'" class="ai-card__status ai-card__status--ok">
@@ -183,10 +166,13 @@ watch(
                 </div>
 
                 <div v-else-if="card.status === 'cancelled'" class="ai-card__status">
-                  已取消
+                  {{ $t('ai.card.cancelled') }}
                 </div>
 
-                <div v-else-if="card.status === 'error'" class="ai-card__status ai-card__status--err">
+                <div
+                  v-else-if="card.status === 'error'"
+                  class="ai-card__status ai-card__status--err"
+                >
                   ❌ {{ card.errorMsg }}
                 </div>
               </div>
@@ -203,26 +189,17 @@ watch(
         <textarea
           v-model="inputText"
           class="ai-input"
-          placeholder="输入消息，Enter 发送，Shift+Enter 换行"
+          :placeholder="$t('ai.chat.placeholder')"
           rows="1"
           :disabled="loading"
           @keydown="handleKeydown"
         />
         <div class="ai-panel__send">
-          <button
-            v-if="loading"
-            class="ai-send ai-send--stop"
-            @click="stop"
-          >
-            停止
+          <button v-if="loading" class="ai-send ai-send--stop" @click="stop">
+            {{ $t('ai.chat.stop') }}
           </button>
-          <button
-            v-else
-            class="ai-send"
-            :disabled="!inputText.trim()"
-            @click="handleSend"
-          >
-            发送
+          <button v-else class="ai-send" :disabled="!inputText.trim()" @click="handleSend">
+            {{ $t('ai.chat.send') }}
           </button>
         </div>
       </footer>
@@ -245,7 +222,9 @@ watch(
   justify-content: center;
   background: var(--el-color-primary, #409eff);
   box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 .ai-fab:hover {
   transform: scale(1.08);
@@ -271,8 +250,15 @@ watch(
   animation: ai-breathe 1.5s ease-in-out infinite;
 }
 @keyframes ai-breathe {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.8); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
 }
 
 .ai-panel {
@@ -369,7 +355,9 @@ watch(
   font-size: 13px;
   cursor: pointer;
   color: var(--el-text-color-primary, #303133);
-  transition: border-color 0.2s, background 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 .ai-chip:hover {
   border-color: var(--el-color-primary, #409eff);
@@ -433,8 +421,13 @@ watch(
   vertical-align: text-bottom;
 }
 @keyframes ai-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .ai-card {
@@ -555,7 +548,9 @@ watch(
 
 .ai-slide-enter-active,
 .ai-slide-leave-active {
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
 }
 .ai-slide-enter-from,
 .ai-slide-leave-to {

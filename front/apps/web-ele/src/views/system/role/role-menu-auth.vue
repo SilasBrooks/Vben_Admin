@@ -8,6 +8,7 @@ import { ElMessage } from 'element-plus';
 
 import { assignRoleMenusApi, getRoleMenuIdsApi } from '#/api/system/role';
 import { getMenuTreeApi } from '#/api/system/menu';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -28,7 +29,7 @@ const roleId = ref<number>();
 async function init() {
   const data = modalApi.getData<{ id?: number }>();
   roleId.value = data?.id;
-  modalApi.setState({ title: '分配菜单' });
+  modalApi.setState({ title: $t('system.role.assignMenus') });
 
   // 先清空选中状态，避免上一次的选中残留
   selectedIds.value = [];
@@ -53,7 +54,7 @@ async function handleSubmit() {
   modalApi.lock();
   try {
     await assignRoleMenusApi(roleId.value, selectedIds.value);
-    ElMessage.success('授权成功');
+    ElMessage.success($t('system.role.authSuccess'));
     emit('saved');
     modalApi.close();
   } finally {

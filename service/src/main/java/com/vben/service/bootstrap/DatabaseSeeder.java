@@ -82,24 +82,24 @@ public class DatabaseSeeder implements ApplicationRunner {
         "/dashboard/workspace/index", dashboardId, false, false));
 
     // 系统管理模块菜单（供前端系统管理页展示，component 对应 views/system/*）
-    Long systemCatalogId = insertMenu(catalog("System", "系统管理",
+    Long systemCatalogId = insertMenu(catalog("System", "page.system.title",
         "ic:baseline-settings", 9000, "/system", "/system/user", 0L, false, false));
-    Long systemUserId = insertMenu(leaf("SystemUser", "用户管理",
+    Long systemUserId = insertMenu(leaf("SystemUser", "page.system.user",
         "ant-design:user-outlined", 1, "/system/user", "/system/user/index", systemCatalogId,
         false, false).authority("super,admin"));
-    Long systemRoleId = insertMenu(leaf("SystemRole", "角色管理",
+    Long systemRoleId = insertMenu(leaf("SystemRole", "page.system.role",
         "ant-design:user-switch-outlined", 2, "/system/role", "/system/role/index",
         systemCatalogId, false, false).authority("super,admin"));
-    Long systemMenuId = insertMenu(leaf("SystemMenu", "菜单管理",
+    Long systemMenuId = insertMenu(leaf("SystemMenu", "page.system.menu",
         "ant-design:menu-outlined", 3, "/system/menu", "/system/menu/index", systemCatalogId,
         false, false).authority("super,admin"));
-    Long systemDeptId = insertMenu(leaf("SystemDept", "部门管理",
+    Long systemDeptId = insertMenu(leaf("SystemDept", "page.system.dept",
         "ant-design:apartment-outlined", 4, "/system/dept", "/system/dept/index",
         systemCatalogId, false, false).authority("super,admin"));
-    Long systemDictId = insertMenu(leaf("SystemDict", "数据字典",
+    Long systemDictId = insertMenu(leaf("SystemDict", "page.system.dict",
         "ant-design:book-outlined", 5, "/system/dict", "/system/dict/index",
         systemCatalogId, false, false).authority("super,admin"));
-    Long systemFileId = insertMenu(leaf("SystemFile", "文件管理",
+    Long systemFileId = insertMenu(leaf("SystemFile", "page.system.file",
         "ant-design:file-outlined", 6, "/system/file", "/system/file/index",
         systemCatalogId, false, false).authority("super,admin"));
     // 后端接口权限码示例（F 型挂在对应菜单下，不进路由树）
@@ -133,22 +133,22 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long fileDelete = insertMenu(perm("System:File:Delete", systemFileId));
 
     // 库存管理模块（WSM）：super/admin 可见，user 不可见
-    Long wsmCatalogId = insertMenu(catalog("Wsm", "库存管理",
+    Long wsmCatalogId = insertMenu(catalog("Wsm", "page.wsm.title",
         "ic:baseline-inventory-2", 8000, "/wsm", "/wsm/store", 0L, false, false));
-    Long wsmStoreId = insertMenu(leaf("WsmStore", "库存",
+    Long wsmStoreId = insertMenu(leaf("WsmStore", "page.wsm.store",
         "ic:baseline-inventory", 1, "/wsm/store", "/wsm/store/index", wsmCatalogId,
         false, false).authority("super,admin"));
 
     // 系统监控模块（Monitor）：super/admin 可见，user 不可见
-    Long monitorCatalogId = insertMenu(catalog("Monitor", "系统监控",
+    Long monitorCatalogId = insertMenu(catalog("Monitor", "page.monitor.title",
         "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
-    Long monitorOperLogId = insertMenu(leaf("MonitorOperLog", "操作日志",
+    Long monitorOperLogId = insertMenu(leaf("MonitorOperLog", "page.monitor.operLog",
         "ant-design:file-text-outlined", 1, "/monitor/oper-log", "/monitor/oper-log/index",
         monitorCatalogId, false, false).authority("super,admin"));
-    Long monitorLoginLogId = insertMenu(leaf("MonitorLoginLog", "登录日志",
+    Long monitorLoginLogId = insertMenu(leaf("MonitorLoginLog", "page.monitor.loginLog",
         "ant-design:login-outlined", 2, "/monitor/login-log", "/monitor/login-log/index",
         monitorCatalogId, false, false).authority("super,admin"));
-    Long monitorOnlineId = insertMenu(leaf("MonitorOnline", "在线用户",
+    Long monitorOnlineId = insertMenu(leaf("MonitorOnline", "page.monitor.online",
         "ant-design:team-outlined", 3, "/monitor/online", "/monitor/online/index",
         monitorCatalogId, false, false).authority("super,admin"));
     Long operLogList = insertMenu(perm("Monitor:OperLog:List", monitorOperLogId));

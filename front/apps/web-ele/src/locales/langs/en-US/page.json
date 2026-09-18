@@ -11,5 +11,24 @@
     "title": "Dashboard",
     "analytics": "Analytics",
     "workspace": "Workspace"
+  },
+  "system": {
+    "title": "System",
+    "user": "Users",
+    "role": "Roles",
+    "menu": "Menus",
+    "dept": "Departments",
+    "dict": "Dictionaries",
+    "file": "Files"
+  },
+  "monitor": {
+    "title": "Monitor",
+    "operLog": "Operation Logs",
+    "loginLog": "Login Logs",
+    "online": "Online Users"
+  },
+  "wsm": {
+    "title": "Inventory",
+    "store": "Stock"
   }
 }

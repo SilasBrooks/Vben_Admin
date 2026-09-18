@@ -11,6 +11,7 @@ import { EchartsUI, useEcharts } from '@vben/plugins/echarts';
 import { ElCard, ElTable, ElTableColumn, ElTag } from 'element-plus';
 
 import { getDashboardSummaryApi } from '#/api/dashboard';
+import { $t } from '#/locales';
 
 const summary = ref<DashboardSummary>();
 
@@ -25,10 +26,10 @@ const { renderEcharts: renderModule } = useEcharts(moduleRef);
 
 /** 4 张概览卡 */
 const overviewCards = ref([
-  { color: '#409eff', label: '总用户', value: 0 },
-  { color: '#67c23a', label: '总角色', value: 0 },
-  { color: '#e6a23c', label: '累计登录', value: 0 },
-  { color: '#f56c6c', label: '累计操作', value: 0 },
+  { color: '#409eff', label: $t('dashboard.analytics.card.users'), value: 0 },
+  { color: '#67c23a', label: $t('dashboard.analytics.card.roles'), value: 0 },
+  { color: '#e6a23c', label: $t('dashboard.analytics.card.logins'), value: 0 },
+  { color: '#f56c6c', label: $t('dashboard.analytics.card.opers'), value: 0 },
 ]);
 
 function formatTime(value?: string) {
@@ -40,28 +41,28 @@ onMounted(async () => {
   const { loginTrend, totals } = summary.value;
 
   overviewCards.value = [
-    { color: '#409eff', label: '总用户', value: totals.userCount },
-    { color: '#67c23a', label: '总角色', value: totals.roleCount },
-    { color: '#e6a23c', label: '累计登录', value: totals.loginCount },
-    { color: '#f56c6c', label: '累计操作', value: totals.operCount },
+    { color: '#409eff', label: $t('dashboard.analytics.card.users'), value: totals.userCount },
+    { color: '#67c23a', label: $t('dashboard.analytics.card.roles'), value: totals.roleCount },
+    { color: '#e6a23c', label: $t('dashboard.analytics.card.logins'), value: totals.loginCount },
+    { color: '#f56c6c', label: $t('dashboard.analytics.card.opers'), value: totals.operCount },
   ];
 
   // 柱线组合：柱=登录成功，线=登录失败
   renderTrend({
     grid: { bottom: 0, containLabel: true, left: '1%', right: '2%', top: '36px' },
-    legend: { data: ['登录成功', '登录失败'], top: 0 },
+    legend: { data: [$t('dashboard.common.loginSuccess'), $t('dashboard.common.loginFail')], top: 0 },
     series: [
       {
         barMaxWidth: 24,
         data: loginTrend.map((item) => item.success),
         itemStyle: { color: '#409eff' },
-        name: '登录成功',
+        name: $t('dashboard.common.loginSuccess'),
         type: 'bar',
       },
       {
         data: loginTrend.map((item) => item.fail),
         itemStyle: { color: '#f56c6c' },
-        name: '登录失败',
+        name: $t('dashboard.common.loginFail'),
         smooth: true,
         type: 'line',
       },
@@ -81,12 +82,12 @@ onMounted(async () => {
     series: [
       {
         data: summary.value.deptDistribution,
-        name: '部门人数',
+        name: $t('dashboard.analytics.deptCount'),
         radius: '62%',
         type: 'pie',
       },
     ],
-    tooltip: { trigger: 'item', formatter: '{b}: {c} 人 ({d}%)' },
+    tooltip: { trigger: 'item', formatter: `{b}: {c} ${$t('dashboard.analytics.person')} ({d}%)` },
   });
 
   // 操作模块分布环形图
@@ -95,12 +96,12 @@ onMounted(async () => {
     series: [
       {
         data: summary.value.moduleDistribution,
-        name: '操作次数',
+        name: $t('dashboard.analytics.operCount'),
         radius: ['38%', '62%'],
         type: 'pie',
       },
     ],
-    tooltip: { trigger: 'item', formatter: '{b}: {c} 次 ({d}%)' },
+    tooltip: { trigger: 'item', formatter: `{b}: {c} ${$t('dashboard.analytics.times')} ({d}%)` },
   });
 });
 </script>
@@ -119,39 +120,39 @@ onMounted(async () => {
 
     <!-- 登录趋势柱线图 -->
     <ElCard class="mt-5" shadow="never">
-      <template #header>近 14 天登录趋势</template>
+      <template #header>{{ $t('dashboard.common.loginTrend') }}</template>
       <EchartsUI ref="trendRef" />
     </ElCard>
 
     <!-- 部门饼图 + 模块环形图 -->
     <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
       <ElCard shadow="never">
-        <template #header>部门人数分布</template>
+        <template #header>{{ $t('dashboard.analytics.deptDistribution') }}</template>
         <EchartsUI ref="deptRef" />
       </ElCard>
       <ElCard shadow="never">
-        <template #header>操作模块分布（近 14 天 Top5）</template>
+        <template #header>{{ $t('dashboard.analytics.moduleDistribution') }}</template>
         <EchartsUI ref="moduleRef" />
       </ElCard>
     </div>
 
     <!-- 最近操作 -->
     <ElCard class="mt-5" shadow="never">
-      <template #header>最近操作</template>
+      <template #header>{{ $t('dashboard.analytics.recentOpers') }}</template>
       <ElTable :data="summary?.recentOpers ?? []">
-        <ElTableColumn prop="operName" label="操作人" width="120" />
-        <ElTableColumn prop="module" label="模块" width="140" />
-        <ElTableColumn prop="description" label="动作" min-width="160" />
-        <ElTableColumn label="耗时" width="100">
+        <ElTableColumn prop="operName" :label="$t('dashboard.analytics.operUser')" width="120" />
+        <ElTableColumn prop="module" :label="$t('dashboard.analytics.module')" width="140" />
+        <ElTableColumn prop="description" :label="$t('dashboard.analytics.action')" min-width="160" />
+        <ElTableColumn :label="$t('dashboard.analytics.cost')" width="100">
           <template #default="{ row }">{{ row.costMs }} ms</template>
         </ElTableColumn>
-        <ElTableColumn label="时间" min-width="160">
+        <ElTableColumn :label="$t('dashboard.common.time')" min-width="160">
           <template #default="{ row }">{{ formatTime(row.operTime) }}</template>
         </ElTableColumn>
-        <ElTableColumn label="状态" width="90">
+        <ElTableColumn :label="$t('dashboard.common.status')" width="90">
           <template #default="{ row }">
             <ElTag :type="row.status === 0 ? 'success' : 'danger'">
-              {{ row.status === 0 ? '成功' : '失败' }}
+              {{ row.status === 0 ? $t('dashboard.common.success') : $t('dashboard.common.fail') }}
             </ElTag>
           </template>
         </ElTableColumn>

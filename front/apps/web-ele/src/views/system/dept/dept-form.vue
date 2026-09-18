@@ -13,6 +13,7 @@ import {
   getDeptTreeApi,
   updateDeptApi,
 } from '#/api/system/dept';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -52,18 +53,18 @@ async function init() {
   isEdit.value = !!data?.id;
   editId.value = data?.id;
   modalApi.setState({
-    title: isEdit.value ? '编辑部门' : '新增部门',
+    title: isEdit.value ? $t('system.dept.edit') : $t('system.dept.add'),
   });
 
   deptTree.value = await getDeptTreeApi();
   // 父部门下拉树：编辑时排除自身及子孙；根部门用虚拟节点
   const candidates = excludeSubtree(deptTree.value, editId.value);
-  const parentOptions = [{ id: 0, deptName: '根部门', children: candidates }];
+  const parentOptions = [{ id: 0, deptName: $t('system.dept.rootDept'), children: candidates }];
 
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'parentId',
-      label: '父部门',
+      label: $t('system.dept.parentDept'),
       component: 'TreeSelect',
       componentProps: {
         data: parentOptions,
@@ -71,49 +72,53 @@ async function init() {
         props: { label: 'deptName', children: 'children' },
         checkStrictly: true,
         defaultExpandAll: true,
-        placeholder: '根部门 = 顶级',
+        placeholder: $t('system.dept.parentPlaceholder'),
       },
       defaultValue: 0,
     },
     {
       fieldName: 'deptName',
-      label: '部门名称',
+      label: $t('system.dept.deptName'),
       component: 'Input',
-      componentProps: { placeholder: '如 研发部' },
-      rules: z.string().min(1, { message: '请输入部门名称' }),
+      componentProps: {
+        placeholder: $t('system.dept.deptNamePlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.dept.enterDeptName') }),
     },
     {
       fieldName: 'leader',
-      label: '负责人',
+      label: $t('system.dept.leader'),
       component: 'Input',
-      componentProps: { placeholder: '负责人姓名，可留空' },
+      componentProps: {
+        placeholder: $t('system.dept.leaderPlaceholder'),
+      },
     },
     {
       fieldName: 'orderNum',
-      label: '排序',
+      label: $t('system.common.sort'),
       component: 'InputNumber',
       defaultValue: 1,
       componentProps: { min: 0 },
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,
     },
     {
       fieldName: 'remark',
-      label: '备注',
+      label: $t('system.common.remark'),
       component: 'Input',
       componentProps: {
         type: 'textarea',
-        placeholder: '备注信息，可留空',
+        placeholder: $t('system.dept.remarkPlaceholder'),
         rows: 2,
       },
     },

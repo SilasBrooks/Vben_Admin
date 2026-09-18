@@ -16,6 +16,8 @@ import {
   uploadFileApi,
 } from '#/api/system/file';
 
+import { $t } from '#/locales';
+
 /** 上传白名单（与后端 SysFileService 一致） */
 const ACCEPT =
   '.jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip';
@@ -30,23 +32,23 @@ function formatSize(bytes: number): string {
 const gridOptions: VxeTableGridOptions<FileItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'originalName', title: '原始文件名', minWidth: 200, showOverflow: true },
+    { field: 'originalName', title: $t('file.originalName'), minWidth: 200, showOverflow: true },
     {
       field: 'size',
-      title: '大小',
+      title: $t('file.size'),
       width: 100,
       formatter: ({ cellValue }) => formatSize(cellValue),
     },
-    { field: 'contentType', title: '类型', minWidth: 140 },
-    { field: 'uploaderName', title: '上传人', width: 120 },
+    { field: 'contentType', title: $t('file.contentType'), minWidth: 140 },
+    { field: 'uploaderName', title: $t('file.uploader'), width: 120 },
     {
       field: 'createTime',
-      title: '上传时间',
+      title: $t('file.uploadTime'),
       width: 170,
       formatter: ({ cellValue }) =>
         typeof cellValue === 'string' ? cellValue.replace('T', ' ') : (cellValue ?? ''),
     },
-    { title: '操作', width: 140, fixed: 'right', slots: { default: 'action' } },
+    { title: $t('file.action'), width: 140, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -74,9 +76,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入原始文件名' },
+        componentProps: { placeholder: $t('file.namePlaceholder') },
         fieldName: 'originalName',
-        label: '文件名',
+        label: $t('file.fileName'),
       },
     ],
   },
@@ -97,7 +99,7 @@ async function onFileChange(event: Event) {
   if (!file) return;
   try {
     await uploadFileApi(file);
-    ElMessage.success('上传成功');
+    ElMessage.success($t('file.uploadSuccess'));
     gridApi.reload();
   } finally {
     // 清空 value 保证同名文件可重复选择
@@ -129,12 +131,12 @@ function onPreviewClose() {
 
 async function remove(row: FileItem) {
   await ElMessageBox.confirm(
-    `确认删除文件「${row.originalName}」？记录与物理文件将一并移除，不可恢复。`,
-    '删除文件',
+    $t('file.deleteConfirm', { name: row.originalName }),
+    $t('file.deleteTitle'),
     { type: 'warning' },
   );
   await deleteFileApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('file.deleteSuccess'));
   gridApi.reload();
 }
 </script>
@@ -148,7 +150,7 @@ async function remove(row: FileItem) {
           variant="default"
           @click="chooseFile"
         >
-          上传文件
+          {{ $t('file.upload') }}
         </VbenButton>
         <input
           ref="fileInputRef"
@@ -164,7 +166,7 @@ async function remove(row: FileItem) {
           size="sm"
           @click="preview(row as FileItem)"
         >
-          预览
+          {{ $t('file.preview') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:File:Delete'"
@@ -173,7 +175,7 @@ async function remove(row: FileItem) {
           class="text-destructive"
           @click="remove(row as FileItem)"
         >
-          删除
+          {{ $t('file.delete') }}
         </VbenButton>
       </template>
     </Grid>

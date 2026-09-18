@@ -7,6 +7,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 
 import { deleteUserApi, getUserListApi } from '#/api/system/user';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { $t } from '#/locales';
 
 import UserForm from './user-form.vue';
 
@@ -30,17 +31,25 @@ const gridOptions: VxeTableGridOptions<VxeGridRow> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'id', title: 'ID', visible: false },
-    { field: 'username', title: '用户名', minWidth: 140 },
-    { field: 'nickname', title: '昵称', minWidth: 140 },
-    { field: 'deptName', title: '所属部门', minWidth: 120 },
-    { field: 'homePath', title: '首页', minWidth: 140 },
+    { field: 'username', title: $t('system.user.username'), minWidth: 140 },
+    { field: 'nickname', title: $t('system.user.nickname'), minWidth: 140 },
+    { field: 'deptName', title: $t('system.user.dept'), minWidth: 120 },
+    { field: 'homePath', title: $t('system.user.home'), minWidth: 140 },
     {
       field: 'status',
-      title: '状态',
+      title: $t('system.common.status'),
       width: 90,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '正常' : '停用'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.common.enabled')
+          : $t('system.common.disabled'),
     },
-    { title: '操作', width: 200, fixed: 'right', slots: { default: 'action' } },
+    {
+      title: $t('system.common.actions'),
+      width: 200,
+      fixed: 'right',
+      slots: { default: 'action' },
+    },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -69,22 +78,22 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入用户名' },
+        componentProps: { placeholder: $t('system.user.enterUsername') },
         fieldName: 'username',
-        label: '用户名',
+        label: $t('system.user.username'),
       },
       {
         component: 'Select',
         componentProps: {
-          placeholder: '请选择状态',
+          placeholder: $t('system.common.selectStatus'),
           clearable: true,
           options: [
-            { label: '正常', value: 0 },
-            { label: '停用', value: 1 },
+            { label: $t('system.common.enabled'), value: 0 },
+            { label: $t('system.common.disabled'), value: 1 },
           ],
         },
         fieldName: 'status',
-        label: '状态',
+        label: $t('system.common.status'),
       },
     ],
   },
@@ -99,11 +108,15 @@ function openEdit(row: VxeGridRow) {
 }
 
 async function remove(row: VxeGridRow) {
-  await ElMessageBox.confirm(`确认删除用户「${row.username}」？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('system.user.deleteConfirm', { name: row.username }),
+    $t('system.common.notice'),
+    {
+      type: 'warning',
+    },
+  );
   await deleteUserApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   gridApi.reload();
 }
 
@@ -122,7 +135,7 @@ function onFormSaved() {
           variant="default"
           @click="openCreate"
         >
-          新增用户
+          {{ $t('system.user.add') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -132,7 +145,7 @@ function onFormSaved() {
           size="sm"
           @click="openEdit(row)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:User:Delete'"
@@ -141,7 +154,7 @@ function onFormSaved() {
           class="text-destructive"
           @click="remove(row as VxeGridRow)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

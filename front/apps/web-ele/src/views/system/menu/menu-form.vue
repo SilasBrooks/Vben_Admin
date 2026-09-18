@@ -15,6 +15,7 @@ import {
   updateMenuApi,
 } from '#/api/system/menu';
 import { getRoleOptionsApi } from '#/api/system/role';
+import { $t } from '#/locales';
 
 const emit = defineEmits<{ saved: [] }>();
 
@@ -40,7 +41,7 @@ async function init() {
   const data = modalApi.getData<{ id?: number; parentId?: number }>();
   isEdit.value = !!data?.id;
   modalApi.setState({
-    title: isEdit.value ? '编辑菜单' : '新增菜单',
+    title: isEdit.value ? $t('system.menu.edit') : $t('system.menu.add'),
   });
 
   if (menuTree.value.length === 0) {
@@ -52,26 +53,26 @@ async function init() {
   }
   // 父级菜单下拉树：套一个虚拟根节点
   const parentOptions = [
-    { id: 0, title: '根菜单', children: menuTree.value },
+    { id: 0, title: $t('system.menu.rootMenu'), children: menuTree.value },
   ];
 
   const schema: VbenFormSchema[] = [
     {
       fieldName: 'menuType',
-      label: '菜单类型',
+      label: $t('system.menu.menuType'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '目录', value: 'M' },
-          { label: '菜单', value: 'C' },
-          { label: '按钮', value: 'F' },
+          { label: $t('system.menu.typeDirectory'), value: 'M' },
+          { label: $t('system.menu.typeMenu'), value: 'C' },
+          { label: $t('system.menu.typeButton'), value: 'F' },
         ],
       },
       defaultValue: 'M',
     },
     {
       fieldName: 'parentId',
-      label: '父级菜单',
+      label: $t('system.menu.parentMenu'),
       component: 'TreeSelect',
       componentProps: {
         data: parentOptions,
@@ -79,30 +80,34 @@ async function init() {
         props: { label: 'title', children: 'children' },
         checkStrictly: true,
         defaultExpandAll: true,
-        placeholder: '根菜单 = 顶级',
+        placeholder: $t('system.menu.parentPlaceholder'),
       },
       defaultValue: 0,
     },
     {
       fieldName: 'menuName',
-      label: '菜单标识',
+      label: $t('system.menu.menuName'),
       component: 'Input',
-      componentProps: { placeholder: '全局唯一：目录/菜单=路由 name，按钮=按钮标识' },
-      rules: z.string().min(1, { message: '请输入菜单标识' }),
+      componentProps: {
+        placeholder: $t('system.menu.menuNamePlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.menu.enterMenuName') }),
     },
     {
       fieldName: 'title',
-      label: '显示名称',
+      label: $t('system.menu.displayName'),
       component: 'Input',
-      componentProps: { placeholder: '如 菜单管理' },
-      rules: z.string().min(1, { message: '请输入显示名称' }),
+      componentProps: {
+        placeholder: $t('system.menu.displayNamePlaceholder'),
+      },
+      rules: z.string().min(1, { message: $t('system.menu.enterDisplayName') }),
     },
     // 图标：仅 M/C 显示（按钮不渲染菜单，无需图标）
     {
       fieldName: 'icon',
-      label: '图标',
+      label: $t('system.menu.icon'),
       component: 'Input',
-      componentProps: { placeholder: '如 ant-design:menu-outlined' },
+      componentProps: { placeholder: $t('system.menu.iconPlaceholder') },
       dependencies: {
         triggerFields: ['menuType'],
         if: (values) => values.menuType !== 'F',
@@ -110,7 +115,7 @@ async function init() {
     },
     {
       fieldName: 'orderNum',
-      label: '排序',
+      label: $t('system.common.sort'),
       component: 'InputNumber',
       defaultValue: 1,
       componentProps: { min: 0 },
@@ -118,9 +123,11 @@ async function init() {
     // 路由路径：M/C 显示
     {
       fieldName: 'path',
-      label: '路由路径',
+      label: $t('system.menu.routePath'),
       component: 'Input',
-      componentProps: { placeholder: '如 /system/menu' },
+      componentProps: {
+        placeholder: $t('system.menu.routePathPlaceholder'),
+      },
       dependencies: {
         triggerFields: ['menuType'],
         if: (values) => values.menuType !== 'F',
@@ -129,9 +136,11 @@ async function init() {
     // 组件路径：仅 C 显示
     {
       fieldName: 'component',
-      label: '组件路径',
+      label: $t('system.menu.componentPath'),
       component: 'Input',
-      componentProps: { placeholder: '如 /system/menu/index' },
+      componentProps: {
+        placeholder: $t('system.menu.componentPathPlaceholder'),
+      },
       dependencies: {
         triggerFields: ['menuType'],
         if: (values) => values.menuType === 'C',
@@ -140,9 +149,9 @@ async function init() {
     // 权限码：仅 F 显示
     {
       fieldName: 'perm',
-      label: '权限码',
+      label: $t('system.menu.perm'),
       component: 'Input',
-      componentProps: { placeholder: '如 System:Menu:Add' },
+      componentProps: { placeholder: $t('system.menu.permPlaceholder') },
       dependencies: {
         triggerFields: ['menuType'],
         if: (values) => values.menuType === 'F',
@@ -150,7 +159,7 @@ async function init() {
     },
     {
       fieldName: 'authority',
-      label: '访问角色',
+      label: $t('system.menu.authority'),
       component: 'Select',
       defaultValue: [],
       componentProps: {
@@ -161,29 +170,29 @@ async function init() {
           label: `${r.roleName}（${r.roleKey}）`,
           value: r.roleKey,
         })),
-        placeholder: '不选 = 当前登录用户的角色 + super',
+        placeholder: $t('system.menu.authorityPlaceholder'),
       },
     },
     {
       fieldName: 'visible',
-      label: '显示状态',
+      label: $t('system.menu.visible'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '显示', value: 0 },
-          { label: '隐藏', value: 1 },
+          { label: $t('system.menu.show'), value: 0 },
+          { label: $t('system.menu.hide'), value: 1 },
         ],
       },
       defaultValue: 0,
     },
     {
       fieldName: 'status',
-      label: '状态',
+      label: $t('system.common.status'),
       component: 'RadioGroup',
       componentProps: {
         options: [
-          { label: '正常', value: 0 },
-          { label: '停用', value: 1 },
+          { label: $t('system.common.enabled'), value: 0 },
+          { label: $t('system.common.disabled'), value: 1 },
         ],
       },
       defaultValue: 0,

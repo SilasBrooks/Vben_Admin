@@ -1,0 +1,40 @@
+{
+  "base": {
+    "avatar": "头像",
+    "uploading": "上传中...",
+    "changeAvatar": "更换头像",
+    "avatarTip": "仅支持图片，最大 5MB",
+    "nickname": "昵称",
+    "nicknameRequired": "请输入昵称",
+    "role": "角色",
+    "email": "邮箱",
+    "emailPlaceholder": "用于展示与联系（选填）",
+    "emailInvalid": "邮箱格式不正确",
+    "introduction": "个人简介",
+    "introductionPlaceholder": "介绍一下自己（最多 200 字）",
+    "profileUpdated": "资料已更新",
+    "avatarUpdated": "头像已更新"
+  },
+  "password": {
+    "oldPassword": "旧密码",
+    "oldPasswordPlaceholder": "请输入旧密码",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmPassword": "确认密码",
+    "confirmAgain": "请再次输入新密码",
+    "passwordMismatch": "两次输入的密码不一致",
+    "changed": "密码已修改，请重新登录"
+  },
+  "index": {
+    "title": "个人中心",
+    "basic": "基本设置",
+    "passwordTab": "修改密码"
+  },
+  "login": {
+    "captchaTitle": "请输入图形验证码",
+    "refreshCaptcha": "点击刷新",
+    "captcha": "验证码",
+    "captchaLoading": "验证码加载中…",
+    "captchaPlaceholder": "请输入图中的 4 位字符（不区分大小写）"
+  }
+}

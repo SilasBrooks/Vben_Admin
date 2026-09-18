@@ -11,6 +11,7 @@ import {
   type RoleItem,
 } from '#/api/system/role';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { $t } from '#/locales';
 
 import RoleForm from './role-form.vue';
 import RoleMenuAuth from './role-menu-auth.vue';
@@ -27,34 +28,37 @@ const [RoleMenuAuthModal, roleMenuAuthApi] = useVbenModal({
 
 // 数据范围中文映射（1全部 2自定义部门 3本部门 4本部门及以下 5仅本人）
 const DATA_SCOPE_LABELS: Record<string, string> = {
-  1: '全部数据',
-  2: '自定义部门',
-  3: '本部门',
-  4: '本部门及以下',
-  5: '仅本人',
+  1: $t('system.role.scopeAll'),
+  2: $t('system.role.scopeCustom'),
+  3: $t('system.role.scopeDept'),
+  4: $t('system.role.scopeDeptAndBelow'),
+  5: $t('system.role.scopeSelf'),
 };
 
 const gridOptions: VxeTableGridOptions<RoleItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'id', title: 'ID', visible: false },
-    { field: 'roleKey', title: '角色标识', minWidth: 140 },
-    { field: 'roleName', title: '角色名称', minWidth: 140 },
-    { field: 'sortNum', title: '排序', width: 80 },
+    { field: 'roleKey', title: $t('system.role.roleKey'), minWidth: 140 },
+    { field: 'roleName', title: $t('system.role.roleName'), minWidth: 140 },
+    { field: 'sortNum', title: $t('system.common.sort'), width: 80 },
     {
       field: 'dataScope',
-      title: '数据范围',
+      title: $t('system.role.dataScope'),
       width: 110,
       formatter: ({ cellValue }) =>
-        DATA_SCOPE_LABELS[cellValue as string] ?? '仅本人',
+        DATA_SCOPE_LABELS[cellValue as string] ?? $t('system.role.scopeSelf'),
     },
     {
       field: 'status',
-      title: '状态',
+      title: $t('system.common.status'),
       width: 90,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '正常' : '停用'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.common.enabled')
+          : $t('system.common.disabled'),
     },
-    { title: '操作', width: 280, fixed: 'right', slots: { default: 'action' } },
+    { title: $t('system.common.actions'), width: 280, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -83,22 +87,22 @@ const [Grid, gridApi] = useVbenVxeGrid({
     schema: [
       {
         component: 'Input',
-        componentProps: { placeholder: '请输入角色名称' },
+        componentProps: { placeholder: $t('system.role.enterRoleName') },
         fieldName: 'roleName',
-        label: '角色名称',
+        label: $t('system.role.roleName'),
       },
       {
         component: 'Select',
         componentProps: {
-          placeholder: '请选择状态',
+          placeholder: $t('system.common.selectStatus'),
           clearable: true,
           options: [
-            { label: '正常', value: 0 },
-            { label: '停用', value: 1 },
+            { label: $t('system.common.enabled'), value: 0 },
+            { label: $t('system.common.disabled'), value: 1 },
           ],
         },
         fieldName: 'status',
-        label: '状态',
+        label: $t('system.common.status'),
       },
     ],
   },
@@ -117,11 +121,15 @@ function openMenuAuth(row: RoleItem) {
 }
 
 async function remove(row: RoleItem) {
-  await ElMessageBox.confirm(`确认删除角色「${row.roleName}」？`, '提示', {
-    type: 'warning',
-  });
+  await ElMessageBox.confirm(
+    $t('system.role.deleteConfirm', { name: row.roleName }),
+    $t('system.common.notice'),
+    {
+      type: 'warning',
+    },
+  );
   await deleteRoleApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   gridApi.reload();
 }
 
@@ -141,7 +149,7 @@ function onFormSaved() {
           variant="default"
           @click="openCreate"
         >
-          新增角色
+          {{ $t('system.role.add') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -151,7 +159,7 @@ function onFormSaved() {
           size="sm"
           @click="openEdit(row as RoleItem)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Role:Auth'"
@@ -159,7 +167,7 @@ function onFormSaved() {
           size="sm"
           @click="openMenuAuth(row as RoleItem)"
         >
-          分配菜单
+          {{ $t('system.role.assignMenus') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Role:Delete'"
@@ -168,7 +176,7 @@ function onFormSaved() {
           class="text-destructive"
           @click="remove(row as RoleItem)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

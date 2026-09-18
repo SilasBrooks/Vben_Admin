@@ -1,0 +1,52 @@
+{
+  "workspace": {
+    "greeting": {
+      "dawn": "凌晨好",
+      "morning": "上午好",
+      "afternoon": "下午好",
+      "evening": "晚上好"
+    },
+    "welcome": "{greeting}，{name}，开始您一天的工作吧！",
+    "today": "今天是 {today}",
+    "date": "{y} 年 {m} 月 {d} 日 星期{w}",
+    "weekdays": "日,一,二,三,四,五,六",
+    "stat": {
+      "user": "用户总数",
+      "role": "角色总数",
+      "dept": "部门总数",
+      "online": "在线用户",
+      "file": "文件总数",
+      "todayLogin": "今日登录"
+    },
+    "recentLogins": "最近登录",
+    "username": "用户名"
+  },
+  "analytics": {
+    "card": {
+      "users": "总用户",
+      "roles": "总角色",
+      "logins": "累计登录",
+      "opers": "累计操作"
+    },
+    "deptDistribution": "部门人数分布",
+    "moduleDistribution": "操作模块分布（近 14 天 Top5）",
+    "recentOpers": "最近操作",
+    "operUser": "操作人",
+    "module": "模块",
+    "action": "动作",
+    "cost": "耗时",
+    "deptCount": "部门人数",
+    "operCount": "操作次数",
+    "person": "人",
+    "times": "次"
+  },
+  "common": {
+    "loginTrend": "近 14 天登录趋势",
+    "loginSuccess": "登录成功",
+    "loginFail": "登录失败",
+    "time": "时间",
+    "status": "状态",
+    "success": "成功",
+    "fail": "失败"
+  }
+}

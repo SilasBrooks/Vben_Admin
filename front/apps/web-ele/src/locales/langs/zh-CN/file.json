@@ -1,0 +1,17 @@
+{
+  "originalName": "原始文件名",
+  "size": "大小",
+  "contentType": "类型",
+  "uploader": "上传人",
+  "uploadTime": "上传时间",
+  "action": "操作",
+  "fileName": "文件名",
+  "namePlaceholder": "请输入原始文件名",
+  "upload": "上传文件",
+  "uploadSuccess": "上传成功",
+  "preview": "预览",
+  "delete": "删除",
+  "deleteTitle": "删除文件",
+  "deleteConfirm": "确认删除文件「{name}」？记录与物理文件将一并移除，不可恢复。",
+  "deleteSuccess": "删除成功"
+}

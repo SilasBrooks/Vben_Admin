@@ -11,6 +11,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { deleteDictDataApi, getDictDataListApi } from '#/api/system/dict';
 import { clearDictCache } from '#/hooks/use-dict';
+import { $t } from '#/locales';
 
 import DictDataForm from './dict-data-form.vue';
 
@@ -29,7 +30,9 @@ const [Modal, modalApi] = useVbenModal({
       const data = modalApi.getData<{ dictName: string; dictType: string }>();
       dictTypeName.value = data?.dictName ?? '';
       dictTypeKey.value = data?.dictType ?? '';
-      modalApi.setState({ title: `字典数据 - ${dictTypeName.value}` });
+      modalApi.setState({
+        title: $t('system.dict.modalTitle', { name: dictTypeName.value }),
+      });
       // 弹窗内容（Grid）此刻尚未挂载，等渲染完成后再触发查询
       nextTick(() => gridApi.query());
     }
@@ -39,17 +42,20 @@ const [Modal, modalApi] = useVbenModal({
 const gridOptions: VxeTableGridOptions<DictDataItem> = {
   columns: [
     { type: 'seq', title: '#', width: 50 },
-    { field: 'dictLabel', title: '标签', minWidth: 120 },
-    { field: 'dictValue', title: '键值', minWidth: 120 },
-    { field: 'sortNum', title: '排序', width: 70 },
+    { field: 'dictLabel', title: $t('system.dict.label'), minWidth: 120 },
+    { field: 'dictValue', title: $t('system.dict.value'), minWidth: 120 },
+    { field: 'sortNum', title: $t('system.common.sort'), width: 70 },
     {
       field: 'status',
-      title: '状态',
+      title: $t('system.common.status'),
       width: 80,
-      formatter: ({ cellValue }) => (cellValue === 0 ? '正常' : '停用'),
+      formatter: ({ cellValue }) =>
+        cellValue === 0
+          ? $t('system.common.enabled')
+          : $t('system.common.disabled'),
     },
-    { field: 'remark', title: '备注', minWidth: 120 },
-    { title: '操作', width: 120, fixed: 'right', slots: { default: 'action' } },
+    { field: 'remark', title: $t('system.common.remark'), minWidth: 120 },
+    { title: $t('system.common.actions'), width: 120, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {
@@ -77,12 +83,12 @@ function openEdit(row: DictDataItem) {
 
 async function remove(row: DictDataItem) {
   await ElMessageBox.confirm(
-    `确认删除字典数据「${row.dictLabel}」？`,
-    '提示',
+    $t('system.dict.deleteConfirm', { name: row.dictLabel }),
+    $t('system.common.notice'),
     { type: 'warning' },
   );
   await deleteDictDataApi(row.id);
-  ElMessage.success('删除成功');
+  ElMessage.success($t('system.common.deleteSuccess'));
   afterChanged();
 }
 
@@ -103,7 +109,7 @@ function afterChanged() {
           variant="default"
           @click="openCreate"
         >
-          新增数据
+          {{ $t('system.dict.addData') }}
         </VbenButton>
       </template>
       <template #action="{ row }">
@@ -113,7 +119,7 @@ function afterChanged() {
           size="sm"
           @click="openEdit(row as DictDataItem)"
         >
-          编辑
+          {{ $t('system.common.edit') }}
         </VbenButton>
         <VbenButton
           v-access:code="'System:Dict:Delete'"
@@ -122,7 +128,7 @@ function afterChanged() {
           class="text-destructive"
           @click="remove(row as DictDataItem)"
         >
-          删除
+          {{ $t('system.common.delete') }}
         </VbenButton>
       </template>
     </Grid>

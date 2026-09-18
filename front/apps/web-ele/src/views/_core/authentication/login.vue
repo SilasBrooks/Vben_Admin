@@ -111,7 +111,7 @@ function handleSubmit(values: Record<string, any>) {
     />
 
     <CaptchaModal
-      title="请输入图形验证码"
+      :title="$t('profile.login.captchaTitle')"
       :show-cancel-button="true"
       :show-confirm-button="true"
       :confirm-disabled="!captchaCode"
@@ -119,25 +119,25 @@ function handleSubmit(values: Record<string, any>) {
     >
       <div class="py-2">
         <!-- 点击图片刷新验证码 -->
-        <div class="cursor-pointer" title="点击刷新" @click="refreshCaptcha">
+        <div class="cursor-pointer" :title="$t('profile.login.refreshCaptcha')" @click="refreshCaptcha">
           <img
             v-if="captchaImage && !captchaLoading"
             :src="captchaImage"
-            alt="验证码"
+            :alt="$t('profile.login.captcha')"
             class="h-[52px] w-full rounded-md border"
           />
           <div
             v-else
             class="flex h-[52px] w-full items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground"
           >
-            验证码加载中…
+            {{ $t('profile.login.captchaLoading') }}
           </div>
         </div>
 
         <ElInput
           v-model="captchaCode"
           class="mt-3"
-          placeholder="请输入图中的 4 位字符（不区分大小写）"
+          :placeholder="$t('profile.login.captchaPlaceholder')"
           @keyup.enter="handleCaptchaConfirm"
         />
       </div>

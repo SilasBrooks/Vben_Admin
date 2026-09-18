@@ -1,0 +1,40 @@
+{
+  "base": {
+    "avatar": "Avatar",
+    "uploading": "Uploading...",
+    "changeAvatar": "Change Avatar",
+    "avatarTip": "Images only, max 5MB",
+    "nickname": "Nickname",
+    "nicknameRequired": "Please enter your nickname",
+    "role": "Roles",
+    "email": "Email",
+    "emailPlaceholder": "For display and contact (optional)",
+    "emailInvalid": "Invalid email format",
+    "introduction": "Bio",
+    "introductionPlaceholder": "Tell us about yourself (up to 200 characters)",
+    "profileUpdated": "Profile updated",
+    "avatarUpdated": "Avatar updated"
+  },
+  "password": {
+    "oldPassword": "Current Password",
+    "oldPasswordPlaceholder": "Please enter your current password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Please enter your new password",
+    "confirmPassword": "Confirm Password",
+    "confirmAgain": "Please enter your new password again",
+    "passwordMismatch": "The two passwords do not match",
+    "changed": "Password changed, please log in again"
+  },
+  "index": {
+    "title": "Profile",
+    "basic": "Basic Settings",
+    "passwordTab": "Change Password"
+  },
+  "login": {
+    "captchaTitle": "Please enter the captcha",
+    "refreshCaptcha": "Click to refresh",
+    "captcha": "Captcha",
+    "captchaLoading": "Loading captcha…",
+    "captchaPlaceholder": "Enter the 4 characters in the image (case-insensitive)"
+  }
+}

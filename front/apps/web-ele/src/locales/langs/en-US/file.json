@@ -1,0 +1,17 @@
+{
+  "originalName": "Original Name",
+  "size": "Size",
+  "contentType": "Type",
+  "uploader": "Uploader",
+  "uploadTime": "Upload Time",
+  "action": "Actions",
+  "fileName": "File Name",
+  "namePlaceholder": "Please enter original file name",
+  "upload": "Upload File",
+  "uploadSuccess": "Uploaded successfully",
+  "preview": "Preview",
+  "delete": "Delete",
+  "deleteTitle": "Delete File",
+  "deleteConfirm": "Are you sure you want to delete file \"{name}\"? The record and the physical file will be removed permanently.",
+  "deleteSuccess": "Deleted successfully"
+}
