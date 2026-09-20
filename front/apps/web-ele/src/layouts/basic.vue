@@ -11,6 +11,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { $t } from '#/locales';
 import { useAuthStore } from '#/store';
 import AiAssistant from '#/components/ai-assistant/AiAssistant.vue';
+import Notifications from '#/layouts/notifications.vue';
 import LoginForm from '#/views/_core/authentication/login.vue';
 
 const router = useRouter();
@@ -90,6 +91,7 @@ watch(
       <AuthenticationLoginExpiredModal v-model:open="accessStore.loginExpired" :avatar>
         <LoginForm />
       </AuthenticationLoginExpiredModal>
+      <Notifications />
       <AiAssistant />
     </template>
     <template #lock-screen>

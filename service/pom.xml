@@ -29,6 +29,11 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+    <!-- WebSocket（站内通知实时推送） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
     <!-- OpenAPI 3 文档（springdoc 自动扫描，Swagger UI 调试） -->
     <dependency>
       <groupId>org.springdoc</groupId>

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vben.service.common.BizException;
+import com.vben.service.module.notice.service.NoticeService;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.entity.SysRoleDept;
 import com.vben.service.module.system.entity.SysRoleMenu;
@@ -40,6 +41,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   private final SysRoleMenuMapper roleMenuMapper;
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleDeptMapper roleDeptMapper;
+  private final NoticeService noticeService;
 
   public IPage<SysRole> page(long pageNo, long pageSize, String roleName, Integer status) {
     LambdaQueryWrapper<SysRole> q = new LambdaQueryWrapper<SysRole>()
@@ -167,10 +169,11 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
     }
   }
 
-  /** 重新分配角色菜单（先删后插） */
+  /** 重新分配角色菜单（先删后插）；成功后通知该角色下全部用户权限已更新 */
   @Transactional
   public void assignMenus(Long roleId, List<Long> menuIds) {
-    if (getById(roleId) == null) {
+    SysRole role = getById(roleId);
+    if (role == null) {
       throw BizException.badRequest("角色不存在");
     }
     roleMenuMapper.delete(
@@ -180,6 +183,11 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
       rm.setRoleId(roleId);
       rm.setMenuId(menuId);
       roleMenuMapper.insert(rm);
+    }
+    // 授权成功后通知角色下全部当事人（落库 + WebSocket 推送，推送失败不影响结果）
+    for (Long userId : userRoleMapper.selectUserIdsByRoleId(roleId)) {
+      noticeService.send(userId, "您的功能权限已更新",
+          "管理员调整了角色「" + role.getRoleName() + "」的菜单授权，重新登录或刷新后生效。");
     }
   }
 }

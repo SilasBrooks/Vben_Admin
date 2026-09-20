@@ -3,6 +3,7 @@ package com.vben.service.module.monitor.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.vben.service.common.BizException;
 import com.vben.service.common.R;
+import com.vben.service.module.notice.service.NoticeService;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.security.LoginUser;
@@ -44,6 +45,7 @@ public class MonitorOnlineController {
   private final OnlineSessionService onlineSessionService;
   private final TokenVersionService tokenVersionService;
   private final SysUserMapper userMapper;
+  private final NoticeService noticeService;
 
   /** 在线用户列表（Redis 实时会话，用户名模糊 + 手动分页，按登录时间倒序） */
   @Operation(summary = "在线用户列表", description = "来源于 Redis 在线会话；支持用户名模糊过滤与分页")
@@ -93,6 +95,8 @@ public class MonitorOnlineController {
       throw BizException.badRequest("不能对自己执行强制下线");
     }
     tokenVersionService.bump(userId);
+    // 强退成功后通知当事人（落库 + WebSocket 推送，推送失败不影响结果）
+    noticeService.send(userId, "会话已被管理员强制下线", "如有疑问请联系管理员。");
     return R.ok();
   }
 }

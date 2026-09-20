@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vben.service.common.BizException;
 import com.vben.service.common.DataScope;
 import com.vben.service.common.DataScopeHolder;
+import com.vben.service.module.notice.service.NoticeService;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.entity.SysUserRole;
@@ -45,6 +46,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   private final SysRoleMapper roleMapper;
   private final SysDeptAdminService deptService;
   private final TokenVersionService tokenVersionService;
+  private final NoticeService noticeService;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   /** 用户分页列表（密码字段已清空，支持按用户名模糊 + 状态过滤；回填部门名；按数据范围过滤） */
@@ -166,6 +168,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     // 停用用户：版本 +1，其已签发 token 立即失效（被保护逻辑已确保不会停用最后一个 super）
     if (exist.getStatus() != null && exist.getStatus() == 0 && user.getStatus() == 1) {
       tokenVersionService.bump(user.getId());
+      // 停用成功后通知当事人（落库 + WebSocket 推送，推送失败不影响结果）
+      noticeService.send(user.getId(), "账号已被管理员停用", "如有疑问请联系管理员。");
     }
 
     // 仅当显式传了 roleIds 才重分配；不传 = 不动角色（避免误清空）
@@ -212,6 +216,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     updateById(patch);
     // 重置密码成功：版本 +1，目标用户已签发 token 立即失效
     tokenVersionService.bump(userId);
+    // 重置成功后通知当事人（落库 + WebSocket 推送，推送失败不影响结果）
+    noticeService.send(userId, "登录密码已被管理员重置", "请使用新密码登录并尽快修改密码。");
   }
 
   /** 重新分配用户角色（先删后插） */

@@ -185,3 +185,20 @@ SET @ddl = IF(@col_exists = 0,
 PREPARE stmt FROM @ddl;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+-- ============================================================
+-- 站内通知（落库 + WebSocket 实时推送）
+-- update_time 由应用层 MyBatis-Plus MetaObjectHandler 填充（见文件头说明）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sys_notice (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id     BIGINT        NOT NULL COMMENT '接收人id(sys_user.id)',
+  title       VARCHAR(100)  NOT NULL COMMENT '通知标题',
+  content     VARCHAR(500)  NULL COMMENT '通知内容',
+  msg_type    VARCHAR(20)   NOT NULL DEFAULT 'security' COMMENT '消息类型,本期仅security安全提醒',
+  read_flag   TINYINT       NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+  read_time   DATETIME      NULL COMMENT '阅读时间(NULL=未读)',
+  create_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sys_notice_user (user_id, read_flag)
+) ENGINE = InnoDB COMMENT ='站内通知表';

@@ -37,10 +37,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
   private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-  /** 无需认证的路径（相对 context-path） */
+  /** 无需认证的路径（相对 context-path）；/ws/** 的鉴权由 WebSocket 握手拦截器自行完成 */
   private static final List<String> WHITE_LIST =
       List.of("/auth/login", "/auth/captcha", "/auth/refresh", "/auth/logout", "/h2-console/**",
-          "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html");
+          "/error", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/ws/**");
 
   /** 允许 Cookie 回退的路径（头像/文件直链，仅 GET） */
   private static final List<String> COOKIE_FALLBACK_PATHS = List.of("/file/*/content");
