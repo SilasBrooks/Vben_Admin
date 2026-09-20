@@ -99,7 +99,7 @@ public final class AiTools {
 
   public static AiToolDef require(String name) {
     return ALL.stream().filter(t -> t.name().equals(name)).findFirst()
-        .orElseThrow(() -> BizException.badRequest("未知的 AI 工具：" + name));
+        .orElseThrow(() -> BizException.badRequest("error.ai.unknownTool", name));
   }
 
   // ------------------------------------------------------------------

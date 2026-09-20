@@ -98,10 +98,10 @@ public class AiToolExecutor {
     AiToolDef def = AiTools.require(toolName);
     LoginUser loginUser = LoginUserHolder.get();
     if (loginUser == null) {
-      throw BizException.unauthorized("未登录或登录已过期");
+      throw BizException.unauthorized("error.unauthorized");
     }
     if (!loginUser.hasPermission(def.permission())) {
-      throw BizException.forbidden("当前账号没有「" + def.title() + "」的权限");
+      throw BizException.forbidden("error.ai.noPermission", def.title());
     }
     JsonNode args = parseArgs(argsJson);
     return switch (toolName) {
@@ -113,7 +113,7 @@ public class AiToolExecutor {
       case AiTools.CREATE_ROLE -> createRole(args);
       case AiTools.CREATE_DEPT -> createDept(args);
       case AiTools.ASSIGN_ROLE_MENUS -> assignRoleMenus(args);
-      default -> throw BizException.badRequest("未知的 AI 工具：" + toolName);
+      default -> throw BizException.badRequest("error.ai.unknownTool", toolName);
     };
   }
 
@@ -219,7 +219,7 @@ public class AiToolExecutor {
     String username = requireText(args, "username");
     String password = requireText(args, "password");
     if (password.length() < 6) {
-      throw BizException.badRequest("初始密码至少 6 位，请向用户补充确认");
+      throw BizException.badRequest("error.ai.password.tooShort");
     }
     String nickname = requireText(args, "nickname");
 
@@ -259,12 +259,12 @@ public class AiToolExecutor {
       dataScope = "5";
     }
     if (!DATA_SCOPE_LABELS.containsKey(dataScope)) {
-      throw BizException.badRequest("数据范围取值非法，应为 1-5 之一");
+      throw BizException.badRequest("error.ai.dataScope.invalid");
     }
     long exists = roleMapper.selectCount(new LambdaQueryWrapper<SysRole>()
         .eq(SysRole::getRoleKey, roleKey));
     if (exists > 0) {
-      throw BizException.badRequest("角色标识「" + roleKey + "」已存在，请换一个");
+      throw BizException.badRequest("error.ai.roleKey.exists", roleKey);
     }
 
     SysRole role = new SysRole();
@@ -309,7 +309,7 @@ public class AiToolExecutor {
     Long roleId = resolveRoleId(roleName);
     List<String> menuNames = textList(args, "menuNames");
     if (menuNames.isEmpty()) {
-      throw BizException.badRequest("menuNames 不能为空，请向用户确认要分配的菜单清单");
+      throw BizException.badRequest("error.ai.menuNames.required");
     }
 
     SysRole role = roleMapper.selectById(roleId);
@@ -332,10 +332,10 @@ public class AiToolExecutor {
     List<SysDept> matches = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
         .eq(SysDept::getDeptName, deptName.trim()));
     if (matches.isEmpty()) {
-      throw BizException.badRequest("未找到名为「" + deptName + "」的部门，请先用查询部门工具确认准确名称");
+      throw BizException.badRequest("error.ai.dept.notFound", deptName);
     }
     if (matches.size() > 1) {
-      throw BizException.badRequest("存在多个名为「" + deptName + "」的部门，请让用户提供更明确的上级路径");
+      throw BizException.badRequest("error.ai.dept.ambiguous", deptName);
     }
     return matches.get(0).getId();
   }
@@ -345,10 +345,10 @@ public class AiToolExecutor {
     List<SysRole> matches = roleMapper.selectList(new LambdaQueryWrapper<SysRole>()
         .eq(SysRole::getRoleKey, key).or().eq(SysRole::getRoleName, key));
     if (matches.isEmpty()) {
-      throw BizException.badRequest("未找到角色「" + roleNameOrKey + "」，可先用查询角色工具确认");
+      throw BizException.badRequest("error.ai.role.notFound", roleNameOrKey);
     }
     if (matches.size() > 1) {
-      throw BizException.badRequest("角色名称「" + roleNameOrKey + "」匹配到多个角色，请改用角色标识");
+      throw BizException.badRequest("error.ai.role.ambiguous", roleNameOrKey);
     }
     return matches.get(0).getId();
   }
@@ -389,12 +389,12 @@ public class AiToolExecutor {
     for (String name : menuNames) {
       List<SysMenu> matches = byName.get(name);
       if (matches == null || matches.isEmpty()) {
-        throw BizException.badRequest("未找到名为「" + name + "」的菜单，请先用查询菜单工具确认准确名称");
+        throw BizException.badRequest("error.ai.menu.notFound", name);
       }
       if (matches.size() > 1) {
         String paths = matches.stream().map(m -> parentPath(m, byId))
             .collect(Collectors.joining("；"));
-        throw BizException.badRequest("存在多个名为「" + name + "」的菜单（" + paths + "），请提供更明确的名称");
+        throw BizException.badRequest("error.ai.menu.ambiguous", name, paths);
       }
       SysMenu hit = matches.get(0);
       switch (hit.getMenuType()) {
@@ -485,7 +485,7 @@ public class AiToolExecutor {
       }
       return objectMapper.readTree(argsJson);
     } catch (Exception e) {
-      throw BizException.badRequest("工具参数不是合法 JSON");
+      throw BizException.badRequest("error.ai.badJson");
     }
   }
 
@@ -501,7 +501,7 @@ public class AiToolExecutor {
   private String requireText(JsonNode args, String field) {
     String v = text(args, field);
     if (v == null) {
-      throw BizException.badRequest("缺少必填参数「" + field + "」，请向用户补充确认");
+      throw BizException.badRequest("error.ai.missingParam", field);
     }
     return v;
   }

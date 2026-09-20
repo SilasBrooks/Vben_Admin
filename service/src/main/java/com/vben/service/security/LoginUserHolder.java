@@ -23,7 +23,7 @@ public final class LoginUserHolder {
   public static LoginUser require() {
     LoginUser user = CONTEXT.get();
     if (user == null) {
-      throw BizException.unauthorized("Unauthorized Exception");
+      throw BizException.unauthorized("error.unauthorized");
     }
     return user;
   }

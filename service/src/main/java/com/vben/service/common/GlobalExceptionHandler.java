@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
   /** @Valid 参数校验失败 */
   @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
   public ResponseEntity<R<Void>> handleValidation(Exception e) {
-    String msg = "参数校验失败";
+    String msg = I18nMessage.get("error.param.invalid");
     if (e instanceof MethodArgumentNotValidException ex) {
       FieldError fe = ex.getBindingResult().getFieldError();
       if (fe != null) {
@@ -41,13 +41,15 @@ public class GlobalExceptionHandler {
   /** 上传大小超限（spring.servlet.multipart 约束）：统一转 400 错误结构，不落 500 */
   @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
   public ResponseEntity<R<Void>> handleMaxUpload(Exception e) {
-    return ResponseEntity.badRequest().body(R.fail("文件大小超过限制", "Maximum upload size exceeded"));
+    String msg = I18nMessage.get("error.upload.tooLarge");
+    return ResponseEntity.badRequest().body(R.fail(msg, msg));
   }
 
   /** 请求体不可读（如非法 JSON）：统一转 400，不落 500 */
   @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
   public ResponseEntity<R<Void>> handleUnreadable(Exception e) {
-    return ResponseEntity.badRequest().body(R.fail("请求体格式错误", "Malformed request body"));
+    String msg = I18nMessage.get("error.request.malformed");
+    return ResponseEntity.badRequest().body(R.fail(msg, msg));
   }
 
   /** 静态资源/路径不存在（如 springdoc 关闭后的 swagger 端点）：按 404 返回，不落 500 */

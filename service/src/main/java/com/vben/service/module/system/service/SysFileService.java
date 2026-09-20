@@ -62,14 +62,14 @@ public class SysFileService {
   private SysFile doUpload(InputStream in, String originalName, long size, Long uploaderId,
       String bizType, Set<String> whitelist, long maxSize) {
     if (!StringUtils.hasText(originalName)) {
-      throw BizException.badRequest("文件名不能为空");
+      throw BizException.badRequest("error.file.name.blank");
     }
     String ext = StringUtils.getFilenameExtension(originalName);
     if (ext == null || !whitelist.contains(ext.toLowerCase())) {
-      throw BizException.badRequest("不支持的文件类型: " + (ext == null ? "(无扩展名)" : "." + ext));
+      throw BizException.badRequest("error.file.type.unsupported", ext == null ? "-" : "." + ext);
     }
     if (size > maxSize) {
-      throw BizException.badRequest("文件大小超过限制（最大 " + (maxSize / 1024 / 1024) + "MB）");
+      throw BizException.badRequest("error.file.size.exceeded", maxSize / 1024 / 1024);
     }
     // 存储名随机 UUID，防路径穿越与文件名猜测；content_type 由原始名推导，不取客户端字段
     StoredFile stored = storageService.store(in, originalName, size);
@@ -113,7 +113,7 @@ public class SysFileService {
   public void delete(Long id) {
     SysFile file = fileMapper.selectById(id);
     if (file == null) {
-      throw BizException.badRequest("文件不存在或已删除");
+      throw BizException.badRequest("error.file.notFound");
     }
     fileMapper.deleteById(id);
     try {

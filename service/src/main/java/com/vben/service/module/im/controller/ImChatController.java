@@ -86,11 +86,12 @@ public class ImChatController {
 
   /** 发送消息请求体 */
   public record ImSendRequest(
-      @NotNull(message = "receiverId 不能为空") Long receiverId,
-      @NotBlank(message = "内容不能为空") @Size(max = 2000, message = "内容不能超过 2000 字") String content) {
+      @NotNull(message = "{error.im.receiver.blank}") Long receiverId,
+      @NotBlank(message = "{error.im.content.blank}")
+          @Size(max = 2000, message = "{error.im.content.max}") String content) {
   }
 
   /** 标记已读请求体 */
-  public record ImReadRequest(@NotNull(message = "peerId 不能为空") Long peerId) {
+  public record ImReadRequest(@NotNull(message = "{error.im.peer.blank}") Long peerId) {
   }
 }

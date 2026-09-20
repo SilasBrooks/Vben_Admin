@@ -49,17 +49,17 @@ public class SysDeptAdminService extends ServiceImpl<SysDeptMapper, SysDept> {
   @Transactional
   public void saveDept(SysDept dept) {
     if (dept.getDeptName() == null || dept.getDeptName().isBlank()) {
-      throw BizException.badRequest("部门名称不能为空");
+      throw BizException.badRequest("error.dept.name.blank");
     }
     Long parentId = dept.getParentId() == null ? 0L : dept.getParentId();
     dept.setParentId(parentId);
     if (parentId != 0) {
       SysDept parent = getById(parentId);
       if (parent == null) {
-        throw BizException.badRequest("父部门不存在");
+        throw BizException.badRequest("error.dept.parent.notFound");
       }
       if (parent.getStatus() != null && parent.getStatus() == 1) {
-        throw BizException.badRequest("父部门已停用，不能在其下新增");
+        throw BizException.badRequest("error.dept.parent.disabledAdd");
       }
     }
     checkSiblingNameUnique(parentId, dept.getDeptName(), null);
@@ -77,23 +77,23 @@ public class SysDeptAdminService extends ServiceImpl<SysDeptMapper, SysDept> {
   public void updateDept(SysDept dept) {
     SysDept exist = getById(dept.getId());
     if (exist == null) {
-      throw BizException.badRequest("部门不存在");
+      throw BizException.badRequest("error.dept.notFound");
     }
     if (dept.getDeptName() == null || dept.getDeptName().isBlank()) {
-      throw BizException.badRequest("部门名称不能为空");
+      throw BizException.badRequest("error.dept.name.blank");
     }
     Long parentId = dept.getParentId() == null ? 0L : dept.getParentId();
     dept.setParentId(parentId);
     if (Objects.equals(parentId, dept.getId())) {
-      throw BizException.badRequest("父部门不能选择自身");
+      throw BizException.badRequest("error.dept.parent.self");
     }
     if (parentId != 0) {
       SysDept parent = getById(parentId);
       if (parent == null) {
-        throw BizException.badRequest("父部门不存在");
+        throw BizException.badRequest("error.dept.parent.notFound");
       }
       if (parent.getStatus() != null && parent.getStatus() == 1) {
-        throw BizException.badRequest("父部门已停用，不能移动到其下");
+        throw BizException.badRequest("error.dept.parent.disabledMove");
       }
     }
     // 防环：沿新 parentId 向上遍历祖先链，出现自身 id 即拒绝
@@ -109,16 +109,16 @@ public class SysDeptAdminService extends ServiceImpl<SysDeptMapper, SysDept> {
   @Transactional
   public void remove(Long id) {
     if (getById(id) == null) {
-      throw BizException.badRequest("部门不存在");
+      throw BizException.badRequest("error.dept.notFound");
     }
     long children = count(new LambdaQueryWrapper<SysDept>().eq(SysDept::getParentId, id));
     if (children > 0) {
-      throw BizException.badRequest("存在子部门，无法删除");
+      throw BizException.badRequest("error.dept.hasChildren");
     }
     long users = userMapper.selectCount(
         new LambdaQueryWrapper<SysUser>().eq(SysUser::getDeptId, id));
     if (users > 0) {
-      throw BizException.badRequest("部门下存在用户，无法删除");
+      throw BizException.badRequest("error.dept.hasUsers");
     }
     removeById(id);
   }
@@ -154,7 +154,7 @@ public class SysDeptAdminService extends ServiceImpl<SysDeptMapper, SysDept> {
         .eq(SysDept::getDeptName, deptName)
         .ne(excludeId != null, SysDept::getId, excludeId));
     if (dup > 0) {
-      throw BizException.badRequest("同级下已存在同名部门");
+      throw BizException.badRequest("error.dept.name.duplicate");
     }
   }
 
@@ -164,7 +164,7 @@ public class SysDeptAdminService extends ServiceImpl<SysDeptMapper, SysDept> {
     List<Long> visited = new ArrayList<>();
     while (cursor != null && cursor != 0) {
       if (cursor.equals(deptId)) {
-        throw BizException.badRequest("不能移动到自身或自己的子部门下");
+        throw BizException.badRequest("error.dept.move.invalid");
       }
       if (visited.contains(cursor)) {
         // 理论上不该出现的数据环，兜底防死循环

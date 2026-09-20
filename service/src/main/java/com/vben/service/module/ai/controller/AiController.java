@@ -106,7 +106,9 @@ public class AiController {
       } catch (Exception e) {
         log.error("AI 对话处理异常", e);
         safeSend(emitter, "error",
-            java.util.Map.of("message", "AI 服务开小差了，请稍后重试"), objectMapper);
+            java.util.Map.of("message",
+                com.vben.service.common.I18nMessage.get("error.ai.unavailable")),
+            objectMapper);
         emitter.complete();
       } finally {
         com.vben.service.security.LoginUserHolder.clear();

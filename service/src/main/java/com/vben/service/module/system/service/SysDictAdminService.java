@@ -42,7 +42,7 @@ public class SysDictAdminService {
     requireTypeKey(type.getDictType());
     if (typeMapper.selectCount(new QueryWrapper<SysDictType>()
         .eq("dict_type", type.getDictType())) > 0) {
-      throw BizException.badRequest("字典类型键已存在: " + type.getDictType());
+      throw BizException.badRequest("error.dict.type.exists", type.getDictType());
     }
     type.setId(null);
     type.setCreateTime(LocalDateTime.now());
@@ -56,14 +56,14 @@ public class SysDictAdminService {
     requireTypeKey(type.getDictType());
     SysDictType exist = typeMapper.selectById(type.getId());
     if (exist == null) {
-      throw BizException.badRequest("字典类型不存在");
+      throw BizException.badRequest("error.dict.type.notFound");
     }
     // dictType 唯一（排除自身）
     Long dup = typeMapper.selectCount(new QueryWrapper<SysDictType>()
         .eq("dict_type", type.getDictType())
         .ne("id", type.getId()));
     if (dup > 0) {
-      throw BizException.badRequest("字典类型键已存在: " + type.getDictType());
+      throw BizException.badRequest("error.dict.type.exists", type.getDictType());
     }
     // 若修改了 dictType 键，同步更新数据项归属
     if (!exist.getDictType().equals(type.getDictType())) {
@@ -85,7 +85,7 @@ public class SysDictAdminService {
   public void removeType(Long id) {
     SysDictType exist = typeMapper.selectById(id);
     if (exist == null) {
-      throw BizException.badRequest("字典类型不存在");
+      throw BizException.badRequest("error.dict.type.notFound");
     }
     dataMapper.delete(new QueryWrapper<SysDictData>().eq("dict_type", exist.getDictType()));
     typeMapper.deleteById(id);
@@ -110,7 +110,7 @@ public class SysDictAdminService {
     if (dataMapper.selectCount(new QueryWrapper<SysDictData>()
         .eq("dict_type", data.getDictType())
         .eq("dict_value", data.getDictValue())) > 0) {
-      throw BizException.badRequest("该类型下字典值已存在: " + data.getDictValue());
+      throw BizException.badRequest("error.dict.value.exists", data.getDictValue());
     }
     if (data.getSortNum() == null) {
       data.setSortNum(0);
@@ -129,7 +129,7 @@ public class SysDictAdminService {
     requireDataValue(data.getDictValue());
     SysDictData exist = dataMapper.selectById(data.getId());
     if (exist == null) {
-      throw BizException.badRequest("字典数据不存在");
+      throw BizException.badRequest("error.dict.data.notFound");
     }
     // dictValue 同类型下唯一（排除自身）
     Long dup = dataMapper.selectCount(new QueryWrapper<SysDictData>()
@@ -137,7 +137,7 @@ public class SysDictAdminService {
         .eq("dict_value", data.getDictValue())
         .ne("id", data.getId()));
     if (dup > 0) {
-      throw BizException.badRequest("该类型下字典值已存在: " + data.getDictValue());
+      throw BizException.badRequest("error.dict.value.exists", data.getDictValue());
     }
     exist.setDictLabel(data.getDictLabel());
     exist.setDictValue(data.getDictValue());
@@ -170,25 +170,25 @@ public class SysDictAdminService {
 
   private void requireTypeKey(String dictType) {
     if (dictType == null || dictType.isBlank()) {
-      throw BizException.badRequest("字典类型键不能为空");
+      throw BizException.badRequest("error.dict.typeKey.blank");
     }
   }
 
   private void requireTypeName(String dictName) {
     if (dictName == null || dictName.isBlank()) {
-      throw BizException.badRequest("字典名称不能为空");
+      throw BizException.badRequest("error.dict.name.blank");
     }
   }
 
   private void requireDataLabel(String label) {
     if (label == null || label.isBlank()) {
-      throw BizException.badRequest("字典标签不能为空");
+      throw BizException.badRequest("error.dict.label.blank");
     }
   }
 
   private void requireDataValue(String value) {
     if (value == null || value.isBlank()) {
-      throw BizException.badRequest("字典值不能为空");
+      throw BizException.badRequest("error.dict.value.blank");
     }
   }
 
@@ -197,7 +197,7 @@ public class SysDictAdminService {
     if (dictType == null || dictType.isBlank()
         || typeMapper.selectCount(new QueryWrapper<SysDictType>()
             .eq("dict_type", dictType)) == 0) {
-      throw BizException.badRequest("字典类型不存在: " + dictType);
+      throw BizException.badRequest("error.dict.type.notFoundWith", dictType);
     }
   }
 }

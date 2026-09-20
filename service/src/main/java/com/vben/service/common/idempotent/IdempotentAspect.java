@@ -1,6 +1,7 @@
 package com.vben.service.common.idempotent;
 
 import com.vben.service.common.BizException;
+import com.vben.service.common.I18nMessage;
 import com.vben.service.common.IpUtil;
 import com.vben.service.common.redis.RedisKeys;
 import com.vben.service.security.LoginUser;
@@ -49,7 +50,7 @@ public class IdempotentAspect {
 
     if (claimed == null || claimed != 1L) {
       log.warn("重复提交被拒: key={}, window={}s", key, idempotent.intervalSeconds());
-      throw new BizException(409, idempotent.message());
+      throw new BizException(409, I18nMessage.get(idempotent.message()));
     }
     return pjp.proceed();
   }

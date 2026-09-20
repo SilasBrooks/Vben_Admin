@@ -79,7 +79,7 @@ public class NoticeController {
   }
 
   /** 标记已读请求体 */
-  public record NoticeReadRequest(@NotEmpty(message = "ids 不能为空") List<Long> ids) {
+  public record NoticeReadRequest(@NotEmpty(message = "{error.notice.ids.blank}") List<Long> ids) {
   }
 
   /**
@@ -87,9 +87,10 @@ public class NoticeController {
    * deptIds 与 userIds 按 targetType 择一必填（service 侧校验）。
    */
   public record AnnounceRequest(
-      @NotBlank(message = "标题不能为空") @Size(max = 100, message = "标题不能超过 100 字") String title,
-      @Size(max = 500, message = "内容不能超过 500 字") String content,
-      @NotBlank(message = "目标类型不能为空") String targetType,
+      @NotBlank(message = "{error.notice.title.blank}")
+          @Size(max = 100, message = "{error.notice.title.max}") String title,
+      @Size(max = 500, message = "{error.notice.content.max}") String content,
+      @NotBlank(message = "{error.notice.targetType.blank}") String targetType,
       List<Long> deptIds,
       List<Long> userIds) {
   }

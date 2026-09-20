@@ -1,6 +1,7 @@
 package com.vben.service.module.auth;
 
 import com.vben.service.common.BizException;
+import com.vben.service.common.I18nMessage;
 import com.vben.service.common.redis.RedisKeys;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -39,8 +40,8 @@ public class LoginAttemptService {
 
   /** 登录前检查：若任一维度已锁定则抛 429（含剩余等待分钟数） */
   public void checkLocked(String username, String ip) {
-    checkOne(RedisKeys.loginFail("user", username.toLowerCase()), "该账号");
-    checkOne(RedisKeys.loginFail("ip", ip), "当前 IP");
+    checkOne(RedisKeys.loginFail("user", username.toLowerCase()), "error.login.lockTarget.user");
+    checkOne(RedisKeys.loginFail("ip", ip), "error.login.lockTarget.ip");
   }
 
   /** 记录一次登录失败（凭据错误） */
@@ -66,8 +67,8 @@ public class LoginAttemptService {
       return;
     }
     long remainMinutes = Math.max(1, (ttl + 59) / 60);
-    throw BizException.tooManyRequests(
-        label + "登录失败次数过多，已临时锁定，请约 " + remainMinutes + " 分钟后再试");
+    throw BizException.tooManyRequests("error.login.locked",
+        I18nMessage.get(label), remainMinutes);
   }
 
   private void bump(String key) {

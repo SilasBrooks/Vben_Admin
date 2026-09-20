@@ -32,7 +32,6 @@ public class PermissionInterceptor implements HandlerInterceptor {
         return true;
       }
     }
-    throw BizException.forbidden("Forbidden Exception: 缺少权限码 "
-        + String.join(" / ", annotation.value()));
+    throw BizException.forbidden("error.perm.denied", String.join(" / ", annotation.value()));
   }
 }

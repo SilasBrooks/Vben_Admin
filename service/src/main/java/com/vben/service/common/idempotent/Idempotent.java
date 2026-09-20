@@ -23,6 +23,6 @@ public @interface Idempotent {
   /** 幂等窗口（秒），窗口内重复请求被拒绝 */
   int intervalSeconds() default 10;
 
-  /** 重复提交时的提示文案 */
-  String message() default "请勿重复提交，请稍后再试";
+  /** 重复提交提示的消息 key（messages.properties，切面按请求语言解析） */
+  String message() default "error.idempotent.duplicate";
 }

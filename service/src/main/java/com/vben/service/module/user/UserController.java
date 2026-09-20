@@ -36,7 +36,7 @@ public class UserController {
     LoginUser login = LoginUserHolder.require();
     SysUser user = permissionService.findActiveUserById(login.getUserId());
     if (user == null) {
-      throw com.vben.service.common.BizException.unauthorized("Unauthorized Exception");
+      throw com.vben.service.common.BizException.unauthorized("error.unauthorized");
     }
 
     Map<String, Object> data = new LinkedHashMap<>();
@@ -68,7 +68,7 @@ public class UserController {
     LoginUser login = LoginUserHolder.require();
     SysUser user = permissionService.findActiveUserById(login.getUserId());
     if (user == null) {
-      throw com.vben.service.common.BizException.unauthorized("Unauthorized Exception");
+      throw com.vben.service.common.BizException.unauthorized("error.unauthorized");
     }
     SysUser patch = new SysUser();
     patch.setId(user.getId());
@@ -90,7 +90,7 @@ public class UserController {
     @jakarta.validation.constraints.Size(max = 200)
     private String introduction;
 
-    @jakarta.validation.constraints.Email(message = "邮箱格式不正确")
+    @jakarta.validation.constraints.Email(message = "{error.user.email.invalid}")
     @jakarta.validation.constraints.Size(max = 255)
     private String email;
   }

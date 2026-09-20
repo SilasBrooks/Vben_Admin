@@ -118,7 +118,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   /** 用户已分配角色 id 列表（编辑回显） */
   public List<Long> roleIds(Long userId) {
     if (getById(userId) == null) {
-      throw BizException.badRequest("用户不存在");
+      throw BizException.badRequest("error.user.notFound");
     }
     return baseMapper.selectRoleIdsByUserId(userId);
   }
@@ -127,15 +127,15 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   @Transactional
   public void saveUser(SysUser user) {
     if (user.getUsername() == null || user.getUsername().isBlank()) {
-      throw BizException.badRequest("用户名不能为空");
+      throw BizException.badRequest("error.user.username.blank");
     }
     if (user.getPassword() == null || user.getPassword().isBlank()) {
-      throw BizException.badRequest("初始密码不能为空");
+      throw BizException.badRequest("error.user.password.blank");
     }
     long exists = count(new LambdaQueryWrapper<SysUser>()
         .eq(SysUser::getUsername, user.getUsername()));
     if (exists > 0) {
-      throw BizException.badRequest("用户名已存在");
+      throw BizException.badRequest("error.user.username.exists");
     }
     if (user.getStatus() == null) {
       user.setStatus(0);
@@ -154,7 +154,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   public void updateUser(SysUser user) {
     SysUser exist = getById(user.getId());
     if (exist == null) {
-      throw BizException.badRequest("用户不存在");
+      throw BizException.badRequest("error.user.notFound");
     }
     // 用户名不允许修改（避免唯一键冲突 + 关联历史日志脱钩）
     user.setUsername(exist.getUsername());
@@ -185,16 +185,16 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   public void remove(Long id) {
     LoginUser current = LoginUserHolder.get();
     if (current != null && id.equals(current.getUserId())) {
-      throw BizException.badRequest("不能删除当前登录用户");
+      throw BizException.badRequest("error.user.delete.self");
     }
     SysUser exist = getById(id);
     if (exist == null) {
-      throw BizException.badRequest("用户不存在");
+      throw BizException.badRequest("error.user.notFound");
     }
     // 若该用户拥有 super 角色，且是系统最后一个有效 super 用户 → 阻止
     List<Long> currentUserRoleIds = baseMapper.selectRoleIdsByUserId(id);
     if (containsSuperRole(currentUserRoleIds) && baseMapper.countActiveUsersByRoleKey(SUPER_ROLE_KEY) <= 1) {
-      throw BizException.badRequest("不能删除系统最后一个 super 用户");
+      throw BizException.badRequest("error.user.lastSuper");
     }
     userRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, id));
     removeById(id);
@@ -205,10 +205,10 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   public void resetPassword(Long userId, String newPassword) {
     SysUser exist = getById(userId);
     if (exist == null) {
-      throw BizException.badRequest("用户不存在");
+      throw BizException.badRequest("error.user.notFound");
     }
     if (newPassword == null || newPassword.length() < 6) {
-      throw BizException.badRequest("新密码至少 6 位");
+      throw BizException.badRequest("error.auth.password.tooShort");
     }
     SysUser patch = new SysUser();
     patch.setId(userId);
@@ -225,7 +225,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   public void assignRoles(Long userId, List<Long> roleIds) {
     SysUser exist = getById(userId);
     if (exist == null) {
-      throw BizException.badRequest("用户不存在");
+      throw BizException.badRequest("error.user.notFound");
     }
     List<Long> newRoleIds = roleIds == null ? Collections.emptyList() : roleIds;
     protectLastSuper(userId, exist, exist, newRoleIds);
@@ -243,10 +243,10 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     }
     com.vben.service.module.system.entity.SysDept dept = deptService.getById(deptId);
     if (dept == null) {
-      throw BizException.badRequest("所选部门不存在");
+      throw BizException.badRequest("error.user.dept.notFound");
     }
     if (dept.getStatus() != null && dept.getStatus() == 1) {
-      throw BizException.badRequest("所选部门已停用");
+      throw BizException.badRequest("error.user.dept.disabled");
     }
   }
 
@@ -278,7 +278,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
       return;
     }
     if (baseMapper.countActiveUsersByRoleKey(SUPER_ROLE_KEY) <= 1) {
-      throw BizException.badRequest("不能移除/停用系统最后一个 super 用户");
+      throw BizException.badRequest("error.user.lastSuper");
     }
   }
 

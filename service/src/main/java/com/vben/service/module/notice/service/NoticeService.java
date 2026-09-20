@@ -99,17 +99,17 @@ public class NoticeService {
       }
       case TARGET_DEPT -> {
         if (deptIds == null || deptIds.isEmpty()) {
-          throw BizException.badRequest("按部门发布需至少选择一个部门");
+          throw BizException.badRequest("error.notice.dept.required");
         }
         wrapper.in(SysUser::getDeptId, deptIds);
       }
       case TARGET_USER -> {
         if (userIds == null || userIds.isEmpty()) {
-          throw BizException.badRequest("按用户发布需至少选择一个用户");
+          throw BizException.badRequest("error.notice.user.required");
         }
         wrapper.in(SysUser::getId, userIds);
       }
-      default -> throw BizException.badRequest("目标类型不合法：" + targetType);
+      default -> throw BizException.badRequest("error.notice.target.invalid", targetType);
     }
     return userMapper.selectList(wrapper).stream().map(SysUser::getId).toList();
   }

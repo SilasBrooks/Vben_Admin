@@ -79,7 +79,7 @@ public class AuthController {
     loginAttemptService.checkLocked(body.getUsername(), ip);
     if (!captchaService.verify(body.getCaptchaId(), body.getCaptchaCode())) {
       // 验证码失败不计入锁定（防手误误锁），由接口限流兜底
-      throw BizException.badRequest("验证码错误或已过期");
+      throw BizException.badRequest("error.auth.captcha");
     }
 
     SysUser user = permissionService.findActiveUser(body.getUsername());
@@ -88,7 +88,7 @@ public class AuthController {
       loginAttemptService.registerFailure(body.getUsername(), ip);
       loginLogService.record(body.getUsername(), false, "用户名或密码错误", request);
       cookieService.clear(response);
-      throw BizException.forbidden("Username or password is incorrect.");
+      throw BizException.forbidden("error.auth.login.failed");
     }
     loginAttemptService.onSuccess(body.getUsername(), ip);
 
@@ -127,14 +127,14 @@ public class AuthController {
     if (refreshToken == null || refreshToken.isBlank()) {
       // 与 mock 对齐：refresh 失败返回 403，触发前端重新登录
       cookieService.clear(response);
-      throw BizException.forbidden("Forbidden Exception");
+      throw BizException.forbidden("error.forbidden");
     }
 
     LoginUser payload = jwtTokenService.parseRefreshToken(refreshToken);
     LoginUser user = payload == null ? null : permissionService.loadLoginUser(payload.getUserId());
     if (user == null) {
       cookieService.clear(response);
-      throw BizException.forbidden("Forbidden Exception");
+      throw BizException.forbidden("error.forbidden");
     }
     // refresh 同样校验版本号：被改密/禁用/强退用户的 refreshToken 无法换发新 accessToken
     long currentVer;
@@ -143,11 +143,11 @@ public class AuthController {
     } catch (org.springframework.dao.DataAccessException e) {
       // fail-closed：版本读取失败视为凭证无效
       cookieService.clear(response);
-      throw BizException.forbidden("Forbidden Exception");
+      throw BizException.forbidden("error.forbidden");
     }
     if (payload.getTokenVersion() != currentVer) {
       cookieService.clear(response);
-      throw BizException.forbidden("Forbidden Exception");
+      throw BizException.forbidden("error.forbidden");
     }
 
     String newAccessToken =
@@ -199,13 +199,13 @@ public class AuthController {
     LoginUser current = LoginUserHolder.require();
     SysUser user = permissionService.findActiveUserById(current.getUserId());
     if (user == null) {
-      throw BizException.unauthorized("用户不存在或已停用");
+      throw BizException.unauthorized("error.auth.user.missing");
     }
     if (!passwordEncoder.matches(body.getOldPassword(), user.getPassword())) {
-      throw BizException.badRequest("旧密码不正确");
+      throw BizException.badRequest("error.auth.oldPassword");
     }
     if (body.getNewPassword() == null || body.getNewPassword().length() < 6) {
-      throw BizException.badRequest("新密码至少 6 位");
+      throw BizException.badRequest("error.auth.password.tooShort");
     }
     SysUser patch = new SysUser();
     patch.setId(user.getId());

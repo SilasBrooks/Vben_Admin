@@ -76,10 +76,10 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
   public void updateMenu(SysMenu menu) {
     SysMenu exist = getById(menu.getId());
     if (exist == null) {
-      throw BizException.badRequest("菜单不存在");
+      throw BizException.badRequest("error.menu.notFound");
     }
     if (Objects.equals(exist.getParentId(), menu.getId())) {
-      throw BizException.badRequest("父级菜单不能选择自身");
+      throw BizException.badRequest("error.menu.parent.self");
     }
     fillDefault(menu);
     updateById(menu);
@@ -91,7 +91,7 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
   public void remove(Long id) {
     long children = count(new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getParentId, id));
     if (children > 0) {
-      throw BizException.badRequest("存在子菜单，无法删除");
+      throw BizException.badRequest("error.menu.hasChildren");
     }
     roleMenuMapper.delete(
         new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getMenuId, id));

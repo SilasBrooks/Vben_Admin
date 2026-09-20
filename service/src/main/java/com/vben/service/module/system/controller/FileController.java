@@ -63,7 +63,7 @@ public class FileController {
   @PostMapping("/upload")
   public R<SysFileService.FileItem> upload(@RequestParam("file") MultipartFile file) throws IOException {
     if (file == null || file.isEmpty()) {
-      throw BizException.badRequest("请选择要上传的文件");
+      throw BizException.badRequest("error.file.select");
     }
     try (InputStream in = file.getInputStream()) {
       SysFile saved = fileService.upload(in, file.getOriginalFilename(), file.getSize(),
@@ -137,7 +137,7 @@ public class FileController {
   @PostMapping("/avatar")
   public R<SysFileService.FileItem> avatar(@RequestParam("file") MultipartFile file) throws IOException {
     if (file == null || file.isEmpty()) {
-      throw BizException.badRequest("请选择要上传的头像图片");
+      throw BizException.badRequest("error.avatar.select");
     }
     Long userId = LoginUserHolder.require().getUserId();
     SysFile saved;

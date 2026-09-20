@@ -1,6 +1,7 @@
 package com.vben.service.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vben.service.common.I18nMessage;
 import com.vben.service.common.R;
 import com.vben.service.module.system.service.SysPermissionService;
 import jakarta.servlet.FilterChain;
@@ -17,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * JWT 认证过滤器：校验 Authorization: Bearer xxx
@@ -72,7 +74,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       refreshCookieFallback = token != null && !token.isBlank();
     }
     if (token == null || token.isBlank()) {
-      writeUnauthorized(response);
+      writeUnauthorized(request, response);
       return;
     }
 
@@ -80,7 +82,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ? jwtTokenService.parseRefreshToken(token)
         : jwtTokenService.parseAccessToken(token);
     if (payload == null) {
-      writeUnauthorized(response);
+      writeUnauthorized(request, response);
       return;
     }
 
@@ -88,18 +90,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     // Redis 不可用时拒绝请求（fail-closed），不放行无版本校验的流量
     try {
       if (payload.getTokenVersion() != tokenVersionService.current(payload.getUserId())) {
-        writeUnauthorized(response);
+        writeUnauthorized(request, response);
         return;
       }
     } catch (DataAccessException e) {
-      writeUnauthorized(response);
+      writeUnauthorized(request, response);
       return;
     }
 
     // 以库中最新角色/权限为准（token 中的 roles 仅作冗余）
     LoginUser user = permissionService.loadLoginUser(payload.getUserId());
     if (user == null) {
-      writeUnauthorized(response);
+      writeUnauthorized(request, response);
       return;
     }
 
@@ -126,11 +128,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     return COOKIE_FALLBACK_PATHS.stream().anyMatch(p -> MATCHER.match(p, path));
   }
 
-  private void writeUnauthorized(HttpServletResponse response) throws IOException {
+  private void writeUnauthorized(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    // Filter 早于 DispatcherServlet 执行，LocaleContextHolder 未生效：按请求头手动解析语言
+    Locale locale = request.getLocale() != null ? request.getLocale() : Locale.SIMPLIFIED_CHINESE;
+    String msg = I18nMessage.get(locale, "error.unauthorized");
     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
     response.setCharacterEncoding("UTF-8");
-    response.getWriter().write(
-        objectMapper.writeValueAsString(R.fail("Unauthorized Exception", "Unauthorized Exception")));
+    response.getWriter().write(objectMapper.writeValueAsString(R.fail(msg, msg)));
   }
 }

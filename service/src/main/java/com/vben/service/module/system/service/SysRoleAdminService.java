@@ -79,19 +79,19 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   public void updateRole(SysRole role) {
     SysRole exist = getById(role.getId());
     if (exist == null) {
-      throw BizException.badRequest("角色不存在");
+      throw BizException.badRequest("error.role.notFound");
     }
     // super 角色的 roleKey 不可改（其他系统硬编码依赖 "super" 字符串）
     if (SUPER_ROLE_KEY.equals(exist.getRoleKey())
         && role.getRoleKey() != null
         && !SUPER_ROLE_KEY.equals(role.getRoleKey())) {
-      throw BizException.badRequest("super 角色标识不可修改");
+      throw BizException.badRequest("error.role.superKeyFixed");
     }
     // super 角色不可停用
     if (SUPER_ROLE_KEY.equals(exist.getRoleKey())
         && role.getStatus() != null
         && role.getStatus() == 1) {
-      throw BizException.badRequest("super 角色不可停用");
+      throw BizException.badRequest("error.role.superCannotDisable");
     }
     updateById(role);
   }
@@ -100,15 +100,15 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   public void remove(Long id) {
     SysRole exist = getById(id);
     if (exist == null) {
-      throw BizException.badRequest("角色不存在");
+      throw BizException.badRequest("error.role.notFound");
     }
     if (SUPER_ROLE_KEY.equals(exist.getRoleKey())) {
-      throw BizException.badRequest("super 角色不可删除");
+      throw BizException.badRequest("error.role.superCannotDelete");
     }
     long bound = userRoleMapper.selectCount(
         new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getRoleId, id));
     if (bound > 0) {
-      throw BizException.badRequest("角色已分配给用户，无法删除");
+      throw BizException.badRequest("error.role.inUse");
     }
     roleMenuMapper.delete(
         new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, id));
@@ -126,7 +126,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   public Map<String, Object> dataScopeDetail(Long roleId) {
     SysRole role = getById(roleId);
     if (role == null) {
-      throw BizException.badRequest("角色不存在");
+      throw BizException.badRequest("error.role.notFound");
     }
     List<Long> deptIds = roleDeptMapper.selectList(
             new LambdaQueryWrapper<SysRoleDept>().eq(SysRoleDept::getRoleId, roleId))
@@ -142,16 +142,16 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   public void updateDataScope(Long roleId, String dataScope, List<Long> deptIds) {
     SysRole role = getById(roleId);
     if (role == null) {
-      throw BizException.badRequest("角色不存在");
+      throw BizException.badRequest("error.role.notFound");
     }
     if (dataScope == null || !"12345".contains(dataScope) || dataScope.length() != 1) {
-      throw BizException.badRequest("数据范围取值非法");
+      throw BizException.badRequest("error.role.dataScope.invalid");
     }
     if ("super".equals(role.getRoleKey()) && !"1".equals(dataScope)) {
-      throw BizException.badRequest("super 角色数据范围恒为全部数据");
+      throw BizException.badRequest("error.role.dataScope.superFixed");
     }
     if ("2".equals(dataScope) && (deptIds == null || deptIds.isEmpty())) {
-      throw BizException.badRequest("自定义部门范围至少选择一个部门");
+      throw BizException.badRequest("error.role.dataScope.deptRequired");
     }
     SysRole patch = new SysRole();
     patch.setId(roleId);
@@ -174,7 +174,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   public void assignMenus(Long roleId, List<Long> menuIds) {
     SysRole role = getById(roleId);
     if (role == null) {
-      throw BizException.badRequest("角色不存在");
+      throw BizException.badRequest("error.role.notFound");
     }
     roleMenuMapper.delete(
         new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, roleId));

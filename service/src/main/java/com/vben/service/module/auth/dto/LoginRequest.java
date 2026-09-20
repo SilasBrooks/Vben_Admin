@@ -7,15 +7,15 @@ import lombok.Data;
 @Data
 public class LoginRequest {
 
-  @NotBlank(message = "Username and password are required")
+  @NotBlank(message = "{error.login.credentials.blank}")
   private String username;
 
-  @NotBlank(message = "Username and password are required")
+  @NotBlank(message = "{error.login.credentials.blank}")
   private String password;
 
-  @NotBlank(message = "验证码不能为空")
+  @NotBlank(message = "{error.login.captcha.blank}")
   private String captchaId;
 
-  @NotBlank(message = "验证码不能为空")
+  @NotBlank(message = "{error.login.captcha.blank}")
   private String captchaCode;
 }

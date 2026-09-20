@@ -92,7 +92,7 @@ public class MonitorOnlineController {
   public R<Void> kick(@PathVariable Long userId) {
     LoginUser current = LoginUserHolder.require();
     if (userId.equals(current.getUserId())) {
-      throw BizException.badRequest("不能对自己执行强制下线");
+      throw BizException.badRequest("error.online.selfKick");
     }
     tokenVersionService.bump(userId);
     // 强退成功后通知当事人（落库 + WebSocket 推送，推送失败不影响结果）

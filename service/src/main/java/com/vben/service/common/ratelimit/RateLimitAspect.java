@@ -50,7 +50,7 @@ public class RateLimitAspect {
 
     if (count != null && count > rateLimit.limit()) {
       log.warn("限流触发: key={}, limit={}/{}s", key, rateLimit.limit(), rateLimit.windowSeconds());
-      throw BizException.tooManyRequests("请求过于频繁，请稍后再试");
+      throw BizException.tooManyRequests("error.ratelimit.exceeded");
     }
     return pjp.proceed();
   }
