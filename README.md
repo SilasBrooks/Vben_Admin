@@ -40,7 +40,7 @@
 | 文件存储 | 可插拔存储抽象（`StorageService`）：本地磁盘 / MinIO 对象存储（`vben.file.storage=minio` 切换，启动自动建桶，对象存储解决多实例文件不共享与单机丢失）、扩展名白名单 + 10MB 上限 + UUID 随机存储名、文件管理页（列表/上传/预览/删除）、头像上传接入 |
 | 仪表盘 | 工作台/分析页真实数据版（`GET /dashboard/summary` 登录即可全员同版）：统计卡 + 今日概况 + 近 14 天登录趋势 + 部门/模块分布 + 最近登录/操作，替代模板演示数据 |
 | 个人中心 | 头像上传（登录即可，同步 header）、昵称/个人简介编辑（`PATCH /user/profile` 登录即可，仅限本人）、修改密码（成功后强制重新登录，旧 token 即时失效） |
-| 站内通知 | WebSocket 实时推送 + 落库持久（`sys_notice`，离线重登可见）：被强退/密码重置/账号停用/角色授权变更自动通知当事人；头部铃铛未读数 + 下拉列表 + 单条/全部已读（`/api/notice/*` 登录即可，仅操作本人消息；`/api/ws/notice?token=` 握手鉴权，nginx 反代已带升级头） |
+| 站内通知 | WebSocket 实时推送 + 落库持久（`sys_notice`，离线重登可见）：被强退/密码重置/账号停用/角色授权变更自动通知当事人；顶栏铃铛 hover 浮层分类型预览（公告/通知标签），点击进入消息中心统一列表（类型筛选/单条与全部已读/分页，`/notice-center`，操作后铃铛未读数实时同步）（`/api/notice/*` 登录即可、支持 msgType 过滤，仅操作本人消息；`/api/ws/notice?token=` 握手鉴权，nginx 反代已带升级头） |
 | 公告广播 | 管理员发布页（系统管理 → 公告发布，super/admin 可见）：按全员/部门（部门树多选）/指定用户（搜索多选）三粒度发布，复用站内通知通道落库 + 铃铛实时推送（`msg_type=announcement`，`POST /notice/announce` 挂 `Notice:Announce:Publish` 权限码 + 幂等防重，仅发送启用账号） |
 | 消息聊天（IM 单聊） | 用户间一对一私聊（`sys_message` 落库可回溯，离线重登可见）：联系人选择、会话列表（未读数）、历史消息（游标分页）、发送与已读回执（`/api/im/*` 登录即可，仅操作本人会话，发送按用户限流 60 次/分钟）；`/api/ws/im?token=` 实时推送，对方在线即时送达并回已读回执；独立「消息聊天」页全员可见 |
 | 国际化 | 前端中英双语（`zh-CN` / `en-US`）：认证、系统管理、监控、文件、仪表盘、个人中心、AI 助手全量文案走 vue-i18n 语言包（`apps/web-ele/src/locales/langs/`），头部一键切换、刷新持久；侧边栏菜单标题（数据库存 i18n key）随语言同步切换；后端错误消息同步双语——前端每请求携带 `Accept-Language`，后端 BizException/校验注解/幂等限流/401 均按请求语言返回（`messages.properties` 中文兜底 + `messages_en_US.properties`，约 120 条消息 key） |
