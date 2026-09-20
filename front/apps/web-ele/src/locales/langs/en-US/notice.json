@@ -3,5 +3,20 @@
   "bellAria": "Notifications",
   "empty": "No messages",
   "readAll": "Mark all as read",
-  "readAllSuccess": "All messages marked as read"
+  "readAllSuccess": "All messages marked as read",
+  "centerTitle": "Message Center",
+  "viewAll": "View all",
+  "typeAnnouncement": "Announcement",
+  "typeNotice": "Notice",
+  "filterAll": "All",
+  "colType": "Type",
+  "colTitle": "Title",
+  "colContent": "Content",
+  "colTime": "Time",
+  "colStatus": "Status",
+  "colAction": "Actions",
+  "unread": "Unread",
+  "read": "Read",
+  "markRead": "Mark as read",
+  "readSuccess": "Marked as read"
 }

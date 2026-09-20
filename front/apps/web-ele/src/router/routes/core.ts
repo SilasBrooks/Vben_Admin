@@ -75,6 +75,29 @@ const coreRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    component: BasicLayout,
+    meta: {
+      hideInBreadcrumb: true,
+      hideInMenu: true,
+      hideInTab: true,
+      title: $t('notice.centerTitle'),
+    },
+    name: 'NoticeCenterParent',
+    path: '/notice-center',
+    children: [
+      {
+        component: () => import('#/views/notice/center/index.vue'),
+        meta: {
+          hideInBreadcrumb: true,
+          hideInMenu: true,
+          title: $t('notice.centerTitle'),
+        },
+        name: 'NoticeCenter',
+        path: '',
+      },
+    ],
+  },
+  {
     component: AuthPageLayout,
     meta: {
       hideInTab: true,

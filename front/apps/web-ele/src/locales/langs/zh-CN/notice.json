@@ -3,5 +3,20 @@
   "bellAria": "站内通知",
   "empty": "暂无消息",
   "readAll": "全部已读",
-  "readAllSuccess": "已全部标记为已读"
+  "readAllSuccess": "已全部标记为已读",
+  "centerTitle": "消息中心",
+  "viewAll": "查看全部",
+  "typeAnnouncement": "公告",
+  "typeNotice": "通知",
+  "filterAll": "全部",
+  "colType": "类型",
+  "colTitle": "标题",
+  "colContent": "内容",
+  "colTime": "时间",
+  "colStatus": "状态",
+  "colAction": "操作",
+  "unread": "未读",
+  "read": "已读",
+  "markRead": "标记已读",
+  "readSuccess": "已标记为已读"
 }

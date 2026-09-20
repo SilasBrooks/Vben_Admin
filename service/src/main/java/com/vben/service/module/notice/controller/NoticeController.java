@@ -35,13 +35,14 @@ public class NoticeController {
 
   private final NoticeService noticeService;
 
-  /** 通知分页列表（当前用户，create_time 倒序）：{total, items} */
-  @Operation(summary = "通知分页列表", description = "当前登录用户的通知，按创建时间倒序")
+  /** 通知分页列表（当前用户，create_time 倒序）：{total, items}，可按 msgType 过滤 */
+  @Operation(summary = "通知分页列表", description = "当前登录用户的通知，按创建时间倒序，可按消息类型过滤")
   @GetMapping("/list")
   public R<Map<String, Object>> list(
       @RequestParam(defaultValue = "1") long pageNum,
-      @RequestParam(defaultValue = "10") long pageSize) {
-    return R.ok(noticeService.page(pageNum, pageSize, LoginUserHolder.require().getUserId()));
+      @RequestParam(defaultValue = "10") long pageSize,
+      @RequestParam(required = false) String msgType) {
+    return R.ok(noticeService.page(pageNum, pageSize, LoginUserHolder.require().getUserId(), msgType));
   }
 
   /** 未读通知条数：{count} */

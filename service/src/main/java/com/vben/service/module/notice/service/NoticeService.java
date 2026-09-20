@@ -141,13 +141,17 @@ public class NoticeService {
   /**
    * 通知分页列表：按接收人过滤，create_time 倒序。
    *
+   * @param msgType 消息类型过滤，空/null 表示不过滤（security=通知 announcement=公告）
    * @return {total, items}
    */
-  public Map<String, Object> page(long pageNum, long pageSize, Long userId) {
-    Page<SysNotice> p = noticeMapper.selectPage(new Page<>(pageNum, pageSize),
-        new LambdaQueryWrapper<SysNotice>()
-            .eq(SysNotice::getUserId, userId)
-            .orderByDesc(SysNotice::getCreateTime));
+  public Map<String, Object> page(long pageNum, long pageSize, Long userId, String msgType) {
+    LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<SysNotice>()
+        .eq(SysNotice::getUserId, userId);
+    if (msgType != null && !msgType.isBlank()) {
+      wrapper.eq(SysNotice::getMsgType, msgType);
+    }
+    wrapper.orderByDesc(SysNotice::getCreateTime);
+    Page<SysNotice> p = noticeMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("total", p.getTotal());
     data.put("items", p.getRecords());

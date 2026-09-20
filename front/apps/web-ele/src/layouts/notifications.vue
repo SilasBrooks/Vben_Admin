@@ -2,12 +2,13 @@
 import type { NoticeItem } from '#/api/notice';
 
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useAppConfig } from '@vben/hooks';
 import { createIconifyIcon } from '@vben/icons';
 import { useAccessStore } from '@vben/stores';
 
-import { ElBadge, ElButton, ElMessage, ElPopover, ElScrollbar } from 'element-plus';
+import { ElBadge, ElButton, ElMessage, ElPopover, ElScrollbar, ElTag } from 'element-plus';
 
 import {
   getNoticeListApi,
@@ -19,6 +20,7 @@ import { $t } from '#/locales';
 
 const BellIcon = createIconifyIcon('lucide:bell');
 
+const router = useRouter();
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 const accessStore = useAccessStore();
 
@@ -33,6 +35,10 @@ let socket: null | WebSocket = null;
 
 function formatTime(value: string): string {
   return value.split('.')[0]?.replace('T', ' ') ?? value;
+}
+
+function isAnnouncement(item: NoticeItem): boolean {
+  return item.msgType === 'announcement';
 }
 
 async function fetchUnreadCount() {
@@ -71,6 +77,12 @@ async function handleReadAll() {
   } catch {
     // 失败细节由全局响应拦截器提示，这里静默
   }
+}
+
+/** 进入通知中心全量列表 */
+function goCenter() {
+  popoverVisible.value = false;
+  router.push({ name: 'NoticeCenter' });
 }
 
 /**
@@ -121,12 +133,20 @@ function scheduleReconnect() {
   }, RECONNECT_DELAY);
 }
 
+/** 通知中心页操作后广播刷新，保持铃铛未读数同步 */
+function onNoticeRefresh() {
+  void fetchUnreadCount();
+  if (popoverVisible.value) void fetchList();
+}
+
 onMounted(() => {
   void fetchUnreadCount();
   connectSocket();
+  window.addEventListener('notice:refresh', onNoticeRefresh);
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('notice:refresh', onNoticeRefresh);
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
@@ -144,13 +164,19 @@ onBeforeUnmount(() => {
 <template>
   <ElPopover
     v-model:visible="popoverVisible"
-    :width="320"
+    :show-after="100"
+    :width="340"
     placement="bottom-end"
-    trigger="click"
+    trigger="hover"
     @show="fetchList"
   >
     <template #reference>
-      <button :aria-label="$t('notice.bellAria')" class="notice-bell" type="button">
+      <button
+        :aria-label="$t('notice.bellAria')"
+        class="notice-bell"
+        type="button"
+        @click="goCenter"
+      >
         <ElBadge :hidden="unreadCount === 0" :max="99" :value="unreadCount">
           <BellIcon class="notice-bell__icon" />
         </ElBadge>
@@ -158,7 +184,12 @@ onBeforeUnmount(() => {
     </template>
 
     <div class="notice-panel">
-      <div class="notice-panel__header">{{ $t('notice.title') }}</div>
+      <div class="notice-panel__header">
+        <span>{{ $t('notice.title') }}</span>
+        <ElButton link size="small" type="primary" @click="goCenter">
+          {{ $t('notice.viewAll') }}
+        </ElButton>
+      </div>
       <ElScrollbar max-height="320px">
         <div v-if="items.length === 0" class="notice-panel__empty">
           {{ $t('notice.empty') }}
@@ -171,6 +202,13 @@ onBeforeUnmount(() => {
           @click="handleReadItem(item)"
         >
           <div class="notice-item__row">
+            <ElTag
+              :type="isAnnouncement(item) ? 'warning' : 'primary'"
+              effect="light"
+              size="small"
+            >
+              {{ isAnnouncement(item) ? $t('notice.typeAnnouncement') : $t('notice.typeNotice') }}
+            </ElTag>
             <span class="notice-item__title">{{ item.title }}</span>
             <span v-if="item.readFlag === 0" class="notice-item__dot" />
           </div>
@@ -218,6 +256,9 @@ onBeforeUnmount(() => {
 }
 
 .notice-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-bottom: 8px;
   margin-bottom: 4px;
   border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);

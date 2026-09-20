@@ -18,10 +18,14 @@ export interface NoticeListResult {
   total: number;
 }
 
-/** 获取通知列表（时间倒序） */
-export async function getNoticeListApi(pageNum: number, pageSize: number) {
+/** 获取通知列表（时间倒序，可按消息类型过滤：announcement=公告 security=通知） */
+export async function getNoticeListApi(
+  pageNum: number,
+  pageSize: number,
+  msgType?: string,
+) {
   return requestClient.get<NoticeListResult>('/notice/list', {
-    params: { pageNum, pageSize },
+    params: { msgType, pageNum, pageSize },
   });
 }
 

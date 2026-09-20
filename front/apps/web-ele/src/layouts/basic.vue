@@ -87,11 +87,13 @@ watch(
         @clear-preferences-and-logout="handleLogout"
       />
     </template>
+    <template #notification>
+      <Notifications />
+    </template>
     <template #extra>
       <AuthenticationLoginExpiredModal v-model:open="accessStore.loginExpired" :avatar>
         <LoginForm />
       </AuthenticationLoginExpiredModal>
-      <Notifications />
       <AiAssistant />
     </template>
     <template #lock-screen>
