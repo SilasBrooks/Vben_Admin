@@ -37,7 +37,7 @@ public final class AiTools {
           keywordParams()),
 
       new AiToolDef(QUERY_MENUS, "查询菜单", AiToolKind.QUERY, "System:Menu:List",
-          "查询系统全部菜单（目录/菜单/按钮）清单。结果包含 id、菜单名、类型（M目录/C菜单/F按钮）、上级名称、权限码、状态。"
+          "查询系统全部菜单（目录/菜单/按钮）清单。结果包含 id、菜单标识 menuName、中文标题 title、类型（M目录/C菜单/F按钮）、上级名称、权限码、状态。"
               + "用户问\"有哪些菜单\"或准备给角色分配菜单授权前，先用本工具确认菜单的准确名称。",
           objectSchema(List.of(), List.of())),
 
@@ -81,7 +81,7 @@ public final class AiTools {
               + "传目录名=该目录及全部后代（含按钮）；传菜单名=该菜单+全部上级目录+其下按钮；传按钮名=该按钮+上级目录链。",
           objectSchema(List.of(
               prop("roleName", "目标角色中文名或角色标识，如 库存管理员", Map.of("type", "string")),
-              prop("menuNames", "要分配的菜单/目录/按钮中文名列表，如 [\"库存管理\"]",
+              prop("menuNames", "要分配的菜单/目录/按钮中文名列表（也可用 menuName 标识，如 SystemUser），如 [\"库存管理\"]",
                   Map.of("type", "array", "items", Map.of("type", "string")))),
               List.of("roleName", "menuNames"))));
 

@@ -45,6 +45,30 @@ public class AiToolExecutor {
   private static final Map<String, String> DATA_SCOPE_LABELS = Map.of(
       "1", "全部数据", "2", "自定义部门", "3", "本部门", "4", "本部门及以下", "5", "仅本人");
 
+  /**
+   * i18n key → 中文名。菜单标题（M/C 型）在 sys_menu.title 里存的是 vue-i18n key
+   * （与前端 langs/{lang}/page.json 同构，见 AGENTS.md），而 AI 对话是纯中文场景：
+   * 工具结果展示与菜单名匹配都需要把 key 还原为中文。新增带 key 的菜单后必须同步本表；
+   * 未登记的 key 原样展示，不报错。
+   */
+  private static final Map<String, String> MENU_TITLE_ZH = Map.ofEntries(
+      Map.entry("page.dashboard.title", "概览"),
+      Map.entry("page.dashboard.analytics", "分析页"),
+      Map.entry("page.dashboard.workspace", "工作台"),
+      Map.entry("page.system.title", "系统管理"),
+      Map.entry("page.system.user", "用户管理"),
+      Map.entry("page.system.role", "角色管理"),
+      Map.entry("page.system.menu", "菜单管理"),
+      Map.entry("page.system.dept", "部门管理"),
+      Map.entry("page.system.dict", "数据字典"),
+      Map.entry("page.system.file", "文件管理"),
+      Map.entry("page.wsm.title", "库存管理"),
+      Map.entry("page.wsm.store", "库存"),
+      Map.entry("page.monitor.title", "系统监控"),
+      Map.entry("page.monitor.operLog", "操作日志"),
+      Map.entry("page.monitor.loginLog", "登录日志"),
+      Map.entry("page.monitor.online", "在线用户"));
+
   private final SysUserAdminService userService;
   private final SysRoleAdminService roleService;
   private final SysDeptAdminService deptService;
@@ -167,14 +191,14 @@ public class AiToolExecutor {
         .orderByAsc(SysMenu::getOrderNum));
     Map<Long, String> nameById = new LinkedHashMap<>();
     for (SysMenu m : menus) {
-      nameById.put(m.getId(), m.getTitle());
+      nameById.put(m.getId(), displayTitle(m));
     }
     List<Map<String, Object>> items = new ArrayList<>();
     for (SysMenu m : menus) {
       Map<String, Object> n = new LinkedHashMap<>();
       n.put("id", m.getId());
       n.put("menuName", m.getMenuName());
-      n.put("title", m.getTitle());
+      n.put("title", displayTitle(m));
       n.put("menuType", m.getMenuType());
       n.put("parentName", m.getParentId() == null || m.getParentId() == 0
           ? "（顶级）" : nameById.getOrDefault(m.getParentId(), "未知"));
@@ -341,13 +365,21 @@ public class AiToolExecutor {
       byId.put(m.getId(), m);
       childrenByParent.computeIfAbsent(m.getParentId() == null ? 0L : m.getParentId(),
           k -> new ArrayList<>()).add(m);
-      // title 与 menuName 都可作为匹配名；二者相同只登记一次，避免同一节点重复计入歧义
+      // 匹配名三种来源：展示中文名（i18n key 还原）、原始 title（key 或明文）、menuName；
+      // 相同名字只登记一次，避免同一节点重复计入歧义
+      Set<String> names = new LinkedHashSet<>();
       if (m.getTitle() != null && !m.getTitle().isBlank()) {
-        byName.computeIfAbsent(m.getTitle().trim(), k -> new ArrayList<>()).add(m);
+        names.add(m.getTitle().trim());
+        String zh = MENU_TITLE_ZH.get(m.getTitle().trim());
+        if (zh != null) {
+          names.add(zh);
+        }
       }
-      if (m.getMenuName() != null && !m.getMenuName().isBlank()
-          && !m.getMenuName().equals(m.getTitle())) {
-        byName.computeIfAbsent(m.getMenuName().trim(), k -> new ArrayList<>()).add(m);
+      if (m.getMenuName() != null && !m.getMenuName().isBlank()) {
+        names.add(m.getMenuName().trim());
+      }
+      for (String name : names) {
+        byName.computeIfAbsent(name, k -> new ArrayList<>()).add(m);
       }
     }
 
@@ -407,10 +439,16 @@ public class AiToolExecutor {
     }
   }
 
+  /** 菜单标题展示名：M/C 型 title 为 i18n key，还原为中文；未登记的 key 或明文标题原样返回 */
+  private static String displayTitle(SysMenu m) {
+    String t = m.getTitle();
+    return t == null ? null : MENU_TITLE_ZH.getOrDefault(t.trim(), t);
+  }
+
   /** 如 "系统管理 / 用户管理"，用于同名歧义报错提示 */
   private String parentPath(SysMenu node, Map<Long, SysMenu> byId) {
     List<String> parts = new ArrayList<>();
-    parts.add(node.getTitle());
+    parts.add(displayTitle(node));
     Long parentId = node.getParentId();
     int guard = 0;
     while (parentId != null && parentId != 0 && guard++ < 20) {
@@ -418,7 +456,7 @@ public class AiToolExecutor {
       if (parent == null) {
         break;
       }
-      parts.add(0, parent.getTitle());
+      parts.add(0, displayTitle(parent));
       parentId = parent.getParentId();
     }
     return String.join(" / ", parts);

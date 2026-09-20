@@ -37,7 +37,7 @@
 - 按钮权限用 `v-access:code` 指令 + 权限码（如 `System:User:Add`）
 - `<Transition>` / `<KeepAlive>` 内组件必须单根节点；多根组件设 `inheritAttrs: false` 并在目标根元素 `v-bind="$attrs"`
 - vxe-table：搜索表单默认 `showCollapseButton: false`；树表用 treeConfig + childrenField（`transform` 模式不支持嵌套 children）；调 grid API（如 query()）前包 `nextTick()`
-- 菜单标题（`sys_menu.title`，M/C 型）存 vue-i18n key（`page.*` 命名空间）；语言包在 `front/apps/web-ele/src/locales/langs/{zh-CN,en-US}/`，**文件名即顶级命名空间**，中英文件必须同构；F 型权限码 title 保持明文
+- 菜单标题（`sys_menu.title`，M/C 型）存 vue-i18n key（`page.*` 命名空间）；语言包在 `front/apps/web-ele/src/locales/langs/{zh-CN,en-US}/`，**文件名即顶级命名空间**，中英文件必须同构；F 型权限码 title 保持明文；新增带 key 的菜单需同步后端 `AiToolExecutor.MENU_TITLE_ZH`（AI 对话的中文还原与菜单名匹配）
 - 主题/语言等用户偏好刷新后必须持久化；偏好合并顺序 overrides > cachedPreferences > defaultPreferences
 - 头像/文件上传用 ElUpload 托管（`http-request` 自定义上传），不要手写 hidden input
 - 表单 schema 里没有 `Textarea` 组件：用 `'Input'` + `type: 'textarea'`
