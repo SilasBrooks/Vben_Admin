@@ -121,8 +121,8 @@ CREATE TABLE IF NOT EXISTS sys_login_log (
 
 CREATE TABLE IF NOT EXISTS sys_dict_type (
   id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-  dict_name   VARCHAR(64)  NOT NULL COMMENT '字典名称,如库存类型',
-  dict_type   VARCHAR(64)  NOT NULL COMMENT '字典类型键,全局唯一,如 wsm_stock_type',
+  dict_name   VARCHAR(64)  NOT NULL COMMENT '字典名称,如状态类型',
+  dict_type   VARCHAR(64)  NOT NULL COMMENT '字典类型键,全局唯一,如 biz_status',
   status      TINYINT      NOT NULL DEFAULT 0 COMMENT '0正常 1停用',
   remark      VARCHAR(255) NULL,
   create_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

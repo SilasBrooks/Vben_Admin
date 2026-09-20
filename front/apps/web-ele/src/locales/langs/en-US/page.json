@@ -28,10 +28,6 @@
     "loginLog": "Login Logs",
     "online": "Online Users"
   },
-  "wsm": {
-    "title": "Inventory",
-    "store": "Stock"
-  },
   "im": {
     "chat": "Messages"
   }

@@ -25,7 +25,7 @@ const gridOptions: VxeTableGridOptions<MenuNode> = {
     expandAll: true,
   },
   columns: [
-    { field: 'title', title: $t('system.menu.displayName'), minWidth: 200, treeNode: true },
+    { field: 'title', title: $t('system.menu.displayName'), minWidth: 200, treeNode: true, slots: { default: 'title' } },
     { field: 'menuName', title: $t('system.menu.menuName'), minWidth: 140 },
     {
       field: 'menuType',
@@ -110,6 +110,17 @@ function onFormSaved() {
         <VbenButton v-access:code="'System:Menu:Add'" variant="default" @click="openCreate(0)">
           {{ $t('system.menu.addRoot') }}
         </VbenButton>
+      </template>
+      <template #title="{ row }">
+        <div class="leading-tight">
+          <div>{{ (row as MenuNode).title.startsWith('page.') ? $t((row as MenuNode).title) : (row as MenuNode).title }}</div>
+          <div
+            v-if="(row as MenuNode).title.startsWith('page.')"
+            class="text-muted-foreground text-xs"
+          >
+            {{ (row as MenuNode).title }}
+          </div>
+        </div>
       </template>
       <template #action="{ row }">
         <VbenButton

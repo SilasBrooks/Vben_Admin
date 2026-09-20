@@ -33,7 +33,6 @@
     "clean": "node ./scripts/clean.mjs",
     "commit": "czg",
     "dev": "turbo-run dev",
-    "dev:antdv-next": "pnpm -F @vben/web-antdv-next run dev",
     "dev:ele": "pnpm -F @vben/web-ele run dev",
     "format": "vsh lint --format",
     "lint": "vsh lint",

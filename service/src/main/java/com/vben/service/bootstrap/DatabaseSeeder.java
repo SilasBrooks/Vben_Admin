@@ -1,16 +1,12 @@
 package com.vben.service.bootstrap;
 
 import com.vben.service.module.system.entity.SysDept;
-import com.vben.service.module.system.entity.SysDictData;
-import com.vben.service.module.system.entity.SysDictType;
 import com.vben.service.module.system.entity.SysMenu;
 import com.vben.service.module.system.entity.SysRole;
 import com.vben.service.module.system.entity.SysRoleMenu;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.entity.SysUserRole;
 import com.vben.service.module.system.mapper.SysDeptMapper;
-import com.vben.service.module.system.mapper.SysDictDataMapper;
-import com.vben.service.module.system.mapper.SysDictTypeMapper;
 import com.vben.service.module.system.mapper.SysMenuMapper;
 import com.vben.service.module.system.mapper.SysRoleMapper;
 import com.vben.service.module.system.mapper.SysRoleMenuMapper;
@@ -49,8 +45,6 @@ public class DatabaseSeeder implements ApplicationRunner {
   private final SysDeptMapper deptMapper;
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleMenuMapper roleMenuMapper;
-  private final SysDictTypeMapper dictTypeMapper;
-  private final SysDictDataMapper dictDataMapper;
 
   @Override
   @Transactional
@@ -137,13 +131,6 @@ public class DatabaseSeeder implements ApplicationRunner {
         systemCatalogId, false, false).authority("super,admin"));
     Long announcePublish = insertMenu(perm("Notice:Announce:Publish", systemAnnounceId));
 
-    // 库存管理模块（WSM）：super/admin 可见，user 不可见
-    Long wsmCatalogId = insertMenu(catalog("Wsm", "page.wsm.title",
-        "ic:baseline-inventory-2", 8000, "/wsm", "/wsm/store", 0L, false, false));
-    Long wsmStoreId = insertMenu(leaf("WsmStore", "page.wsm.store",
-        "ic:baseline-inventory", 1, "/wsm/store", "/wsm/store/index", wsmCatalogId,
-        false, false).authority("super,admin"));
-
     // 系统监控模块（Monitor）：super/admin 可见，user 不可见
     Long monitorCatalogId = insertMenu(catalog("Monitor", "page.monitor.title",
         "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
@@ -177,7 +164,6 @@ public class DatabaseSeeder implements ApplicationRunner {
         dictList, dictAdd, dictEdit, dictDelete,
         systemFileId, fileList, fileUpload, fileDelete,
         systemAnnounceId, announcePublish,
-        wsmCatalogId, wsmStoreId,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
 
@@ -206,8 +192,8 @@ public class DatabaseSeeder implements ApplicationRunner {
     // ------------------------------------------------------------------
     // 5. 角色-菜单授权
     //   super：全部菜单与权限
-    //   admin：全部（含 system 与 wsm，因 authority 含 admin）
-    //   user / stock：仅公开资源（Dashboard + 不含 systemSet / wsm）
+    //   admin：全部（含 system，因 authority 含 admin）
+    //   user / stock：仅公开资源（Dashboard，不含 systemSet）
     // ------------------------------------------------------------------
     for (SysMenu m : menuMapper.selectList(null)) {
       Long id = m.getId();
@@ -228,12 +214,8 @@ public class DatabaseSeeder implements ApplicationRunner {
     insertRoleMenu(stockRoleId, systemUserListId);
 
     // ------------------------------------------------------------------
-    // 6. 数据字典种子：库存状态（库存页 useDict('wsm_stock_status') 示例）
+    // 6. 数据字典种子：仅建表不预置业务字典，字典数据请登录后在数据字典页维护
     // ------------------------------------------------------------------
-    insertDictType("wsm_stock_status", "库存状态", "库存条目状态：正常/缺货/预警");
-    insertDictData("wsm_stock_status", "正常", "0", 1);
-    insertDictData("wsm_stock_status", "缺货", "1", 2);
-    insertDictData("wsm_stock_status", "预警", "2", 3);
 
     log.info("种子数据初始化完成。账号：vben/123456(super)、admin/123456(admin)、"
         + "jack/123456(user)、stockAdmin/123456(stock,仓储部,数据范围=本部门及以下)");
@@ -356,24 +338,5 @@ public class DatabaseSeeder implements ApplicationRunner {
     rm.setRoleId(roleId);
     rm.setMenuId(menuId);
     roleMenuMapper.insert(rm);
-  }
-
-  private void insertDictType(String dictType, String dictName, String remark) {
-    SysDictType t = new SysDictType();
-    t.setDictType(dictType);
-    t.setDictName(dictName);
-    t.setStatus(0);
-    t.setRemark(remark);
-    dictTypeMapper.insert(t);
-  }
-
-  private void insertDictData(String dictType, String label, String value, int sortNum) {
-    SysDictData d = new SysDictData();
-    d.setDictType(dictType);
-    d.setDictLabel(label);
-    d.setDictValue(value);
-    d.setSortNum(sortNum);
-    d.setStatus(0);
-    dictDataMapper.insert(d);
   }
 }

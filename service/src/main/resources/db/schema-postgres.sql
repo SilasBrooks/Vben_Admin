@@ -172,8 +172,8 @@ CREATE TABLE IF NOT EXISTS sys_dict_type (
   CONSTRAINT uk_dict_type UNIQUE (dict_type)
 );
 COMMENT ON TABLE sys_dict_type IS '字典类型表';
-COMMENT ON COLUMN sys_dict_type.dict_name IS '字典名称,如库存类型';
-COMMENT ON COLUMN sys_dict_type.dict_type IS '字典类型键,全局唯一,如 wsm_stock_type';
+COMMENT ON COLUMN sys_dict_type.dict_name IS '字典名称,如状态类型';
+COMMENT ON COLUMN sys_dict_type.dict_type IS '字典类型键,全局唯一,如 biz_status';
 COMMENT ON COLUMN sys_dict_type.status IS '0正常 1停用';
 
 CREATE TABLE IF NOT EXISTS sys_dict_data (
