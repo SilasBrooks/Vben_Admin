@@ -1,0 +1,120 @@
+package com.vben.service.module.im.websocket;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+/**
+ * IM 聊天 WebSocket 处理器：维护用户 → 活跃会话的注册表并负责聊天帧下发。
+ *
+ * <p>鉴权在握手阶段完成（复用 {@code NoticeHandshakeInterceptor} 解析 token 后
+ * 把 userId 放入 attributes），本处理器只负责连接生命周期管理与消息下发；
+ * 发送消息走 REST 接口（落库为准），WS 仅作为下行实时通道，上行只回 pong 保活。
+ * 同一用户可同时存在多个会话（多标签页），推送逐一会话下发、互不影响。
+ */
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class ImWebSocketHandler extends TextWebSocketHandler {
+
+  /** userId -> 该用户的活跃会话集合（多标签页/多端登录场景） */
+  private final Map<Long, Set<WebSocketSession>> registry = new ConcurrentHashMap<>();
+
+  private final ObjectMapper objectMapper;
+
+  @Override
+  public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    Long userId = (Long) session.getAttributes().get("userId");
+    if (userId == null) {
+      // 握手拦截器保证必有 userId，兜底防御：取不到直接拒绝连接
+      session.close(CloseStatus.NOT_ACCEPTABLE);
+      return;
+    }
+    registry.computeIfAbsent(userId, k -> new CopyOnWriteArraySet<>()).add(session);
+    log.debug("IM WebSocket 连接建立 userId={} sessionId={}", userId, session.getId());
+  }
+
+  @Override
+  protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+    // 发送走 REST 接口，这里忽略客户端上行消息，仅回 pong 供前端保活探测
+    try {
+      session.sendMessage(new TextMessage("{\"type\":\"pong\"}"));
+    } catch (Exception e) {
+      log.warn("IM WebSocket pong 回复失败 sessionId={}", session.getId(), e);
+    }
+  }
+
+  @Override
+  public void handleTransportError(WebSocketSession session, Throwable exception) {
+    log.warn("IM WebSocket 传输异常 sessionId={}", session.getId(), exception);
+    removeSession(session);
+  }
+
+  @Override
+  public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) {
+    removeSession(session);
+    log.debug("IM WebSocket 连接关闭 userId={} sessionId={} status={}",
+        session.getAttributes().get("userId"), session.getId(), closeStatus);
+  }
+
+  /**
+   * 向指定用户的全部活跃会话推送 JSON 帧。
+   *
+   * <p>帧类型：chat 新消息、read 对方已读回执。单会话失败仅记 warn，
+   * 不影响其他会话——落库才是事实来源，推送失败用户下次拉取仍可见。
+   *
+   * @param userId  接收人 id
+   * @param payload 推送内容（Jackson 序列化为 JSON）
+   */
+  public void sendToUser(Long userId, Map<String, Object> payload) {
+    Set<WebSocketSession> sessions = registry.get(userId);
+    if (sessions == null || sessions.isEmpty()) {
+      return;
+    }
+    String json;
+    try {
+      json = objectMapper.writeValueAsString(payload);
+    } catch (Exception e) {
+      log.warn("IM WebSocket 消息序列化失败 userId={}", userId, e);
+      return;
+    }
+    for (WebSocketSession session : sessions) {
+      if (!session.isOpen()) {
+        continue;
+      }
+      try {
+        // 同一会话可能被并发推送，串行化避免 TEXT_PARTIAL_WRITING 冲突
+        synchronized (session) {
+          session.sendMessage(new TextMessage(json));
+        }
+      } catch (Exception e) {
+        log.warn("IM WebSocket 推送失败 userId={} sessionId={}", userId, session.getId(), e);
+      }
+    }
+  }
+
+  /** 连接关闭/异常时从注册表移除会话（并发下先判空再移除，集合空了顺带清 key） */
+  private void removeSession(WebSocketSession session) {
+    Long userId = (Long) session.getAttributes().get("userId");
+    if (userId == null) {
+      return;
+    }
+    Set<WebSocketSession> sessions = registry.get(userId);
+    if (sessions != null) {
+      sessions.remove(session);
+      if (sessions.isEmpty()) {
+        registry.remove(userId, sessions);
+      }
+    }
+  }
+}

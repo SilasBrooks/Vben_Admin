@@ -1,0 +1,15 @@
+{
+  "title": "消息聊天",
+  "newChat": "发起聊天",
+  "selectPeer": "选择联系人",
+  "searchPlaceholder": "搜索联系人",
+  "inputPlaceholder": "输入消息，Enter 发送，Shift+Enter 换行",
+  "send": "发送",
+  "loadMore": "加载更多",
+  "noMore": "没有更多了",
+  "emptyConversations": "暂无会话，点击「发起聊天」开始",
+  "emptyMessages": "暂无消息，打个招呼吧",
+  "selectConversation": "在左侧选择一个会话开始聊天",
+  "read": "已读",
+  "unread": "未读"
+}

@@ -62,12 +62,14 @@ public class AiToolExecutor {
       Map.entry("page.system.dept", "部门管理"),
       Map.entry("page.system.dict", "数据字典"),
       Map.entry("page.system.file", "文件管理"),
+      Map.entry("page.system.announce", "公告发布"),
       Map.entry("page.wsm.title", "库存管理"),
       Map.entry("page.wsm.store", "库存"),
       Map.entry("page.monitor.title", "系统监控"),
       Map.entry("page.monitor.operLog", "操作日志"),
       Map.entry("page.monitor.loginLog", "登录日志"),
-      Map.entry("page.monitor.online", "在线用户"));
+      Map.entry("page.monitor.online", "在线用户"),
+      Map.entry("page.im.chat", "消息聊天"));
 
   private final SysUserAdminService userService;
   private final SysRoleAdminService roleService;

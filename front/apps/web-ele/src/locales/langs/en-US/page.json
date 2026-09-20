@@ -19,7 +19,8 @@
     "menu": "Menus",
     "dept": "Departments",
     "dict": "Dictionaries",
-    "file": "Files"
+    "file": "Files",
+    "announce": "Announcements"
   },
   "monitor": {
     "title": "Monitor",
@@ -30,5 +31,8 @@
   "wsm": {
     "title": "Inventory",
     "store": "Stock"
+  },
+  "im": {
+    "chat": "Messages"
   }
 }

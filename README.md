@@ -41,6 +41,8 @@
 | 仪表盘 | 工作台/分析页真实数据版（`GET /dashboard/summary` 登录即可全员同版）：统计卡 + 今日概况 + 近 14 天登录趋势 + 部门/模块分布 + 最近登录/操作，替代模板演示数据 |
 | 个人中心 | 头像上传（登录即可，同步 header）、昵称/个人简介编辑（`PATCH /user/profile` 登录即可，仅限本人）、修改密码（成功后强制重新登录，旧 token 即时失效） |
 | 站内通知 | WebSocket 实时推送 + 落库持久（`sys_notice`，离线重登可见）：被强退/密码重置/账号停用/角色授权变更自动通知当事人；头部铃铛未读数 + 下拉列表 + 单条/全部已读（`/api/notice/*` 登录即可，仅操作本人消息；`/api/ws/notice?token=` 握手鉴权，nginx 反代已带升级头） |
+| 公告广播 | 管理员发布页（系统管理 → 公告发布，super/admin 可见）：按全员/部门（部门树多选）/指定用户（搜索多选）三粒度发布，复用站内通知通道落库 + 铃铛实时推送（`msg_type=announcement`，`POST /notice/announce` 挂 `Notice:Announce:Publish` 权限码 + 幂等防重，仅发送启用账号） |
+| 消息聊天（IM 单聊） | 用户间一对一私聊（`sys_message` 落库可回溯，离线重登可见）：联系人选择、会话列表（未读数）、历史消息（游标分页）、发送与已读回执（`/api/im/*` 登录即可，仅操作本人会话，发送按用户限流 60 次/分钟）；`/api/ws/im?token=` 实时推送，对方在线即时送达并回已读回执；独立「消息聊天」页全员可见 |
 | 国际化 | 前端中英双语（`zh-CN` / `en-US`）：认证、系统管理、监控、文件、仪表盘、个人中心、AI 助手全量文案走 vue-i18n 语言包（`apps/web-ele/src/locales/langs/`），头部一键切换、刷新持久；侧边栏菜单标题（数据库存 i18n key）随语言同步切换，后端错误消息暂为中文 |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 自然语言查询/新增用户、角色、部门，角色菜单授权；详见下文 |
@@ -152,6 +154,7 @@ pnpm dev
 - **前端按钮权限**：新增按钮时必须配套使用 `v-access:code` 指令 + 菜单管理里登记权限码
 - **多根节点组件**：在 `<Transition>`/`<KeepAlive>` 内使用的组件必须有单一根元素，否则动画与属性继承失效
 - **文件上传/下载**：下载接口 `GET /file/{id}/content` 需登录（未加入 JwtAuthFilter 白名单）；扩展名白名单不校验文件魔数，生产部署请在 Nginx 层禁止上传目录执行脚本，且大文件场景建议改为对象存储签名直链；本地存储目录默认 `./files`（已加入 .gitignore）
+- **WebSocket 单机边界**：站内通知与 IM 聊天的推送注册表是单机内存（`NoticeWebSocketHandler` / `ImWebSocketHandler`），多实例部署需升级为 Redis pub/sub 广播；nginx 反代 `/api/` 已带 WS 升级头
 
 ### 生产部署 Checklist
 

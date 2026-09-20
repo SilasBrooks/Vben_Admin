@@ -1,0 +1,22 @@
+{
+  "contentField": "公告内容",
+  "contentMax": "公告内容不能超过 500 字",
+  "contentPlaceholder": "请输入公告内容（不超过 500 字，可留空）",
+  "selectDept": "请选择目标部门（可多选）",
+  "selectDeptFirst": "按部门发布需至少选择一个部门",
+  "selectDeptLabel": "目标部门",
+  "selectUser": "请选择目标用户（可多选）",
+  "selectUserFirst": "按用户发布需至少选择一个用户",
+  "selectUserLabel": "目标用户",
+  "submit": "发布公告",
+  "success": "公告已发送给 {count} 位用户",
+  "targetAll": "全员",
+  "targetDept": "按部门",
+  "targetType": "发送范围",
+  "targetUser": "按用户",
+  "title": "公告发布",
+  "titleField": "公告标题",
+  "titleMax": "公告标题不能超过 100 字",
+  "titlePlaceholder": "请输入公告标题（不超过 100 字）",
+  "titleRequired": "请输入公告标题"
+}

@@ -131,6 +131,11 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long fileList = insertMenu(perm("System:File:List", systemFileId));
     Long fileUpload = insertMenu(perm("System:File:Upload", systemFileId));
     Long fileDelete = insertMenu(perm("System:File:Delete", systemFileId));
+    // 公告发布（系统管理 leaf，order 7）：super/admin 可见，复用站内通知通道
+    Long systemAnnounceId = insertMenu(leaf("SystemAnnounce", "page.system.announce",
+        "ant-design:notification-outlined", 7, "/system/announce", "/system/announce/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long announcePublish = insertMenu(perm("Notice:Announce:Publish", systemAnnounceId));
 
     // 库存管理模块（WSM）：super/admin 可见，user 不可见
     Long wsmCatalogId = insertMenu(catalog("Wsm", "page.wsm.title",
@@ -158,6 +163,10 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long onlineList = insertMenu(perm("Monitor:Online:List", monitorOnlineId));
     Long onlineKick = insertMenu(perm("Monitor:Online:Kick", monitorOnlineId));
 
+    // 消息聊天（IM）：登录用户可见（单聊、落库可回溯，WS /ws/im 实时推送）
+    insertMenu(leaf("ImChat", "page.im.chat", "ant-design:message-outlined", 8500, "/im",
+        "/im/index", 0L, true, false));
+
     // system 资源（含库存模块）对 super/admin 可见，user 不可见
     java.util.Set<Long> systemSet = java.util.Set.of(systemCatalogId, systemUserId,
         systemRoleId, systemMenuId, systemDeptId, systemUserListId, userAdd, userEdit,
@@ -167,6 +176,7 @@ public class DatabaseSeeder implements ApplicationRunner {
         deptList, deptAdd, deptEdit, deptDelete,
         dictList, dictAdd, dictEdit, dictDelete,
         systemFileId, fileList, fileUpload, fileDelete,
+        systemAnnounceId, announcePublish,
         wsmCatalogId, wsmStoreId,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);

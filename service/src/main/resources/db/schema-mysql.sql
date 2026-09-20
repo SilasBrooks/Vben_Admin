@@ -202,3 +202,20 @@ CREATE TABLE IF NOT EXISTS sys_notice (
   update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_sys_notice_user (user_id, read_flag)
 ) ENGINE = InnoDB COMMENT ='站内通知表';
+
+-- ------------------------------------------------------------
+-- IM 单聊消息表（sys_message）
+-- update_time 由应用层 MyBatis-Plus MetaObjectHandler 填充（见文件头说明）
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sys_message (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  sender_id   BIGINT        NOT NULL COMMENT '发送人id(sys_user.id)',
+  receiver_id BIGINT        NOT NULL COMMENT '接收人id(sys_user.id)',
+  content     VARCHAR(2000) NOT NULL COMMENT '消息内容',
+  read_flag   TINYINT       NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+  read_time   DATETIME      NULL COMMENT '阅读时间(NULL=未读)',
+  create_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_sys_message_pair (sender_id, receiver_id, id),
+  INDEX idx_sys_message_receiver (receiver_id, read_flag)
+) ENGINE = InnoDB COMMENT ='IM单聊消息表';

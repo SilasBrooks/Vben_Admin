@@ -1,0 +1,15 @@
+{
+  "title": "Messages",
+  "newChat": "New Chat",
+  "selectPeer": "Select a user",
+  "searchPlaceholder": "Search contacts",
+  "inputPlaceholder": "Type a message. Enter to send, Shift+Enter for a new line",
+  "send": "Send",
+  "loadMore": "Load more",
+  "noMore": "No more messages",
+  "emptyConversations": "No conversations yet. Click \"New Chat\" to start",
+  "emptyMessages": "No messages yet. Say hi!",
+  "selectConversation": "Select a conversation on the left to start chatting",
+  "read": "Read",
+  "unread": "Unread"
+}

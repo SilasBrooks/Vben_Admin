@@ -3,9 +3,12 @@ package com.vben.service.module.notice.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.vben.service.common.BizException;
 import com.vben.service.module.notice.entity.SysNotice;
 import com.vben.service.module.notice.mapper.SysNoticeMapper;
 import com.vben.service.module.notice.websocket.NoticeWebSocketHandler;
+import com.vben.service.module.system.entity.SysUser;
+import com.vben.service.module.system.mapper.SysUserMapper;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,15 +22,31 @@ import org.springframework.stereotype.Service;
  *
  * <p>{@link #send} 先落库再推送，推送失败（用户未在线/会话异常）仅记 warn，
  * 不影响落库与业务主流程——用户下次拉取列表仍能看到通知。
- * 仅依赖自身 mapper 与 websocket handler，供 system/monitor 模块单向依赖，避免循环注入。
+ * 依赖自身 mapper、websocket handler 与 SysUserMapper（公告广播解析接收人），
+ * 供 system/monitor 模块单向依赖，避免循环注入。
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NoticeService {
 
-  /** 消息类型：安全类提醒（本期仅此一类） */
+  /** 消息类型：安全类提醒 */
   private static final String MSG_TYPE_SECURITY = "security";
+
+  /** 消息类型：管理员公告广播 */
+  private static final String MSG_TYPE_ANNOUNCEMENT = "announcement";
+
+  /** 用户状态：启用 */
+  private static final int USER_STATUS_ENABLED = 0;
+
+  /** 公告目标范围：全员 */
+  private static final String TARGET_ALL = "all";
+
+  /** 公告目标范围：按部门 */
+  private static final String TARGET_DEPT = "dept";
+
+  /** 公告目标范围：按用户 */
+  private static final String TARGET_USER = "user";
 
   /** 未读标记：0 */
   private static final int READ_FLAG_UNREAD = 0;
@@ -37,27 +56,78 @@ public class NoticeService {
 
   private final SysNoticeMapper noticeMapper;
   private final NoticeWebSocketHandler webSocketHandler;
+  private final SysUserMapper userMapper;
 
   /**
-   * 发送通知：落库 + 实时推送给当事人。
+   * 发送安全类通知：落库 + 实时推送给当事人。
    *
    * @param userId  接收人 id
    * @param title   通知标题
    * @param content 通知内容
    */
   public void send(Long userId, String title, String content) {
+    send(userId, title, content, MSG_TYPE_SECURITY);
+  }
+
+  /**
+   * 公告广播：按目标范围解析「启用」用户并逐人落库 + 实时推送（msg_type=announcement）。
+   *
+   * @param title      公告标题
+   * @param content    公告内容
+   * @param targetType 目标范围：all 全员 / dept 按部门 / user 按用户
+   * @param deptIds    targetType=dept 时的部门 id 集合
+   * @param userIds    targetType=user 时的用户 id 集合
+   * @return 实际发送人数（去重、过滤停用账号后）
+   */
+  public int announce(String title, String content, String targetType,
+      List<Long> deptIds, List<Long> userIds) {
+    List<Long> targets = resolveTargets(targetType, deptIds, userIds);
+    for (Long userId : targets) {
+      send(userId, title, content, MSG_TYPE_ANNOUNCEMENT);
+    }
+    return targets.size();
+  }
+
+  /** 解析公告接收人：仅启用（status=0）用户，SQL 层去重 */
+  private List<Long> resolveTargets(String targetType, List<Long> deptIds, List<Long> userIds) {
+    LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<SysUser>()
+        .select(SysUser::getId)
+        .eq(SysUser::getStatus, USER_STATUS_ENABLED);
+    switch (targetType == null ? "" : targetType) {
+      case TARGET_ALL -> {
+        // 无附加过滤：全部启用用户
+      }
+      case TARGET_DEPT -> {
+        if (deptIds == null || deptIds.isEmpty()) {
+          throw BizException.badRequest("按部门发布需至少选择一个部门");
+        }
+        wrapper.in(SysUser::getDeptId, deptIds);
+      }
+      case TARGET_USER -> {
+        if (userIds == null || userIds.isEmpty()) {
+          throw BizException.badRequest("按用户发布需至少选择一个用户");
+        }
+        wrapper.in(SysUser::getId, userIds);
+      }
+      default -> throw BizException.badRequest("目标类型不合法：" + targetType);
+    }
+    return userMapper.selectList(wrapper).stream().map(SysUser::getId).toList();
+  }
+
+  /** 通用发送：落库 + 推送，推送失败仅告警不影响落库 */
+  private void send(Long userId, String title, String content, String msgType) {
     SysNotice notice = new SysNotice();
     notice.setUserId(userId);
     notice.setTitle(title);
     notice.setContent(content);
-    notice.setMsgType(MSG_TYPE_SECURITY);
+    notice.setMsgType(msgType);
     notice.setReadFlag(READ_FLAG_UNREAD);
     noticeMapper.insert(notice);
 
     // 推送失败不影响落库（用户离线属常态），仅告警
     try {
       Map<String, Object> payload = new LinkedHashMap<>();
-      payload.put("type", MSG_TYPE_SECURITY);
+      payload.put("type", msgType);
       payload.put("id", notice.getId());
       payload.put("title", notice.getTitle());
       payload.put("content", notice.getContent());

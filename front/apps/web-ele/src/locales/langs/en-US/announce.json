@@ -1,0 +1,22 @@
+{
+  "contentField": "Content",
+  "contentMax": "Content cannot exceed 500 characters",
+  "contentPlaceholder": "Enter announcement content (max 500 characters, optional)",
+  "selectDept": "Select target departments (multiple)",
+  "selectDeptFirst": "Select at least one department for department targeting",
+  "selectDeptLabel": "Departments",
+  "selectUser": "Select target users (multiple)",
+  "selectUserFirst": "Select at least one user for user targeting",
+  "selectUserLabel": "Users",
+  "submit": "Publish",
+  "success": "Announcement sent to {count} users",
+  "targetAll": "All users",
+  "targetDept": "By department",
+  "targetType": "Scope",
+  "targetUser": "By user",
+  "title": "Announcements",
+  "titleField": "Title",
+  "titleMax": "Title cannot exceed 100 characters",
+  "titlePlaceholder": "Enter announcement title (max 100 characters)",
+  "titleRequired": "Title is required"
+}
