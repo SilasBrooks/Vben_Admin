@@ -135,6 +135,16 @@ public class DatabaseSeeder implements ApplicationRunner {
         systemCatalogId, false, false).authority("super,admin"));
     Long announcePublish = insertMenu(perm("Notice:Announce:Publish", systemAnnounceId));
 
+    // 模型配置（系统管理 leaf，order 8）：AI 助手底层 LLM 增删改查/激活/连通测试
+    Long systemLlmId = insertMenu(leaf("SystemLlm", "page.system.llm",
+        "ant-design:robot-outlined", 8, "/system/llm", "/system/llm/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long llmList = insertMenu(perm("System:Llm:List", systemLlmId));
+    Long llmAdd = insertMenu(perm("System:Llm:Add", systemLlmId));
+    Long llmEdit = insertMenu(perm("System:Llm:Edit", systemLlmId));
+    Long llmDelete = insertMenu(perm("System:Llm:Delete", systemLlmId));
+    Long llmActivate = insertMenu(perm("System:Llm:Activate", systemLlmId));
+
     // 系统监控模块（Monitor）：super/admin 可见，user 不可见
     Long monitorCatalogId = insertMenu(catalog("Monitor", "page.monitor.title",
         "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
@@ -168,6 +178,7 @@ public class DatabaseSeeder implements ApplicationRunner {
         dictList, dictAdd, dictEdit, dictDelete,
         systemFileId, fileList, fileUpload, fileDelete,
         systemAnnounceId, announcePublish,
+        systemLlmId, llmList, llmAdd, llmEdit, llmDelete, llmActivate,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
 

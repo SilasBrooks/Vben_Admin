@@ -23,7 +23,7 @@
 | 数据库 | PostgreSQL 18（开发，Docker）、MySQL（生产就绪，`schema-mysql.sql`） |
 | 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话（集中式状态，重启不丢、多实例共享） |
 | 前端 | Vue 3、Vite、Element Plus、Pinia、Vue Router、Vben Admin 5.7 monorepo（pnpm + turbo） |
-| AI | DeepSeek Chat（OpenAI 兼容协议，SSE 流式 + Function Call） |
+| AI | LLM 可插拔：模型配置页管理多厂商（OpenAI 兼容协议，SSE 流式 + Function Call），全局唯一激活；yml `DEEPSEEK_API_KEY` 兜底 |
 
 ## 功能清单
 
@@ -46,6 +46,7 @@
 | 国际化 | 前端中英双语（`zh-CN` / `en-US`）：认证、系统管理、监控、文件、仪表盘、个人中心、AI 助手全量文案走 vue-i18n 语言包（`apps/web-ele/src/locales/langs/`），头部一键切换、刷新持久；侧边栏菜单标题（数据库存 i18n key）随语言同步切换；后端错误消息同步双语——前端每请求携带 `Accept-Language`，后端 BizException/校验注解/幂等限流/401 均按请求语言返回（`messages.properties` 中文兜底 + `messages_en_US.properties`，约 120 条消息 key） |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 真 Agent（plan-and-execute）：**21 个内置工具注解自动注册**（Service 方法标 `@AiAgentTool` 即成为 AI 工具，零 switch 适配），工具按登录用户权限码**动态可见可调**；AI 自主多步规划——多写操作任务先产出执行计划（目标+步骤+理由），前端计划卡确认后 SSE 步骤流顺序执行（等待/执行中/成功/失败实时反馈）；高危操作（删除用户/角色/部门、重置密码、强退、菜单授权）计划卡单独标红 + 执行前**二次确认弹框**，服务端 Redis 暂存 10 分钟；任一步失败即终止、每步执行前再校验权限；单写操作仍走轻量确认卡 |
+| 模型配置 | AI 底层模型可插拔（系统管理 → 模型配置）：自定义添加任意 OpenAI 兼容协议模型（DeepSeek / Qwen / Kimi / GLM / Ollama / one-api 等），可配接口地址、API Key（明文入库、接口回显脱敏、编辑留空不修改）、模型名、温度 / 最大 token / 超时；一键连通测试（非流式 ping 返回耗时与回显）；全局唯一激活——AI 助手对话与摘要的底层模型即时切换，无需重启；未配置激活模型时回退 yml `DEEPSEEK_API_KEY` 兜底 |
 | 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：`docker compose up -d` 起全套演示环境，docker profile 自动建库、安全开关默认关闭 |
 | CI | GitHub Actions 双流水线：后端 `mvn test`（幂等切面/IP 工具等单测）+ 前端 `pnpm build`，push/PR 自动执行 |
 
@@ -62,7 +63,7 @@ docker compose up -d
 - 编排四服务：PostgreSQL + Redis + 后端（Spring Boot，docker profile）+ 前端（nginx 托管产物并 `/api` 同源反代），首次构建需拉取基础镜像并全量构建，耗时较长
 - 与本地开发完全隔离：前端 **5888**、后端直连 **18080**（调试用），PG/Redis 不映射宿主端口；数据存 named volume（`vben-deploy-*`），不影响开发容器 vben5 / vben-redis，`docker compose down -v` 可彻底清空
 - 首次启动自动建表 + 种子数据；验证码回显、SQL 日志、API 文档均已关闭（与生产语义一致）
-- AI 助手：宿主机 `setx DEEPSEEK_API_KEY "<你的Key>"` 后**重开终端**再执行 compose 命令即可透传，未配置时仅 AI 功能提示未配置
+- AI 助手：优先登录后在「系统管理 → 模型配置」添加并激活模型（OpenAI 兼容协议）；也可宿主机 `setx DEEPSEEK_API_KEY "<你的Key>"` 后**重开终端**再执行 compose 命令作为兜底，两者均未配置时仅 AI 功能提示未配置
 - 镜像构建走国内镜像源前缀 `docker.1ms.run`，海外环境可自行去掉；基础镜像拉取或 pnpm 安装受限时参照文件内注释换源
 
 ### 方式二：本地开发
@@ -105,7 +106,7 @@ pnpm dev
 | vben | 123456 | 超级管理员（全部权限） |
 | stockAdmin | 123456 | 数据权限演示（仅库存部门数据） |
 
-> AI 助手需要配置大模型 Key：设置环境变量 `DEEPSEEK_API_KEY`（见注意事项）。
+> AI 助手需要在「系统管理 → 模型配置」添加并激活模型；也可设置环境变量 `DEEPSEEK_API_KEY` 兜底（见注意事项）。
 
 ## AI 智能助手
 
@@ -116,7 +117,7 @@ pnpm dev
 - **plan-and-execute 真 Agent**：多写操作任务 AI 先产出执行计划（目标 + 步骤 + 理由），前端计划卡展示全貌，确认后 SSE 步骤流顺序执行并实时反馈每步状态；任一步失败立即终止；每步执行前再次校验权限
 - **高危操作双保险**：删除用户/角色/部门、重置密码、强退、菜单授权标记 `danger=true`——计划卡单独标红，执行到该步时服务端暂停（Redis 暂存 10 分钟），用户二次确认后才继续
 - **两档轻量路径**：单写操作仍走确认卡片；纯查询自动执行并把真实数据回喂模型
-- **上下文记忆**：最近 50 条消息按完整轮次截断（不会切断工具调用配对），更早轮次由 DeepSeek 滚动摘要为"此前对话摘要"注入；会话按用户隔离持久化在浏览器本地，刷新不丢
+- **上下文记忆**：最近 50 条消息按完整轮次截断（不会切断工具调用配对），更早轮次由大模型滚动摘要为"此前对话摘要"注入；会话按用户隔离持久化在浏览器本地，刷新不丢
 - **数据安全**：查询结果字段裁剪（不含密码等敏感字段）；写操作复用既有业务层校验与自动填充
 
 ## 目录结构
@@ -142,7 +143,7 @@ pnpm dev
 ### 安全红线（部署/公开前必做）
 
 1. **更换 JWT 密钥**：`application.yml` 中 `vben.jwt.*-token-secret` 是占位值，生产必须替换为至少 32 字节随机串，且 access/refresh 使用不同密钥
-2. **大模型 Key 只走环境变量**：配置已无默认 Key（`${DEEPSEEK_API_KEY:}`），本地启动前需 `setx DEEPSEEK_API_KEY "<你的Key>"` 后重开终端；**历史提交中出现过旧 Key，公开仓库前必须到 DeepSeek 控制台作废**
+2. **大模型 Key 安全**：优先在「模型配置」页添加模型（Key 明文入库、接口回显脱敏，生产库请做好访问控制）；yml 兜底 Key 只走环境变量（`${DEEPSEEK_API_KEY:}`，无默认值），本地启动需 `setx DEEPSEEK_API_KEY "<你的Key>"` 后重开终端；**历史提交中出现过旧 Key，公开仓库前必须到 DeepSeek 控制台作废**
 3. **修改默认账号密码**：vben / stockAdmin 等种子账号仅用于演示
 4. 数据库密码、Cookie 安全策略（`same-site`/`secure`）按部署形态调整：本地 http 用 `Lax + false`，https 跨域部署用 `None + true`
 5. 生产配置切 `application-prod.yml`（MySQL），关闭 MyBatis-Plus SQL 控制台打印；prod 已自动关闭 API 文档端点
@@ -162,7 +163,7 @@ pnpm dev
 ### 生产部署 Checklist
 
 - [ ] 更换 JWT 密钥、数据库密码、所有默认账号密码
-- [ ] `DEEPSEEK_API_KEY` 环境变量注入（配置无默认值）；作废历史提交中暴露过的旧 Key
+- [ ] 在「模型配置」页添加并激活模型，或注入 `DEEPSEEK_API_KEY` 环境变量兜底（yml 无默认值）；作废历史提交中暴露过的旧 Key
 - [ ] 确认 `vben.captcha.echo-enabled` 为 false（prod 默认关闭，勿在 prod 开启验证码回显）
 - [ ] 数据库以 PostgreSQL 为准（`schema-postgres.sql`）；`application-prod.yml` 中的 MySQL 配置仅为预留，未经验证，生产部署请改写为 PostgreSQL 或先完成验证
 - [ ] 演示/交付环境可直接用根目录 `docker compose up -d`（docker profile：PostgreSQL 自动建库 + 安全开关关闭）；生产公网部署请另行评估并更换全部演示默认值

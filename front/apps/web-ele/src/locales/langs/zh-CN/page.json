@@ -20,7 +20,8 @@
     "dept": "部门管理",
     "dict": "数据字典",
     "file": "文件管理",
-    "announce": "公告发布"
+    "announce": "公告发布",
+    "llm": "模型配置"
   },
   "monitor": {
     "title": "系统监控",

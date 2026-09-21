@@ -8,7 +8,7 @@ import com.vben.service.module.ai.agent.plan.PlanModels;
 import com.vben.service.module.ai.client.AiUpstreamException;
 import com.vben.service.module.ai.client.CancelToken;
 import com.vben.service.module.ai.client.DeepMessage;
-import com.vben.service.module.ai.client.DeepSeekClient;
+import com.vben.service.module.ai.client.LlmClient;
 import com.vben.service.module.ai.client.StreamHandler;
 import com.vben.service.module.ai.client.ToolCall;
 import com.vben.service.module.ai.config.AiProperties;
@@ -71,7 +71,7 @@ public class AiChatService {
       - 任何场景都必须全程使用中文（包括调用工具前的说明文字），禁止输出英文句子或英文开场白
       """;
 
-  private final DeepSeekClient deepSeekClient;
+  private final LlmClient llmClient;
   private final AiToolExecutor toolExecutor;
   private final AiToolRegistry toolRegistry;
   private final AiPlanService planService;
@@ -109,7 +109,7 @@ public class AiChatService {
       StringBuilder contentBuffer = new StringBuilder();
       List<ToolCall> calls = new ArrayList<>();
 
-      deepSeekClient.streamChat(messages, tools, new StreamHandler() {
+      llmClient.streamChat(messages, tools, new StreamHandler() {
         @Override
         public void onText(String delta) {
           contentBuffer.append(delta);
@@ -241,7 +241,7 @@ public class AiChatService {
     }
 
     StringBuilder summary = new StringBuilder();
-    deepSeekClient.streamChat(
+    llmClient.streamChat(
         List.of(DeepMessage.system(SUMMARY_SYSTEM_PROMPT), DeepMessage.user(prompt.toString())),
         List.of(),
         new StreamHandler() {

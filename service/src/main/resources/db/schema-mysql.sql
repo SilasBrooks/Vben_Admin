@@ -223,3 +223,24 @@ CREATE TABLE IF NOT EXISTS sys_message (
   INDEX idx_sys_message_pair (sender_id, receiver_id, id),
   INDEX idx_sys_message_receiver (receiver_id, read_flag)
 ) ENGINE = InnoDB COMMENT ='IM单聊消息表';
+
+-- ============================================================
+-- LLM 模型配置（AI 助手底层模型，OpenAI 兼容协议）
+-- update_time 由应用层 MyBatis-Plus MetaObjectHandler 填充（见文件头说明）
+-- ============================================================
+CREATE TABLE IF NOT EXISTS sys_llm_config (
+  id              BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name            VARCHAR(64)   NOT NULL COMMENT '显示名(唯一)',
+  base_url        VARCHAR(255)  NOT NULL COMMENT '接口根地址(OpenAI兼容,不带末尾斜杠)',
+  api_key         VARCHAR(255)  NOT NULL DEFAULT '' COMMENT 'API Key(明文入库,接口回显脱敏)',
+  model           VARCHAR(64)   NOT NULL COMMENT '模型名,如 deepseek-chat/qwen-plus',
+  temperature     DECIMAL(3,1)  NULL COMMENT '采样温度,NULL=不下发由上游默认',
+  max_tokens      INT           NULL COMMENT '最大生成token数,NULL=不下发',
+  timeout_seconds INT           NOT NULL DEFAULT 60 COMMENT '单次上游请求超时(秒)',
+  enabled         TINYINT       NOT NULL DEFAULT 1 COMMENT '1启用 0停用(停用不可激活)',
+  is_active       TINYINT       NOT NULL DEFAULT 0 COMMENT '1=当前激活模型(全局唯一)',
+  remark          VARCHAR(255)  NULL COMMENT '备注',
+  create_time     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_llm_name (name)
+) ENGINE = InnoDB COMMENT ='LLM模型配置表(OpenAI兼容协议,全局唯一激活)';

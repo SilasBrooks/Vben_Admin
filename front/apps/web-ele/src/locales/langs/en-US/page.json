@@ -20,7 +20,8 @@
     "dept": "Departments",
     "dict": "Dictionaries",
     "file": "Files",
-    "announce": "Announcements"
+    "announce": "Announcements",
+    "llm": "Model Config"
   },
   "monitor": {
     "title": "Monitor",
