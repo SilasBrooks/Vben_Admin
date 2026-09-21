@@ -40,6 +40,7 @@
     "loginIp": "Login IP",
     "kick": "Force Offline",
     "kickConfirm": "Are you sure you want to force user \"{name}\" offline? Their current login will be invalidated immediately.",
-    "kickSuccess": "Forced offline"
+    "kickSuccess": "Forced offline",
+    "selfKickTip": "You cannot force yourself offline"
   }
 }

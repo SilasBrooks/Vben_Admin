@@ -2,6 +2,7 @@ package com.vben.service.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vben.service.common.I18nMessage;
+import com.vben.service.common.IpUtil;
 import com.vben.service.common.R;
 import com.vben.service.module.system.service.SysPermissionService;
 import jakarta.servlet.FilterChain;
@@ -51,6 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   private final TokenVersionService tokenVersionService;
   private final SysPermissionService permissionService;
   private final com.vben.service.module.auth.RefreshTokenCookieService cookieService;
+  private final OnlineSessionService onlineSessionService;
   private final ObjectMapper objectMapper;
 
   @Override
@@ -104,6 +106,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       writeUnauthorized(request, response);
       return;
     }
+
+    // 认证成功：续期在线活动窗口（滑动过期，窗口内无请求即视为离线；失败不影响请求）
+    onlineSessionService.touchOrRegister(payload.getUserId(), payload.getUsername(),
+        IpUtil.getClientIp(request), payload.getTokenVersion());
 
     try {
       LoginUserHolder.set(user);

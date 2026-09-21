@@ -17,6 +17,7 @@ public class VbenProperties {
   private Jwt jwt = new Jwt();
   private Cookie cookie = new Cookie();
   private Cors cors = new Cors();
+  private Online online = new Online();
 
   @Data
   public static class Jwt {
@@ -42,5 +43,11 @@ public class VbenProperties {
   @Data
   public static class Cors {
     private List<String> allowedOrigins = new ArrayList<>();
+  }
+
+  @Data
+  public static class Online {
+    /** 在线判定滑动窗口：每次认证成功续期，窗口内无任何请求即视为离线（列表自动消失） */
+    private Duration activityTtl = Duration.ofMinutes(30);
   }
 }

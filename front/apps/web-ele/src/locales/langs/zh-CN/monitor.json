@@ -40,6 +40,7 @@
     "loginIp": "登录 IP",
     "kick": "强制下线",
     "kickConfirm": "确认将用户「{name}」强制下线？其当前登录将立即失效。",
-    "kickSuccess": "已强制下线"
+    "kickSuccess": "已强制下线",
+    "selfKickTip": "不能对自己执行强制下线"
   }
 }

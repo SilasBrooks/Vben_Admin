@@ -57,18 +57,21 @@ public class MonitorOnlineController {
       @RequestParam(required = false) String username) {
 
     List<OnlineSessionService.OnlineUserView> sessions = onlineSessionService.listAll();
-    // 幽灵会话自愈：用户已不存在（重置种子库/删用户后 Redis 残留 key，TTL 比数据活得久）
-    // → 从列表剔除并顺带删除残留会话，避免同账号出现多条记录
+    // 幽灵会话自愈：①用户已不存在（重置种子库/删用户后 Redis 残留 key，TTL 比数据活得久）
+    // ②ver 失配（改密/重置/禁用/强退后 bump，但 bump 与 remove 之间异常的残留）
+    // → 从列表剔除并顺带删除残留会话，避免同账号出现多条记录或"已失效仍显示在线"
     Set<Long> existingIds = userMapper.selectObjs(
             new LambdaQueryWrapper<SysUser>().select(SysUser::getId)).stream()
         .map(id -> (Long) id)
         .collect(Collectors.toSet());
     sessions.stream()
-        .filter(u -> !existingIds.contains(u.userId()))
+        .filter(u -> !existingIds.contains(u.userId())
+            || tokenVersionService.current(u.userId()) != u.ver())
         .forEach(u -> onlineSessionService.remove(u.userId()));
 
     List<OnlineSessionService.OnlineUserView> all = sessions.stream()
-        .filter(u -> existingIds.contains(u.userId()))
+        .filter(u -> existingIds.contains(u.userId())
+            && tokenVersionService.current(u.userId()) == u.ver())
         .filter(u -> username == null || username.isBlank()
             || (u.username() != null && u.username().contains(username)))
         .sorted(Comparator.comparing(OnlineSessionService.OnlineUserView::loginTime,

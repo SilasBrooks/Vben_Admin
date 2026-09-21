@@ -3,6 +3,7 @@ import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { OnlineUserItem } from '#/api/monitor/online';
 
 import { Page, VbenButton } from '@vben/common-ui';
+import { useUserStore } from '@vben/stores';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -10,6 +11,8 @@ import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { getOnlineUserListApi, kickUserApi } from '#/api/monitor/online';
 
 import { $t } from '#/locales';
+
+const userStore = useUserStore();
 
 const gridOptions: VxeTableGridOptions<OnlineUserItem> = {
   columns: [
@@ -70,17 +73,25 @@ async function kick(row: OnlineUserItem) {
   ElMessage.success($t('monitor.online.kickSuccess'));
   gridApi.reload();
 }
+
+/** 当前登录用户自己那行不允许强退（与后端 error.online.selfKick 校验一致） */
+function isSelf(row: OnlineUserItem): boolean {
+  return String(row.userId) === String(userStore.userInfo?.userId ?? '');
+}
 </script>
 
 <template>
   <Page auto-content-height>
     <Grid>
       <template #action="{ row }">
+        <!-- 禁止对自己强制下线（后端同样校验），当前登录用户那行按钮置灰 -->
         <VbenButton
           v-access:code="'Monitor:Online:Kick'"
           variant="link"
           size="sm"
           class="text-destructive"
+          :disabled="isSelf(row as OnlineUserItem)"
+          :title="isSelf(row as OnlineUserItem) ? $t('monitor.online.selfKickTip') : undefined"
           @click="kick(row as OnlineUserItem)"
         >
           {{ $t('monitor.online.kick') }}
