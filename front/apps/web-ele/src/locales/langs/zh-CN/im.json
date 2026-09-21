@@ -11,5 +11,24 @@
   "emptyMessages": "暂无消息，打个招呼吧",
   "selectConversation": "在左侧选择一个会话开始聊天",
   "read": "已读",
-  "unread": "未读"
+  "unread": "未读",
+  "time": {
+    "justNow": "刚刚",
+    "minutesAgo": "{0} 分钟前",
+    "hoursAgo": "{0} 小时前",
+    "yesterday": "昨天",
+    "dayBeforeYesterday": "前天"
+  },
+  "context": {
+    "quote": "引用",
+    "copy": "复制",
+    "delete": "删除",
+    "deleteConversation": "删除会话"
+  },
+  "quotedLabel": "引用",
+  "me": "我",
+  "copySuccess": "已复制到剪贴板",
+  "deleteMessageConfirm": "删除该消息后仅自己不再可见，对方不受影响。确定删除？",
+  "deleteConversationConfirm": "删除会话后自己与该联系人的聊天记录将不再显示，对方不受影响。确定删除？",
+  "deleteSuccess": "已删除"
 }

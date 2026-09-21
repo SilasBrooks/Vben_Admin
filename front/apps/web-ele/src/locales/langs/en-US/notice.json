@@ -18,5 +18,7 @@
   "unread": "Unread",
   "read": "Read",
   "markRead": "Mark as read",
-  "readSuccess": "Marked as read"
+  "readSuccess": "Marked as read",
+  "chatSection": "Chats",
+  "chatEmpty": "No conversations"
 }

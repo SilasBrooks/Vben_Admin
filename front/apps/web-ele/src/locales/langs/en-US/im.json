@@ -11,5 +11,24 @@
   "emptyMessages": "No messages yet. Say hi!",
   "selectConversation": "Select a conversation on the left to start chatting",
   "read": "Read",
-  "unread": "Unread"
+  "unread": "Unread",
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{0} min ago",
+    "hoursAgo": "{0} h ago",
+    "yesterday": "Yesterday",
+    "dayBeforeYesterday": "2 days ago"
+  },
+  "context": {
+    "quote": "Quote",
+    "copy": "Copy",
+    "delete": "Delete",
+    "deleteConversation": "Delete conversation"
+  },
+  "quotedLabel": "Quoted",
+  "me": "Me",
+  "copySuccess": "Copied to clipboard",
+  "deleteMessageConfirm": "This message will only be hidden from you; the other side is not affected. Delete?",
+  "deleteConversationConfirm": "This conversation will only be hidden from you; the other side is not affected. Delete?",
+  "deleteSuccess": "Deleted"
 }

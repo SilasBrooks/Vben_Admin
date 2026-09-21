@@ -2,6 +2,7 @@
 import type { ImConversation, ImMessage, ImPeer } from '#/api/im';
 
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
@@ -11,12 +12,16 @@ import {
   ElButton,
   ElDialog,
   ElInput,
+  ElMessage,
+  ElMessageBox,
   ElOption,
   ElScrollbar,
   ElSelect,
 } from 'element-plus';
 
 import {
+  deleteImConversationApi,
+  deleteImMessageApi,
   getImConversationsApi,
   getImMessagesApi,
   getImPeersApi,
@@ -24,6 +29,7 @@ import {
   sendImMessageApi,
 } from '#/api/im';
 import { $t } from '#/locales';
+import { formatRelativeTime } from '#/utils/relative-time';
 
 /** WS 下行帧：chat 新消息 / read 对方已读回执 */
 interface WsFrame {
@@ -47,6 +53,7 @@ const AVATAR_COLORS = [
   '#2bb3a3',
 ];
 
+const route = useRoute();
 const conversations = ref<ImConversation[]>([]);
 const activePeerId = ref<null | number>(null);
 const messages = ref<ImMessage[]>([]);
@@ -91,7 +98,121 @@ function avatarColor(id: number): string {
 }
 
 function formatTime(value: string): string {
-  return value.split('.')[0]?.replace('T', ' ') ?? value;
+  return formatRelativeTime(value);
+}
+
+// ---------------- 右键菜单（微信式：引用 / 复制 / 删除） ----------------
+
+const contextMenu = ref<{
+  conversation?: ImConversation;
+  message?: ImMessage;
+  visible: boolean;
+  x: number;
+  y: number;
+}>({ visible: false, x: 0, y: 0 });
+
+/** 引用目标：输入框上方显示引用条，随下一条消息发出 */
+const quoteTarget = ref<null | ImMessage>(null);
+
+function openContextMenu(
+  event: MouseEvent,
+  payload: { conversation?: ImConversation; message?: ImMessage },
+) {
+  event.preventDefault();
+  contextMenu.value = {
+    ...payload,
+    visible: true,
+    // 贴近视口右/下边缘时向内收，避免菜单溢出
+    x: Math.min(event.clientX, window.innerWidth - 170),
+    y: Math.min(event.clientY, window.innerHeight - 140),
+  };
+}
+
+function closeContextMenu() {
+  contextMenu.value = { visible: false, x: 0, y: 0 };
+}
+
+function quoteMessage() {
+  if (contextMenu.value.message) {
+    quoteTarget.value = contextMenu.value.message;
+  }
+  closeContextMenu();
+}
+
+async function copyMessage() {
+  const content = contextMenu.value.message?.content;
+  closeContextMenu();
+  if (!content) return;
+  try {
+    await navigator.clipboard.writeText(content);
+    ElMessage.success($t('im.copySuccess'));
+  } catch {
+    // 剪贴板权限受限等场景静默失败（浏览器安全策略提示由浏览器给出）
+  }
+}
+
+/** 删除单条消息（单侧删除）：仅本人视角不可见，对方不受影响 */
+async function removeMessage() {
+  const message = contextMenu.value.message;
+  closeContextMenu();
+  if (!message) return;
+  try {
+    await ElMessageBox.confirm($t('im.deleteMessageConfirm'), $t('im.context.delete'), {
+      type: 'warning',
+    });
+  } catch {
+    return; // 用户取消
+  }
+  try {
+    await deleteImMessageApi(message.id);
+    messages.value = messages.value.filter((m) => m.id !== message.id);
+    ElMessage.success($t('im.deleteSuccess'));
+    // 被删消息可能是会话最后一条，重拉会话列表修正摘要
+    void fetchConversations();
+  } catch {
+    // 失败细节由全局响应拦截器提示，这里静默
+  }
+}
+
+/** 删除会话（单侧删除）：本人与该对方的全部消息不再显示，对方不受影响 */
+async function removeConversation() {
+  const conversation = contextMenu.value.conversation;
+  closeContextMenu();
+  if (!conversation) return;
+  try {
+    await ElMessageBox.confirm(
+      $t('im.deleteConversationConfirm'),
+      $t('im.context.deleteConversation'),
+      { type: 'warning' },
+    );
+  } catch {
+    return; // 用户取消
+  }
+  try {
+    await deleteImConversationApi(conversation.peer.id);
+    conversations.value = conversations.value.filter(
+      (c) => c.peer.id !== conversation.peer.id,
+    );
+    if (activePeerId.value === conversation.peer.id) {
+      activePeerId.value = null;
+      messages.value = [];
+    }
+    ElMessage.success($t('im.deleteSuccess'));
+  } catch {
+    // 失败细节由全局响应拦截器提示，这里静默
+  }
+}
+
+/** 引用块文案：优先取已加载的原消息拼「发送者: 内容」，否则用内容快照 */
+function quoteText(message: ImMessage): string {
+  const origin = messages.value.find((m) => m.id === message.quoteId);
+  const name = origin
+    ? (origin.senderId === activePeerId.value
+        ? peerName(activePeer.value!)
+        : $t('im.me'))
+    : null;
+  const content = origin?.content ?? message.quoteContent ?? '';
+  return name ? `${name}: ${content}` : content;
 }
 
 async function fetchConversations() {
@@ -143,7 +264,7 @@ async function selectConversation(peerId: number) {
   }
 }
 
-/** 标记对方发来的消息已读：服务端 + 本地列表同步 */
+/** 标记对方发来的消息已读：服务端 + 本地列表同步，并广播铃铛刷新未读聚合 */
 async function markRead(peerId: number) {
   try {
     await readImMessagesApi(peerId);
@@ -152,6 +273,7 @@ async function markRead(peerId: number) {
     for (const m of messages.value) {
       if (m.senderId === peerId && m.readFlag === 0) m.readFlag = 1;
     }
+    window.dispatchEvent(new Event('notice:refresh'));
   } catch {
     // 失败细节由全局响应拦截器提示，这里静默
   }
@@ -184,10 +306,12 @@ async function handleSend() {
   const content = input.value.trim();
   if (!peerId || !content || sending.value) return;
   sending.value = true;
+  const quoteId = quoteTarget.value?.id;
   try {
-    const { message } = await sendImMessageApi(peerId, content);
+    const { message } = await sendImMessageApi(peerId, content, quoteId);
     messages.value.push(message);
     input.value = '';
+    quoteTarget.value = null;
     updateLastMessage(peerId, message);
     await nextTick();
     scrollToBottom();
@@ -304,11 +428,40 @@ function handleReadFrame(readerId: number) {
 }
 
 onMounted(() => {
-  void fetchConversations();
+  void focusPeerFromQuery();
   connectSocket();
+  // 点击/滚动任意处关闭右键菜单（capture 捕获 ElScrollbar 内部滚动）
+  window.addEventListener('click', closeContextMenu);
+  window.addEventListener('scroll', closeContextMenu, true);
 });
 
+/** 支持从铃铛浮层带 ?peer= 进入，直接定位到该会话 */
+async function focusPeerFromQuery() {
+  const peerId = Number(route.query.peer);
+  if (!peerId || !Number.isFinite(peerId)) {
+    await fetchConversations();
+    return;
+  }
+  await fetchConversations();
+  if (!conversations.value.some((c) => c.peer.id === peerId)) {
+    try {
+      const all = await getImPeersApi();
+      const peer = all.find((p) => p.id === peerId);
+      if (peer) {
+        conversations.value.push({ lastMessage: null, peer, unreadCount: 0 });
+      }
+    } catch {
+      // 失败细节由全局响应拦截器提示，这里静默
+    }
+  }
+  if (conversations.value.some((c) => c.peer.id === peerId)) {
+    await selectConversation(peerId);
+  }
+}
+
 onBeforeUnmount(() => {
+  window.removeEventListener('click', closeContextMenu);
+  window.removeEventListener('scroll', closeContextMenu, true);
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);
     reconnectTimer = null;
@@ -351,6 +504,7 @@ onBeforeUnmount(() => {
           class="im-conv"
           :class="{ 'is-active': conv.peer.id === activePeerId }"
           @click="selectConversation(conv.peer.id)"
+          @contextmenu="openContextMenu($event, { conversation: conv })"
         >
           <span
             class="im-avatar"
@@ -415,8 +569,12 @@ onBeforeUnmount(() => {
               v-for="m in messages"
               :key="m.id"
               class="im-msg"
-              :class="{ 'is-own': m.senderId === activePeer.id }"
+              :class="{ 'is-own': m.senderId !== activePeer.id }"
+              @contextmenu="openContextMenu($event, { message: m })"
             >
+              <div v-if="m.quoteContent" class="im-msg__quote">
+                {{ quoteText(m) }}
+              </div>
               <div class="im-msg__bubble">{{ m.content }}</div>
               <div class="im-msg__meta">
                 {{ formatTime(m.createTime) }}
@@ -427,6 +585,21 @@ onBeforeUnmount(() => {
             </div>
           </div>
         </ElScrollbar>
+
+        <div v-if="quoteTarget" class="im-quote-bar">
+          <span class="im-quote-bar__text">
+            {{ $t('im.quotedLabel') }} · {{ quoteTarget.senderId === activePeer.id ? peerName(activePeer) : $t('im.me') }}:
+            {{ quoteTarget.content }}
+          </span>
+          <button
+            aria-label="close"
+            class="im-quote-bar__close"
+            type="button"
+            @click="quoteTarget = null"
+          >
+            ×
+          </button>
+        </div>
 
         <footer class="im-input" @keydown="handleInputKeydown">
           <ElInput
@@ -449,6 +622,32 @@ onBeforeUnmount(() => {
       </template>
       <div v-else class="im-main__empty">{{ $t('im.selectConversation') }}</div>
     </section>
+
+    <!-- 右键菜单：消息（引用/复制/删除）或会话（删除会话） -->
+    <div
+      v-if="contextMenu.visible"
+      class="im-ctx"
+      :style="{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }"
+      @click.stop
+      @contextmenu.prevent.stop
+    >
+      <template v-if="contextMenu.message">
+        <div class="im-ctx__item" @click="quoteMessage">
+          {{ $t('im.context.quote') }}
+        </div>
+        <div class="im-ctx__item" @click="copyMessage">
+          {{ $t('im.context.copy') }}
+        </div>
+        <div class="im-ctx__item im-ctx__item--danger" @click="removeMessage">
+          {{ $t('im.context.delete') }}
+        </div>
+      </template>
+      <template v-if="contextMenu.conversation">
+        <div class="im-ctx__item im-ctx__item--danger" @click="removeConversation">
+          {{ $t('im.context.deleteConversation') }}
+        </div>
+      </template>
+    </div>
 
     <!-- 发起聊天 -->
     <ElDialog
@@ -683,6 +882,94 @@ onBeforeUnmount(() => {
   margin-top: 2px;
   font-size: 11px;
   color: var(--el-text-color-secondary, #909399);
+}
+
+.im-msg__quote {
+  margin-bottom: 4px;
+  padding: 4px 8px;
+  border-left: 2px solid var(--el-color-primary, #409eff);
+  border-radius: 4px;
+  background: var(--el-fill-color-lighter, #fafafa);
+  font-size: 12px;
+  color: var(--el-text-color-secondary, #909399);
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-word;
+}
+
+.im-msg.is-own .im-msg__quote {
+  background: rgb(255 255 255 / 60%);
+  color: rgb(255 255 255 / 85%);
+}
+
+.im-quote-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-top: 1px solid var(--el-border-color-lighter, #ebeef5);
+  background: var(--el-fill-color-lighter, #fafafa);
+}
+
+.im-quote-bar__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--el-text-color-secondary, #909399);
+}
+
+.im-quote-bar__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--el-text-color-secondary, #909399);
+  cursor: pointer;
+}
+
+.im-quote-bar__close:hover {
+  background: var(--el-fill-color, #f0f0f1);
+  color: var(--el-text-color-primary, #303133);
+}
+
+.im-ctx {
+  position: fixed;
+  z-index: 3000;
+  min-width: 140px;
+  padding: 4px 0;
+  border: 1px solid var(--el-border-color-light, #e4e7ed);
+  border-radius: 6px;
+  background: var(--el-bg-color-overlay, #fff);
+  box-shadow: var(--el-box-shadow-light, 0 2px 12px rgb(0 0 0 / 12%));
+}
+
+.im-ctx__item {
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--el-text-color-primary, #303133);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.im-ctx__item:hover {
+  background: var(--el-fill-color-light, #f5f7fa);
+}
+
+.im-ctx__item--danger {
+  color: var(--el-color-danger, #f56c6c);
 }
 
 .im-input {

@@ -14,7 +14,9 @@ import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,14 +68,30 @@ public class ImChatController {
         peerId, beforeId, size));
   }
 
-  /** 发送消息（落库 + 实时推送给对方，按用户限流） */
-  @Operation(summary = "发送消息", description = "落库为准并实时推送；对方停用/不存在或给自己发送将报错")
+  /** 发送消息（落库 + 实时推送给对方，按用户限流，可带引用） */
+  @Operation(summary = "发送消息", description = "落库为准并实时推送；对方停用/不存在或给自己发送将报错；quoteId 为被引用消息 id（可选）")
   @PostMapping("/messages")
   @RateLimit(name = "im:send", limit = 60, windowSeconds = 60, scope = RateLimit.Scope.USER)
   public R<Map<String, Object>> send(@Valid @RequestBody ImSendRequest body) {
     SysMessage saved = imChatService.send(LoginUserHolder.require().getUserId(),
-        body.receiverId(), body.content());
+        body.receiverId(), body.content(), body.quoteId());
     return R.ok(Map.of("message", saved));
+  }
+
+  /** 删除单条消息（单侧删除：仅删除本人视角，对方仍可见） */
+  @Operation(summary = "删除消息", description = "按本人视角打删除标记；只能删除自己发出或收到的消息")
+  @DeleteMapping("/messages/{messageId}")
+  public R<Map<String, Object>> deleteMessage(@PathVariable Long messageId) {
+    long updated = imChatService.deleteMessage(LoginUserHolder.require().getUserId(), messageId);
+    return R.ok(Map.of("deleted", updated));
+  }
+
+  /** 删除会话（单侧删除：清除本人与该对方之间的全部消息，对方不受影响） */
+  @Operation(summary = "删除会话", description = "把本人与指定对方之间的全部消息按本人视角打删除标记")
+  @DeleteMapping("/conversations/{peerId}")
+  public R<Map<String, Object>> deleteConversation(@PathVariable Long peerId) {
+    long deleted = imChatService.deleteConversation(LoginUserHolder.require().getUserId(), peerId);
+    return R.ok(Map.of("deleted", deleted));
   }
 
   /** 把对方发来的未读消息标记已读，并推回执给对方 */
@@ -88,7 +106,8 @@ public class ImChatController {
   public record ImSendRequest(
       @NotNull(message = "{error.im.receiver.blank}") Long receiverId,
       @NotBlank(message = "{error.im.content.blank}")
-          @Size(max = 2000, message = "{error.im.content.max}") String content) {
+          @Size(max = 2000, message = "{error.im.content.max}") String content,
+      Long quoteId) {
   }
 
   /** 标记已读请求体 */

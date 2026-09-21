@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { NoticeItem } from '#/api/notice';
 
-import { onActivated, ref } from 'vue';
+import { onActivated, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { ElButton, ElCard, ElMessage, ElPagination, ElRadioGroup, ElRadioButton, ElTable, ElTableColumn, ElTag } from 'element-plus';
 
@@ -12,7 +13,8 @@ import {
 } from '#/api/notice';
 import { $t } from '#/locales';
 
-/** 类型筛选：'' 全部 / announcement 公告 / security 通知 */
+/** 类型筛选：'' 全部 / announcement 公告 / security 通知（支持铃铛公告入口 ?type= 定位） */
+const route = useRoute();
 const filterType = ref('');
 const loading = ref(false);
 const pageNum = ref(1);
@@ -65,9 +67,30 @@ async function handleReadAll() {
   await fetchList();
 }
 
-onActivated(() => {
+/**
+ * 同步 URL query 并加载列表。
+ * 页面为 hideInTab 隐藏路由（不在 KeepAlive 内）：onActivated 不会触发，
+ * 必须靠 onMounted 首载 + watch 响应铃铛入口带 ?type= 的跳转。
+ */
+function syncFromQuery() {
+  const type = String(route.query.type ?? '');
+  filterType.value = type;
+  pageNum.value = 1;
   void fetchList();
-});
+}
+
+onMounted(syncFromQuery);
+
+onActivated(syncFromQuery);
+
+watch(
+  () => route.query.type,
+  () => {
+    if (route.path === '/notice-center') {
+      syncFromQuery();
+    }
+  },
+);
 </script>
 
 <template>

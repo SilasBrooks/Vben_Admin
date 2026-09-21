@@ -15,6 +15,10 @@ export interface ImMessage {
   /** 以接收人视角：0 未读 1 已读 */
   readFlag: 0 | 1;
   receiverId: number;
+  /** 被引用消息内容快照（null=非引用消息） */
+  quoteContent: null | string;
+  /** 被引用消息 id（null=非引用消息） */
+  quoteId: null | number;
   senderId: number;
 }
 
@@ -47,15 +51,30 @@ export async function getImMessagesApi(peerId: number, beforeId?: number, pageSi
   });
 }
 
-/** 发送消息，返回落库后的消息 */
-export async function sendImMessageApi(receiverId: number, content: string) {
+/** 发送消息（可带引用 quoteId），返回落库后的消息 */
+export async function sendImMessageApi(
+  receiverId: number,
+  content: string,
+  quoteId?: number,
+) {
   return requestClient.post<{ message: ImMessage }>('/im/messages', {
     content,
     receiverId,
+    ...(quoteId ? { quoteId } : {}),
   });
 }
 
 /** 把对方发来的本人未读消息标记已读 */
 export async function readImMessagesApi(peerId: number) {
   return requestClient.post<{ updated: number }>('/im/messages/read', { peerId });
+}
+
+/** 删除单条消息（单侧删除：仅删除本人视角，对方仍可见） */
+export async function deleteImMessageApi(messageId: number) {
+  return requestClient.delete<{ deleted: number }>(`/im/messages/${messageId}`);
+}
+
+/** 删除会话（单侧删除：清除本人与该对方之间的全部消息，对方不受影响） */
+export async function deleteImConversationApi(peerId: number) {
+  return requestClient.delete<{ deleted: number }>(`/im/conversations/${peerId}`);
 }

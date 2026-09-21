@@ -208,14 +208,18 @@ CREATE TABLE IF NOT EXISTS sys_notice (
 -- update_time 由应用层 MyBatis-Plus MetaObjectHandler 填充（见文件头说明）
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sys_message (
-  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-  sender_id   BIGINT        NOT NULL COMMENT '发送人id(sys_user.id)',
-  receiver_id BIGINT        NOT NULL COMMENT '接收人id(sys_user.id)',
-  content     VARCHAR(2000) NOT NULL COMMENT '消息内容',
-  read_flag   TINYINT       NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
-  read_time   DATETIME      NULL COMMENT '阅读时间(NULL=未读)',
-  create_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  update_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+  sender_id        BIGINT        NOT NULL COMMENT '发送人id(sys_user.id)',
+  receiver_id      BIGINT        NOT NULL COMMENT '接收人id(sys_user.id)',
+  content          VARCHAR(2000) NOT NULL COMMENT '消息内容',
+  read_flag        TINYINT       NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
+  read_time        DATETIME      NULL COMMENT '阅读时间(NULL=未读)',
+  sender_deleted   TINYINT       NOT NULL DEFAULT 0 COMMENT '发送人侧删除标记0否1已删',
+  receiver_deleted TINYINT       NOT NULL DEFAULT 0 COMMENT '接收人侧删除标记0否1已删',
+  quote_id         BIGINT        NULL COMMENT '被引用消息id(NULL=非引用)',
+  quote_content    VARCHAR(2000) NULL COMMENT '被引用消息内容快照',
+  create_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_sys_message_pair (sender_id, receiver_id, id),
   INDEX idx_sys_message_receiver (receiver_id, read_flag)
 ) ENGINE = InnoDB COMMENT ='IM单聊消息表';

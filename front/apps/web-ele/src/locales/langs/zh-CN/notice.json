@@ -18,5 +18,7 @@
   "unread": "未读",
   "read": "已读",
   "markRead": "标记已读",
-  "readSuccess": "已标记为已读"
+  "readSuccess": "已标记为已读",
+  "chatSection": "聊天消息",
+  "chatEmpty": "暂无聊天会话"
 }

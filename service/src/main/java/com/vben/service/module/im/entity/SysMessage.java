@@ -33,6 +33,18 @@ public class SysMessage {
   /** 阅读时间（接收人标记已读时间，未读为 null） */
   private LocalDateTime readTime;
 
+  /** 发送人侧删除标记：0 否 1 已删（单侧删除，对方仍可见） */
+  private Integer senderDeleted;
+
+  /** 接收人侧删除标记：0 否 1 已删（单侧删除，对方仍可见） */
+  private Integer receiverDeleted;
+
+  /** 被引用消息 id（null=非引用消息；删除原消息不影响引用展示，展示用快照） */
+  private Long quoteId;
+
+  /** 被引用消息内容快照（发送时固化，原消息删除后引用仍可显示） */
+  private String quoteContent;
+
   @TableField(fill = FieldFill.INSERT)
   private LocalDateTime createTime;
 

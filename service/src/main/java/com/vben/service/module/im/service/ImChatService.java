@@ -131,9 +131,11 @@ public class ImChatService {
     requirePeerExists(peerId);
     List<SysMessage> records = messageMapper.selectList(new LambdaQueryWrapper<SysMessage>()
         .and(w -> w.and(x -> x.eq(SysMessage::getSenderId, me)
-                .eq(SysMessage::getReceiverId, peerId))
+                .eq(SysMessage::getReceiverId, peerId)
+                .eq(SysMessage::getSenderDeleted, 0))
             .or(x -> x.eq(SysMessage::getSenderId, peerId)
-                .eq(SysMessage::getReceiverId, me)))
+                .eq(SysMessage::getReceiverId, me)
+                .eq(SysMessage::getReceiverDeleted, 0)))
         .lt(beforeId != null, SysMessage::getId, beforeId)
         .orderByDesc(SysMessage::getId)
         .last("LIMIT " + pageSize));
@@ -150,19 +152,40 @@ public class ImChatService {
    * @return 落库后的消息实体
    */
   public SysMessage send(Long me, Long receiverId, String content) {
+    return send(me, receiverId, content, null);
+  }
+
+  /**
+   * 发送消息（可带引用）：引用消息必须属于本会话双方之间的记录，
+   * 内容在发送时固化为快照（quoteContent），原消息此后被删除不影响引用展示。
+   *
+   * @param quoteId 被引用消息 id（null=非引用消息）
+   */
+  public SysMessage send(Long me, Long receiverId, String content, Long quoteId) {
     if (receiverId.equals(me)) {
-      throw new BizException(400, "不能给自己发消息");
+      throw BizException.badRequest("error.im.self");
     }
     SysUser receiver = userMapper.selectById(receiverId);
     if (receiver == null || receiver.getStatus() == null
         || receiver.getStatus() != USER_STATUS_ENABLED) {
-      throw new BizException(400, "对方不存在或已停用");
+      throw BizException.badRequest("error.im.peer.invalid");
     }
     SysMessage message = new SysMessage();
     message.setSenderId(me);
     message.setReceiverId(receiverId);
     message.setContent(content);
     message.setReadFlag(READ_FLAG_UNREAD);
+    if (quoteId != null) {
+      SysMessage quote = messageMapper.selectById(quoteId);
+      boolean inConversation = quote != null
+          && ((quote.getSenderId().equals(me) && quote.getReceiverId().equals(receiverId))
+          || (quote.getSenderId().equals(receiverId) && quote.getReceiverId().equals(me)));
+      if (!inConversation) {
+        throw BizException.badRequest("error.im.quote.invalid");
+      }
+      message.setQuoteId(quote.getId());
+      message.setQuoteContent(quote.getContent());
+    }
     messageMapper.insert(message);
 
     // 推送失败不影响落库（对方离线属常态），仅告警
@@ -216,14 +239,68 @@ public class ImChatService {
     payload.put("receiverId", message.getReceiverId());
     payload.put("content", message.getContent());
     payload.put("readFlag", message.getReadFlag());
+    payload.put("quoteId", message.getQuoteId());
+    payload.put("quoteContent", message.getQuoteContent());
     payload.put("createTime", message.getCreateTime());
     return payload;
+  }
+
+  /**
+   * 删除单条消息（单侧删除，类似微信）：本人是发送人则打 sender_deleted，
+   * 是接收人则打 receiver_deleted；与本人无关的消息直接拒绝。
+   * 之后本人视角的会话/历史/未读统计都不再可见，对方不受影响。
+   *
+   * @return 影响条数（消息存在且属于本人时为 1）
+   */
+  public long deleteMessage(Long me, Long messageId) {
+    SysMessage message = messageMapper.selectById(messageId);
+    if (message == null) {
+      throw BizException.badRequest("error.im.message.notfound");
+    }
+    if (message.getSenderId().equals(me)) {
+      SysMessage patch = new SysMessage();
+      patch.setSenderDeleted(1);
+      return messageMapper.update(patch, new LambdaUpdateWrapper<SysMessage>()
+          .eq(SysMessage::getId, messageId)
+          .eq(SysMessage::getSenderDeleted, 0));
+    }
+    if (message.getReceiverId().equals(me)) {
+      SysMessage patch = new SysMessage();
+      patch.setReceiverDeleted(1);
+      return messageMapper.update(patch, new LambdaUpdateWrapper<SysMessage>()
+          .eq(SysMessage::getId, messageId)
+          .eq(SysMessage::getReceiverDeleted, 0));
+    }
+    throw BizException.badRequest("error.im.delete.forbidden");
+  }
+
+  /**
+   * 删除会话（单侧删除）：把本人与该对方之间的全部消息按本人视角打删除标记，
+   * 之后本人会话列表不再出现该会话（对方视图不受影响）。
+   *
+   * @return 标记的消息条数
+   */
+  public long deleteConversation(Long me, Long peerId) {
+    requirePeerExists(peerId);
+    SysMessage patch = new SysMessage();
+    patch.setSenderDeleted(1);
+    long sent = messageMapper.update(patch, new LambdaUpdateWrapper<SysMessage>()
+        .eq(SysMessage::getSenderId, me)
+        .eq(SysMessage::getReceiverId, peerId)
+        .eq(SysMessage::getSenderDeleted, 0));
+    SysMessage patch2 = new SysMessage();
+    patch2.setReceiverDeleted(1);
+    long received = messageMapper.update(patch2, new LambdaUpdateWrapper<SysMessage>()
+        .eq(SysMessage::getSenderId, peerId)
+        .eq(SysMessage::getReceiverId, me)
+        .eq(SysMessage::getReceiverDeleted, 0));
+    return sent + received;
   }
 
   /** 校验对方用户存在（不存在抛业务异常，避免发送/已读打在空 id 上） */
   private void requirePeerExists(Long peerId) {
     if (userMapper.selectById(peerId) == null) {
-      throw new BizException(400, "对方用户不存在");
+      throw BizException.badRequest("error.im.peer.invalid");
     }
   }
 }
