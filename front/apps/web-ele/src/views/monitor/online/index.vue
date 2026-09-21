@@ -76,7 +76,10 @@ async function kick(row: OnlineUserItem) {
 
 /** 当前登录用户自己那行不允许强退（与后端 error.online.selfKick 校验一致） */
 function isSelf(row: OnlineUserItem): boolean {
-  return String(row.userId) === String(userStore.userInfo?.userId ?? '');
+  // 后端 /user/info 返回的 id 字段名为 id（非 userId），两者都兼容
+  const info = userStore.userInfo as Record<string, unknown> | null;
+  const myId = info?.id ?? info?.userId ?? '';
+  return String(row.userId) === String(myId);
 }
 </script>
 

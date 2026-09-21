@@ -1,3 +1,5 @@
+import { useAccessStore } from '@vben/stores';
+
 import { baseRequestClient, requestClient } from '#/api/request';
 
 export namespace AuthApi {
@@ -49,16 +51,27 @@ export async function loginApi(data: AuthApi.LoginParams) {
  * 刷新accessToken
  */
 export async function refreshTokenApi() {
-  return baseRequestClient.post<AuthApi.RefreshTokenResult>('/auth/refresh', {
-    withCredentials: true,
-  });
+  return baseRequestClient.post<AuthApi.RefreshTokenResult>(
+    '/auth/refresh',
+    null,
+    { withCredentials: true },
+  );
 }
 
 /**
  * 退出登录
+ *
+ * 裸 client 不带全局 Authorization 拦截器，这里手动补 Bearer 头让后端定位并移除在线会话；
+ * withCredentials 携带 httpOnly refresh cookie（后端再做一层兜底）。
  */
 export async function logoutApi() {
-  return baseRequestClient.post('/auth/logout', {
+  const accessStore = useAccessStore();
+  return baseRequestClient.post('/auth/logout', null, {
+    headers: {
+      Authorization: accessStore.accessToken
+        ? `Bearer ${accessStore.accessToken}`
+        : undefined,
+    },
     withCredentials: true,
   });
 }

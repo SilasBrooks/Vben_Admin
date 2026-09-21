@@ -160,17 +160,34 @@ public class AuthController {
 
   /**
    * 登出：清除 refreshToken Cookie 并移除在线会话。幂等，未登录也返回成功。
+   *
+   * <p>定位会话的凭据顺序：①Authorization: Bearer access token（curl/显式带 token 的客户端）；
+   * ②httpOnly refresh cookie（前端右上角退出走裸 client 不带 Authorization 头，
+   * 但 withCredentials 会带上 jwt cookie，refresh token 同样可解析出 userId）。
    */
   @Operation(summary = "登出", description = "清除 refreshToken Cookie 并移除在线会话；幂等")
   @PostMapping("/logout")
   public R<String> logout(HttpServletRequest request, HttpServletResponse response) {
-    // logout 在白名单中不经过认证过滤器，这里尽力解析 access token 以定位在线会话
+    Long userId = null;
     String header = request.getHeader("Authorization");
     if (header != null && header.startsWith("Bearer ")) {
       LoginUser payload = jwtTokenService.parseAccessToken(header.substring(7));
       if (payload != null) {
-        onlineSessionService.remove(payload.getUserId());
+        userId = payload.getUserId();
       }
+    }
+    if (userId == null) {
+      // 前端登出请求不带 Authorization 头：用 refresh cookie 兜底定位会话
+      String refreshToken = cookieService.read(request);
+      if (refreshToken != null && !refreshToken.isBlank()) {
+        LoginUser payload = jwtTokenService.parseRefreshToken(refreshToken);
+        if (payload != null) {
+          userId = payload.getUserId();
+        }
+      }
+    }
+    if (userId != null) {
+      onlineSessionService.remove(userId);
     }
     cookieService.clear(response);
     return R.ok("");
