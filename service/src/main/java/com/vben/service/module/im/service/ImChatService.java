@@ -48,11 +48,11 @@ public class ImChatService {
   /**
    * 可发起聊天的联系人：全部启用用户（除自己），仅暴露非敏感字段。
    *
-   * @return [{id, username, nickname}]
+   * @return [{id, username, nickname, avatar}]
    */
   public List<Map<String, Object>> peers(Long userId) {
     List<SysUser> users = userMapper.selectList(new LambdaQueryWrapper<SysUser>()
-        .select(SysUser::getId, SysUser::getUsername, SysUser::getNickname)
+        .select(SysUser::getId, SysUser::getUsername, SysUser::getNickname, SysUser::getAvatar)
         .eq(SysUser::getStatus, USER_STATUS_ENABLED)
         .ne(SysUser::getId, userId)
         .orderByAsc(SysUser::getUsername));
@@ -62,6 +62,7 @@ public class ImChatService {
           row.put("id", u.getId());
           row.put("username", u.getUsername());
           row.put("nickname", u.getNickname());
+          row.put("avatar", avatarUrl(u.getAvatar()));
           return row;
         })
         .collect(Collectors.toList());
@@ -70,7 +71,7 @@ public class ImChatService {
   /**
    * 会话列表：按聊天对方分组，含对方信息、最后一条消息与未读数，最近活跃在前。
    *
-   * @return [{peer:{id,username,nickname}, lastMessage:{id,senderId,content,createTime}, unreadCount}]
+   * @return [{peer:{id,username,nickname,avatar}, lastMessage:{id,senderId,content,createTime}, unreadCount}]
    */
   public List<Map<String, Object>> conversations(Long userId) {
     List<Map<String, Object>> summaries = messageMapper.selectConversationSummaries(userId);
@@ -102,6 +103,7 @@ public class ImChatService {
       peerMap.put("id", peer.getId());
       peerMap.put("username", peer.getUsername());
       peerMap.put("nickname", peer.getNickname());
+      peerMap.put("avatar", avatarUrl(peer.getAvatar()));
 
       Map<String, Object> lastMap = new LinkedHashMap<>();
       lastMap.put("id", last.getId());
@@ -243,6 +245,14 @@ public class ImChatService {
     payload.put("quoteContent", message.getQuoteContent());
     payload.put("createTime", message.getCreateTime());
     return payload;
+  }
+
+  /**
+   * 头像直链：sys_user.avatar 存文件 id，转成 GET /file/{id}/content（img 标签
+   * 可走 refresh cookie 回退认证）；未设置头像返回 null，前端回退首字母色块。
+   */
+  private String avatarUrl(String avatar) {
+    return (avatar == null || avatar.isBlank()) ? null : "/api/file/" + avatar + "/content";
   }
 
   /**

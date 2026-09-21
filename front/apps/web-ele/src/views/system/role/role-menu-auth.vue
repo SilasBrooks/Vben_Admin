@@ -26,6 +26,15 @@ const menuTree = ref<MenuNode[]>([]);
 const selectedIds = ref<number[]>([]);
 const roleId = ref<number>();
 
+/** 菜单标题存的是 i18n key（F 型权限码为明文，$t 缺 key 时原样透传），树展示前统一翻译 */
+function translateTitles(nodes: MenuNode[]): MenuNode[] {
+  return nodes.map((node) => ({
+    ...node,
+    title: $t(node.title),
+    children: node.children ? translateTitles(node.children) : undefined,
+  }));
+}
+
 async function init() {
   const data = modalApi.getData<{ id?: number }>();
   roleId.value = data?.id;
@@ -36,12 +45,10 @@ async function init() {
 
   // 并行加载菜单树和当前角色已分配的菜单 id
   const [tree, ids] = await Promise.all([
-    menuTree.value.length > 0
-      ? menuTree.value
-      : getMenuTreeApi(),
+    menuTree.value.length > 0 ? menuTree.value : getMenuTreeApi(),
     roleId.value ? getRoleMenuIdsApi(roleId.value) : Promise.resolve([]),
   ]);
-  menuTree.value = tree;
+  menuTree.value = translateTitles(tree);
   // 重新赋值（新数组引用，触发 v-model 响应式更新 → Tree 内部 watchEffect 重算 treeValue）
   selectedIds.value = [...ids];
 }

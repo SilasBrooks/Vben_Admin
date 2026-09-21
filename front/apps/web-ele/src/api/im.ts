@@ -2,6 +2,8 @@ import { requestClient } from '#/api/request';
 
 /** 联系人（后端仅暴露非敏感字段） */
 export interface ImPeer {
+  /** 头像直链（null=未设置，回退首字母色块） */
+  avatar: null | string;
   id: number;
   nickname: null | string;
   username: string;

@@ -24,14 +24,16 @@ import org.springframework.transaction.annotation.Transactional;
  * 初始数据装配：内置账号/角色/菜单（与前端 backend-mock 的 MOCK_USERS、
  * MOCK_MENUS、MOCK_CODES 完全对齐，保证替换 mock 后前端行为不变）。
  *
- * <p>仅当 sys_user 表为空时执行，重复启动不会重复插入。
+ * <p>
+ * 仅当 sys_user 表为空时执行，重复启动不会重复插入。
  * 生产环境请登录后立即修改默认密码，或按需调整本类。
  *
- * <p>内置账号（密码均为 123456）：
+ * <p>
+ * 内置账号（密码均为 123456）：
  * <ul>
- *   <li>vben  / 123456 —— super 超级角色，全部菜单 + 全部权限码</li>
- *   <li>admin / 123456 —— admin 管理角色，权限码 AC_100010/20/30 + System:User:List</li>
- *   <li>jack  / 123456 —— user 普通角色，权限码 AC_1000001 / AC_1000002</li>
+ * <li>vben / 123456 —— super 超级角色，全部菜单 + 全部权限码</li>
+ * <li>admin / 123456 —— admin 管理角色，权限码 AC_100010/20/30 + System:User:List</li>
+ * <li>jack / 123456 —— user 普通角色，权限码 AC_1000001 / AC_1000002</li>
  * </ul>
  */
 @Slf4j
@@ -103,11 +105,13 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long userDelete = insertMenu(perm("System:User:Delete", systemUserId));
     Long userResetPwd = insertMenu(perm("System:User:ResetPwd", systemUserId));
     // 角色管理按钮权限码（F 型，挂在角色管理菜单下，不进路由树）
+    Long roleList = insertMenu(perm("System:Role:List", systemRoleId));
     Long roleAdd = insertMenu(perm("System:Role:Add", systemRoleId));
     Long roleEdit = insertMenu(perm("System:Role:Edit", systemRoleId));
     Long roleDelete = insertMenu(perm("System:Role:Delete", systemRoleId));
     Long roleAuth = insertMenu(perm("System:Role:Auth", systemRoleId));
     // 菜单管理按钮权限码（F 型，挂在菜单管理菜单下，不进路由树）
+    Long menuList = insertMenu(perm("System:Menu:List", systemMenuId));
     Long menuAdd = insertMenu(perm("System:Menu:Add", systemMenuId));
     Long menuEdit = insertMenu(perm("System:Menu:Edit", systemMenuId));
     Long menuDelete = insertMenu(perm("System:Menu:Delete", systemMenuId));
@@ -158,8 +162,8 @@ public class DatabaseSeeder implements ApplicationRunner {
     java.util.Set<Long> systemSet = java.util.Set.of(systemCatalogId, systemUserId,
         systemRoleId, systemMenuId, systemDeptId, systemUserListId, userAdd, userEdit,
         userDelete, userResetPwd,
-        roleAdd, roleEdit, roleDelete, roleAuth,
-        menuAdd, menuEdit, menuDelete,
+        roleList, roleAdd, roleEdit, roleDelete, roleAuth,
+        menuList, menuAdd, menuEdit, menuDelete,
         deptList, deptAdd, deptEdit, deptDelete,
         dictList, dictAdd, dictEdit, dictDelete,
         systemFileId, fileList, fileUpload, fileDelete,
@@ -191,9 +195,9 @@ public class DatabaseSeeder implements ApplicationRunner {
 
     // ------------------------------------------------------------------
     // 5. 角色-菜单授权
-    //   super：全部菜单与权限
-    //   admin：全部（含 system，因 authority 含 admin）
-    //   user / stock：仅公开资源（Dashboard，不含 systemSet）
+    // super：全部菜单与权限
+    // admin：全部（含 system，因 authority 含 admin）
+    // user / stock：仅公开资源（Dashboard，不含 systemSet）
     // ------------------------------------------------------------------
     for (SysMenu m : menuMapper.selectList(null)) {
       Long id = m.getId();

@@ -5,7 +5,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { useAppConfig } from '@vben/hooks';
-import { useAccessStore } from '@vben/stores';
+import { useAccessStore, useUserStore } from '@vben/stores';
 
 import {
   ElBadge,
@@ -40,6 +40,7 @@ interface WsFrame {
 
 const { apiURL } = useAppConfig(import.meta.env, import.meta.env.PROD);
 const accessStore = useAccessStore();
+const userStore = useUserStore();
 
 const PAGE_SIZE = 20;
 const RECONNECT_DELAY = 30_000;
@@ -95,6 +96,28 @@ function peerName(peer: ImPeer): string {
 
 function avatarColor(id: number): string {
   return AVATAR_COLORS[id % AVATAR_COLORS.length]!;
+}
+
+/** 当前登录用户头像/昵称（自己消息气泡旁的头像用），未设置头像回退首字母色块 */
+const myAvatar = computed(() => userStore.userInfo?.avatar ?? '');
+const myName = computed(
+  () => userStore.userInfo?.realName || userStore.userInfo?.username || '',
+);
+
+/** 消息头像：对方消息用对方头像，自己的消息用本人头像 */
+function msgAvatar(m: ImMessage): string {
+  return m.senderId === activePeerId.value
+    ? (activePeer.value?.avatar ?? '')
+    : myAvatar.value;
+}
+
+/** 无头像时的首字母：对方取昵称/用户名，自己取本人昵称/用户名 */
+function msgInitial(m: ImMessage): string {
+  const name =
+    m.senderId === activePeerId.value
+      ? (activePeer.value ? peerName(activePeer.value) : '')
+      : myName.value;
+  return name.charAt(0).toUpperCase();
 }
 
 function formatTime(value: string): string {
@@ -506,7 +529,14 @@ onBeforeUnmount(() => {
           @click="selectConversation(conv.peer.id)"
           @contextmenu="openContextMenu($event, { conversation: conv })"
         >
+          <img
+            v-if="conv.peer.avatar"
+            :src="conv.peer.avatar"
+            class="im-avatar"
+            alt=""
+          />
           <span
+            v-else
             class="im-avatar"
             :style="{ background: avatarColor(conv.peer.id) }"
           >
@@ -572,15 +602,30 @@ onBeforeUnmount(() => {
               :class="{ 'is-own': m.senderId !== activePeer.id }"
               @contextmenu="openContextMenu($event, { message: m })"
             >
-              <div v-if="m.quoteContent" class="im-msg__quote">
-                {{ quoteText(m) }}
-              </div>
-              <div class="im-msg__bubble">{{ m.content }}</div>
-              <div class="im-msg__meta">
-                {{ formatTime(m.createTime) }}
-                <template v-if="m.senderId === activePeer.id">
-                  · {{ m.readFlag === 1 ? $t('im.read') : $t('im.unread') }}
-                </template>
+              <img
+                v-if="msgAvatar(m)"
+                :src="msgAvatar(m)"
+                class="im-msg__avatar"
+                alt=""
+              />
+              <span
+                v-else
+                class="im-msg__avatar im-msg__avatar--letter"
+                :style="{ background: avatarColor(m.senderId) }"
+              >
+                {{ msgInitial(m) }}
+              </span>
+              <div class="im-msg__content">
+                <div v-if="m.quoteContent" class="im-msg__quote">
+                  {{ quoteText(m) }}
+                </div>
+                <div class="im-msg__bubble">{{ m.content }}</div>
+                <div class="im-msg__meta">
+                  {{ formatTime(m.createTime) }}
+                  <template v-if="m.senderId === activePeer.id">
+                    · {{ m.readFlag === 1 ? $t('im.read') : $t('im.unread') }}
+                  </template>
+                </div>
               </div>
             </div>
           </div>
@@ -753,6 +798,7 @@ onBeforeUnmount(() => {
   width: 38px;
   height: 38px;
   border-radius: 50%;
+  object-fit: cover;
   font-size: 16px;
   font-weight: 600;
   color: #fff;
@@ -852,13 +898,39 @@ onBeforeUnmount(() => {
 
 .im-msg {
   display: flex;
-  flex-direction: column;
+  gap: 8px;
   align-items: flex-start;
   max-width: 70%;
 }
 
 .im-msg.is-own {
+  flex-direction: row-reverse;
   align-self: flex-end;
+}
+
+.im-msg__avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  user-select: none;
+}
+
+.im-msg__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.im-msg.is-own .im-msg__content {
   align-items: flex-end;
 }
 
@@ -884,24 +956,20 @@ onBeforeUnmount(() => {
   color: var(--el-text-color-secondary, #909399);
 }
 
+/* 微信式引用块：灰底灰字，两侧统一样式（不再有蓝底白字不可读的问题） */
 .im-msg__quote {
   margin-bottom: 4px;
-  padding: 4px 8px;
-  border-left: 2px solid var(--el-color-primary, #409eff);
+  padding: 5px 9px;
   border-radius: 4px;
-  background: var(--el-fill-color-lighter, #fafafa);
+  background: var(--el-fill-color-darker, #e9e9eb);
   font-size: 12px;
-  color: var(--el-text-color-secondary, #909399);
+  line-height: 1.4;
+  color: #8b8b8b;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   word-break: break-word;
-}
-
-.im-msg.is-own .im-msg__quote {
-  background: rgb(255 255 255 / 60%);
-  color: rgb(255 255 255 / 85%);
 }
 
 .im-quote-bar {
