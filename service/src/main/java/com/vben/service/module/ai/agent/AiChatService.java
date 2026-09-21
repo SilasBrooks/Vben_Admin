@@ -1,5 +1,10 @@
 package com.vben.service.module.ai.agent;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vben.service.common.BizException;
+import com.vben.service.module.ai.agent.plan.AiPlanService;
+import com.vben.service.module.ai.agent.plan.PlanModels;
 import com.vben.service.module.ai.client.AiUpstreamException;
 import com.vben.service.module.ai.client.CancelToken;
 import com.vben.service.module.ai.client.DeepMessage;
@@ -9,13 +14,14 @@ import com.vben.service.module.ai.client.ToolCall;
 import com.vben.service.module.ai.config.AiProperties;
 import com.vben.service.module.ai.tool.AiToolDef;
 import com.vben.service.module.ai.tool.AiToolExecutor;
-import com.vben.service.module.ai.tool.AiToolResult;
 import com.vben.service.module.ai.tool.AiToolKind;
-import com.vben.service.module.ai.tool.AiTools;
+import com.vben.service.module.ai.tool.AiToolRegistry;
+import com.vben.service.module.ai.tool.AiToolResult;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +29,12 @@ import org.springframework.stereotype.Service;
  * Agent 编排：在无状态后端上驱动「模型 ↔ 工具」循环。
  *
  * <ul>
- *   <li>查询工具：同请求内自动执行，结果作为 role=tool 消息回喂，模型继续作答</li>
- *   <li>新增工具：不执行，下发确认卡片后结束本轮；用户确认由前端再次发起请求驱动</li>
+ *   <li>查询工具：同请求内自动执行，结果作为 role=tool 消息回喂，模型继续作答；
+ *       可连续多轮自主调用（如先查部门再查角色最后作答）</li>
+ *   <li>单个写操作：不下发执行，弹确认卡片后结束本轮，用户确认由前端再次发起请求驱动</li>
+ *   <li>多步写任务（≥2 个写操作或步骤有依赖）：模型调用 submit_plan 提交计划，
+ *       服务端校验后下发计划卡；用户确认走 /ai/plan/execute 顺序执行，高危步骤二次确认</li>
+ *   <li>工具清单由 {@link AiToolRegistry} 按当前用户权限动态下发，新增工具只需加注解</li>
  *   <li>每轮产生的消息通过 {@link AiChatSink#history} 让前端持久化，保证下轮请求协议完整</li>
  * </ul>
  */
@@ -43,15 +53,17 @@ public class AiChatService {
   private static final String SYSTEM_PROMPT = """
       你是 sgy 管理系统内置的智能助手，通过对话帮助用户完成系统管理操作。
 
-      你的能力范围：
-      1. 查询用户、角色、部门、菜单信息（使用 query_* 工具，系统会自动执行并把真实数据返回给你）
-      2. 新增用户、角色、部门（使用 create_* 工具，系统会弹出确认框让用户确认后才真正创建）
-      3. 给角色分配菜单授权（使用 assign_role_menus 工具，同样需要用户确认）
+      你的具体能力以下方提供的工具清单为准：每个工具的名称、用途、参数都有中文说明，
+      只能调用清单中列出的工具。随系统功能扩展，工具会自动增多，无需假设只有固定几类。
 
       工作规则：
-      - 只能基于工具返回的真实数据回答，绝不编造 id、部门、角色、用户或菜单
-      - 创建类操作信息不全时（如缺少用户名、部门名称不明确），先向用户追问，不要猜测或使用占位值
-      - 菜单授权是全量替换（会清除该角色原有授权）：分配前必须先与用户确认完整菜单清单，并先用查询菜单工具核对菜单的准确名称
+      - 只能基于工具返回的真实数据回答，绝不编造 id、部门、角色、用户或菜单等任何事实信息
+      - 查询类工具可以连续自主调用（例如先查部门再查角色），拿到足够信息后再一次性回答用户
+      - 单个写操作：调用对应写工具，系统会弹确认框让用户确认后才真正执行
+      - 多步写任务（两个及以上写操作，或步骤间有先后依赖，如"建部门、建角色并授权、再建账号"）：
+        必须先调用 submit_plan 提交完整执行计划，不要绕过计划直接逐个调用写工具；
+        计划步骤按真实执行顺序排列，参数要完整，信息不全时先向用户追问而不是猜测或使用占位值
+      - 菜单授权是全量替换（会清除该角色原有授权）：分配前必须先与用户确认完整菜单清单，并先用查询菜单工具核对准确名称
       - 工具返回"权限不足"时，直接告知用户"你的权限不足"，并简要说明缺少的权限，不要重复尝试该操作
       - 工具返回"未找到/参数错误"时，用简洁中文向用户解释原因并给出下一步建议
       - 回答使用简洁中文纯文本，可用短横线列举，不要使用 markdown 表格，不要输出 JSON
@@ -61,7 +73,10 @@ public class AiChatService {
 
   private final DeepSeekClient deepSeekClient;
   private final AiToolExecutor toolExecutor;
+  private final AiToolRegistry toolRegistry;
+  private final AiPlanService planService;
   private final AiProperties properties;
+  private final ObjectMapper objectMapper;
 
   /**
    * 执行一轮对话（可能内部包含多轮工具调用）。
@@ -74,11 +89,22 @@ public class AiChatService {
     messages.addAll(sanitize(inbound));
 
     int toolRounds = 0;
+    LoginUser currentUser = LoginUserHolder.get();
     while (true) {
       // 超过自动工具轮数上限后不再下发工具，强制模型基于已有信息作答
-      boolean toolsAvailable = toolRounds < properties.getMaxToolRounds();
-      List<java.util.Map<String, Object>> tools =
-          toolsAvailable ? AiTools.schemas() : List.of();
+      boolean toolsAvailable = toolRounds < properties.getMaxToolRounds() && currentUser != null;
+      List<Map<String, Object>> tools = new ArrayList<>();
+      boolean writeToolAvailable = false;
+      if (toolsAvailable) {
+        // 只下发当前用户有权限的工具，无权限工具对模型不可见
+        tools.addAll(toolRegistry.schemasFor(currentUser));
+        writeToolAvailable = toolRegistry.all().stream()
+            .anyMatch(d -> d.kind() == AiToolKind.WRITE && toolRegistry.canUse(currentUser, d));
+        // 至少拥有一个写工具时才开放"提交计划"元工具
+        if (writeToolAvailable) {
+          tools.add(PlanModels.submitPlanSchema());
+        }
+      }
 
       StringBuilder contentBuffer = new StringBuilder();
       List<ToolCall> calls = new ArrayList<>();
@@ -111,21 +137,38 @@ public class AiChatService {
       }
 
       toolRounds++;
-      LoginUser currentUser = LoginUserHolder.get();
       List<DeepMessage> autoResults = new ArrayList<>();
-      boolean hasCreate = false;
+      boolean hasPendingWrite = false;
+      boolean hasPendingPlan = false;
       for (ToolCall call : calls) {
-        AiToolDef def = AiTools.require(call.function().name());
+        // 元工具：提交多步执行计划
+        if (PlanModels.SUBMIT_PLAN.equals(call.function().name())) {
+          try {
+            JsonNode planArgs = parsePlanArgs(call.function().arguments());
+            String goal = planArgs.path("goal").asText("");
+            List<PlanModels.StoredStep> steps =
+                planService.validateSubmitted(planArgs, currentUser);
+            sink.plan(call.id(), goal, steps);
+            hasPendingPlan = true;
+          } catch (BizException e) {
+            // 计划本身不合法（工具不存在/无权限/参数形态错）：回喂模型修正后重新提交
+            autoResults.add(DeepMessage.toolResult(call.id(),
+                "计划未通过校验：" + e.getMessage() + "。请修正计划后重新调用 submit_plan。"));
+          }
+          continue;
+        }
+
+        AiToolDef def = toolRegistry.requireDef(call.function().name());
         if (def.kind() == AiToolKind.QUERY) {
           AiToolResult result = toolExecutor.runQuiet(call.function().name(),
               call.function().arguments());
           autoResults.add(DeepMessage.toolResult(call.id(), result.content()));
-        } else if (currentUser == null || !currentUser.hasPermission(def.permission())) {
+        } else if (!toolRegistry.canUse(currentUser, def)) {
           // 无权限：不下发确认卡片，把权限不足回喂模型，由模型直接告知用户
           autoResults.add(DeepMessage.toolResult(call.id(),
               "权限不足：当前账号没有「" + def.title() + "」的权限"));
         } else {
-          hasCreate = true;
+          hasPendingWrite = true;
           sink.toolCall(new PendingToolCall(
               call.id(), call.function().name(), def.title(), call.function().arguments()));
         }
@@ -135,12 +178,23 @@ public class AiChatService {
         sink.history(autoResults);
       }
 
-      // 存在待确认的写操作：暂停循环，等前端确认后再次发起请求
-      if (hasCreate) {
+      // 存在待确认的计划或写操作：暂停循环，等前端确认后再次发起请求
+      if (hasPendingPlan || hasPendingWrite) {
         sink.done();
         return;
       }
-      // 仅查询工具：带着结果继续下一轮模型调用
+      // 仅查询工具（或计划校验失败回喂）：带着结果继续下一轮模型调用
+    }
+  }
+
+  private JsonNode parsePlanArgs(String argsJson) {
+    try {
+      if (argsJson == null || argsJson.isBlank()) {
+        return objectMapper.createObjectNode();
+      }
+      return objectMapper.readTree(argsJson);
+    } catch (Exception e) {
+      throw BizException.badRequest("error.ai.badJson");
     }
   }
 

@@ -3,9 +3,14 @@ import { ref } from 'vue';
 import { useUserStore } from '@vben/stores';
 
 import {
+  continueAiPlanStream,
+  executeAiPlanStream,
   executeAiToolApi,
   streamAiChat,
   summarizeAiChatApi,
+  type AiPlanPayload,
+  type AiPlanStep,
+  type AiPlanStepResult,
   type AiToolCallPayload,
   type AiWireMessage,
 } from '#/api/ai/chat';
@@ -30,6 +35,38 @@ export interface AiToolCardState extends AiToolCallPayload {
   summary?: string;
 }
 
+/** 计划步骤状态 */
+export type PlanStepStatus =
+  | 'cancelled'
+  | 'done'
+  | 'error'
+  | 'executing'
+  | 'need_confirm'
+  | 'pending';
+
+export interface PlanStepState extends AiPlanStep {
+  errorMsg?: string;
+  status: PlanStepStatus;
+  summary?: string;
+}
+
+export type PlanStatus =
+  | 'cancelled'
+  | 'completed'
+  | 'executing'
+  | 'failed'
+  | 'need_confirm'
+  | 'pending';
+
+export interface AiPlanCardState {
+  goal: string;
+  /** 高危步骤待二次确认时的 planId */
+  planId?: string;
+  status: PlanStatus;
+  steps: PlanStepState[];
+  toolCallId: string;
+}
+
 /** 前端会话消息（含 UI 状态） */
 export interface AiChatMessage {
   /** 助手消息内的确认卡片 */
@@ -37,6 +74,8 @@ export interface AiChatMessage {
   content?: null | string;
   id: number;
   isError?: boolean;
+  /** 助手消息内的计划卡 */
+  planCards?: AiPlanCardState[];
   role: 'assistant' | 'tool' | 'user';
   /** 正在流式输出中 */
   streaming?: boolean;
@@ -50,6 +89,15 @@ let messageIdSeed = 1;
 
 function nextId() {
   return messageIdSeed++;
+}
+
+/** JSON 字符串安全解析（解析失败原样返回） */
+function safeParse(text: string): any {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 /** 本地持久化 key 前缀（按用户 id 隔离），v1 为结构版本 */
@@ -160,6 +208,7 @@ export function useAiChat() {
         },
         onHistory: (entries) => reconcileHistory(entries),
         onToolCall: (payload) => attachCard(payload),
+        onPlan: (payload) => attachPlan(payload),
         onDone: () => finishRound(),
         onError: (message) => {
           const bubble = ensureActiveBubble();
@@ -206,6 +255,227 @@ export function useAiChat() {
       '用户已取消该操作，未执行任何数据变更，请用一句话告知用户操作已取消',
     );
     await send();
+  }
+
+  // ----------------------------------------------------------------
+  // 多步计划（plan-and-execute）
+  // ----------------------------------------------------------------
+
+  /** chat 流中的 plan 事件：把计划卡挂到发起 submit_plan 的助手气泡上 */
+  function attachPlan(payload: AiPlanPayload) {
+    const target = [...messages.value]
+      .reverse()
+      .find(
+        (m) =>
+          m.role === 'assistant' &&
+          m.toolCalls?.some((tc) => tc.id === payload.toolCallId),
+      );
+    if (!target) return;
+    target.planCards ??= [];
+    if (
+      !target.planCards.some((p) => p.toolCallId === payload.toolCallId)
+    ) {
+      target.planCards.push({
+        goal: payload.goal,
+        status: 'pending',
+        toolCallId: payload.toolCallId,
+        steps: payload.steps.map((s) => ({
+          ...s,
+          args: typeof s.args === 'string' ? safeParse(s.args) : s.args,
+          status: 'pending',
+        })),
+      });
+    }
+  }
+
+  /** 确认执行整个计划（SSE 步骤流） */
+  async function confirmPlan(plan: AiPlanCardState) {
+    await runPlanStream(
+      (signal) =>
+        executeAiPlanStream(
+          plan.goal,
+          plan.steps.map((s) => ({
+            args: s.args,
+            reason: s.reason,
+            tool: s.tool,
+          })),
+          planHandlers(plan),
+          signal,
+        ),
+      plan,
+    );
+  }
+
+  /** 计划卡整体取消（尚未开始执行） */
+  async function cancelPlan(plan: AiPlanCardState) {
+    plan.status = 'cancelled';
+    for (const s of plan.steps) {
+      if (s.status === 'pending' || s.status === 'need_confirm') {
+        s.status = 'cancelled';
+      }
+    }
+    pushToolMessage(
+      plan.toolCallId,
+      '用户已取消该执行计划，未执行任何数据变更，请用一句话告知用户计划已取消',
+    );
+    persist();
+    await send();
+  }
+
+  /** 高危步骤二次确认后继续 */
+  async function confirmDangerStep(plan: AiPlanCardState) {
+    if (!plan.planId) return;
+    await runPlanStream(
+      (signal) =>
+        continueAiPlanStream(plan.planId as string, true, planHandlers(plan), signal),
+      plan,
+    );
+  }
+
+  /** 高危步骤取消：后续步骤全部作废 */
+  async function cancelDangerStep(plan: AiPlanCardState) {
+    if (!plan.planId) return;
+    await runPlanStream(
+      (signal) =>
+        continueAiPlanStream(plan.planId as string, false, planHandlers(plan), signal),
+      plan,
+    );
+  }
+
+  /**
+   * 计划流公共执行壳：管理 loading/controller 生命周期；
+   * 流结束后若计划已终态，把结果作为 submit_plan 的 tool 消息回喂模型汇报。
+   */
+  async function runPlanStream(
+    invoke: (signal: AbortSignal) => Promise<void>,
+    plan: AiPlanCardState,
+  ) {
+    controller?.abort();
+    const planController = new AbortController();
+    controller = planController;
+    loading.value = true;
+    plan.status = 'executing';
+
+    try {
+      await invoke(planController.signal);
+    } finally {
+      if (controller === planController) {
+        controller = null;
+        loading.value = false;
+      }
+    }
+
+    // 流结束后读取最终状态（流式回调中会变更，断言拓宽避免字面量收窄）
+    const finalStatus = plan.status as PlanStatus;
+    if (finalStatus === 'need_confirm' || finalStatus === 'executing') {
+      // need_confirm：等待用户二次确认，保持现状；executing：被中断，标记失败
+      if (finalStatus === 'executing') {
+        plan.status = 'failed';
+        for (const s of plan.steps) {
+          if (s.status === 'executing') s.status = 'cancelled';
+        }
+      }
+      persist();
+      return;
+    }
+
+    // 终态：回喂结果让模型总结汇报
+    pushToolMessage(
+      plan.toolCallId,
+      JSON.stringify({
+        status: plan.status,
+        results: plan.steps.map((s) => ({
+          title: s.title,
+          status: s.status,
+          summary: s.summary ?? s.errorMsg ?? '',
+        })),
+      }),
+    );
+    persist();
+    await send();
+  }
+
+  /** 计划 SSE 事件 → 计划卡状态机（execute / continue 复用同一套处理器） */
+  function planHandlers(plan: AiPlanCardState) {
+    return {
+      onStarted: (planId: string, _goal: string, _steps: AiPlanStep[]) => {
+        plan.planId = planId;
+        plan.status = 'executing';
+        // continue 会重发 plan_started + 已完成步骤的 step_done，重放即可对齐
+      },
+      onStepStart: (index: number) => {
+        const step = plan.steps[index];
+        if (step) step.status = 'executing';
+      },
+      onStepDone: (index: number, _title: string, summary: string) => {
+        const step = plan.steps[index];
+        if (step) {
+          step.status = 'done';
+          step.summary = summary;
+          step.errorMsg = undefined;
+        }
+      },
+      onNeedConfirm: (index: number, _title: string, reason: string) => {
+        const step = plan.steps[index];
+        if (step) {
+          step.status = 'need_confirm';
+          step.errorMsg = reason;
+        }
+        plan.status = 'need_confirm';
+        persist();
+      },
+      onStepFailed: (index: number, _title: string, error: string) => {
+        const step = plan.steps[index];
+        if (step) {
+          step.status = 'error';
+          step.errorMsg = error;
+        }
+        // 失败即停：后续未执行步骤标记取消
+        for (const s of plan.steps) {
+          if (s.status === 'pending' || s.status === 'executing') {
+            s.status = 'cancelled';
+          }
+        }
+        plan.status = 'failed';
+      },
+      onPlanDone: (
+        status: 'cancelled' | 'completed' | 'failed',
+        results: AiPlanStepResult[],
+      ) => {
+        for (const r of results) {
+          const step = plan.steps[r.index];
+          if (step) {
+            step.status = r.ok ? 'done' : 'error';
+            step.summary = r.summary;
+          }
+        }
+        if (status === 'completed') {
+          for (const s of plan.steps) {
+            if (s.status === 'pending' || s.status === 'executing') {
+              s.status = 'done';
+            }
+          }
+        } else {
+          for (const s of plan.steps) {
+            if (s.status === 'pending' || s.status === 'executing' || s.status === 'need_confirm') {
+              s.status = 'cancelled';
+            }
+          }
+        }
+        plan.status = status;
+        persist();
+      },
+      onError: (message: string) => {
+        if (!message) return;
+        for (const s of plan.steps) {
+          if (s.status === 'pending' || s.status === 'executing') {
+            s.status = 'cancelled';
+          }
+        }
+        plan.status = 'failed';
+        persist();
+      },
+    };
   }
 
   // ----------------------------------------------------------------
@@ -379,8 +649,12 @@ export function useAiChat() {
 
   return {
     cancelCard,
+    cancelDangerStep,
+    cancelPlan,
     clear,
     confirmCard,
+    confirmDangerStep,
+    confirmPlan,
     loading,
     messages,
     send,

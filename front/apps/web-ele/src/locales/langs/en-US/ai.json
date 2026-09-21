@@ -19,5 +19,21 @@
     "cancel": "Cancel",
     "executing": "Executing...",
     "cancelled": "Cancelled"
+  },
+  "plan": {
+    "title": "Execution Plan",
+    "step": "Step",
+    "danger": "Danger",
+    "confirmPlan": "Confirm plan",
+    "cancelPlan": "Cancel plan",
+    "running": "Running...",
+    "awaitingConfirm": "Waiting for confirmation on a dangerous step",
+    "dangerConfirmTitle": "This step is a dangerous, irreversible operation (delete/reset). Continue?",
+    "dangerConfirm": "Execute anyway",
+    "dangerCancel": "Abort remaining steps",
+    "completed": "✅ Plan completed",
+    "failed": "❌ Plan failed and was stopped",
+    "cancelled": "Plan cancelled",
+    "statusPending": "Pending"
   }
 }

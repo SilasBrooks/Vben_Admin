@@ -19,5 +19,21 @@
     "cancel": "取消",
     "executing": "执行中...",
     "cancelled": "已取消"
+  },
+  "plan": {
+    "title": "执行计划",
+    "step": "步骤",
+    "danger": "高危",
+    "confirmPlan": "确认执行计划",
+    "cancelPlan": "取消计划",
+    "running": "执行中...",
+    "awaitingConfirm": "高危步骤等待确认",
+    "dangerConfirmTitle": "该步骤为高危操作，删除/重置等不可逆变更，确认继续？",
+    "dangerConfirm": "仍要执行",
+    "dangerCancel": "放弃后续步骤",
+    "completed": "✅ 计划已全部完成",
+    "failed": "❌ 计划执行失败，已终止",
+    "cancelled": "计划已取消",
+    "statusPending": "等待执行"
   }
 }

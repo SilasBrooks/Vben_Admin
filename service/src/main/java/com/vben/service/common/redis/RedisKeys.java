@@ -45,4 +45,9 @@ public final class RedisKeys {
   public static String onlinePattern() {
     return PREFIX + "online:*";
   }
+
+  /** AI 多步计划暂停态（遇高危步骤二次确认）：vben:ai:plan:{planId}，TTL 10 分钟 */
+  public static String aiPlan(String planId) {
+    return PREFIX + "ai:plan:" + planId;
+  }
 }

@@ -4,9 +4,22 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { $t } from '#/locales';
 
 import { useAiChat } from './use-ai-chat';
+import PlanCard from './PlanCard.vue';
 import { formatCardArgs } from './tool-labels';
 
-const { messages, loading, send, stop, clear, confirmCard, cancelCard } = useAiChat();
+const {
+  messages,
+  loading,
+  send,
+  stop,
+  clear,
+  confirmCard,
+  cancelCard,
+  confirmPlan,
+  cancelPlan,
+  confirmDangerStep,
+  cancelDangerStep,
+} = useAiChat();
 
 const open = ref(false);
 const inputText = ref('');
@@ -131,6 +144,17 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
             <img src="/logo.png" alt="" class="ai-avatar" />
             <div class="ai-bubble ai-bubble--bot" :class="{ 'is-error': msg.isError }">
               <span v-if="msg.content" class="ai-bubble__text">{{ msg.content }}</span>
+
+              <!-- 计划卡（多步任务） -->
+              <PlanCard
+                v-for="plan in msg.planCards"
+                :key="plan.toolCallId"
+                :plan="plan"
+                @confirm="confirmPlan(plan)"
+                @cancel="cancelPlan(plan)"
+                @danger-confirm="confirmDangerStep(plan)"
+                @danger-cancel="cancelDangerStep(plan)"
+              />
 
               <!-- 确认卡片 -->
               <div v-for="card in msg.cards" :key="card.toolCallId" class="ai-card">

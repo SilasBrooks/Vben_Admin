@@ -25,6 +25,54 @@ export interface AiToolCallPayload {
   toolName: string;
 }
 
+/** 计划卡中的单个步骤（服务端下发，标题/高危标记以服务端为准） */
+export interface AiPlanStep {
+  args: Record<string, any> | string;
+  danger: boolean;
+  index: number;
+  reason: string;
+  title: string;
+  tool: string;
+}
+
+/** chat SSE 的 plan 事件载荷 */
+export interface AiPlanPayload {
+  goal: string;
+  steps: AiPlanStep[];
+  toolCallId: string;
+}
+
+/** 计划执行结果条目（plan_done 事件） */
+export interface AiPlanStepResult {
+  index: number;
+  ok: boolean;
+  summary: string;
+  title: string;
+}
+
+export interface PlanStreamHandlers {
+  /** 计划开始（planId 用于高危步骤继续/取消） */
+  onStarted: (
+    planId: string,
+    goal: string,
+    steps: AiPlanStep[],
+  ) => void;
+  /** 某步开始 */
+  onStepStart: (index: number, title: string) => void;
+  /** 某步成功 */
+  onStepDone: (index: number, title: string, summary: string) => void;
+  /** 高危步骤等待二次确认 */
+  onNeedConfirm: (index: number, title: string, reason: string) => void;
+  /** 某步失败 */
+  onStepFailed: (index: number, title: string, error: string) => void;
+  /** 计划结束：completed / cancelled / failed */
+  onPlanDone: (
+    status: 'cancelled' | 'completed' | 'failed',
+    results: AiPlanStepResult[],
+  ) => void;
+  onError: (message: string) => void;
+}
+
 export interface StreamHandlers {
   /** 正文片段 */
   onDelta: (text: string) => void;
@@ -32,6 +80,8 @@ export interface StreamHandlers {
   onHistory: (messages: AiWireMessage[]) => void;
   /** 待确认的写操作 */
   onToolCall: (payload: AiToolCallPayload) => void;
+  /** 多步任务执行计划，待用户确认 */
+  onPlan: (payload: AiPlanPayload) => void;
   /** 本轮结束 */
   onDone: () => void;
   /** 可展示的错误 */
@@ -58,30 +108,139 @@ export async function streamAiChat(
   handlers: StreamHandlers,
   signal?: AbortSignal,
 ): Promise<void> {
+  await ssePost(
+    '/ai/chat',
+    { messages },
+    (eventName: string, payload: any) => {
+      switch (eventName) {
+        case 'delta': {
+          handlers.onDelta(payload.text ?? '');
+          break;
+        }
+        case 'history': {
+          handlers.onHistory(Array.isArray(payload.messages) ? payload.messages : []);
+          break;
+        }
+        case 'toolcall': {
+          handlers.onToolCall(payload as AiToolCallPayload);
+          break;
+        }
+        case 'plan': {
+          handlers.onPlan(payload as AiPlanPayload);
+          break;
+        }
+        case 'done': {
+          handlers.onDone();
+          break;
+        }
+        case 'error': {
+          handlers.onError(payload.message ?? 'AI 服务异常');
+          break;
+        }
+      }
+    },
+    handlers,
+    signal,
+  );
+}
+
+/** 用户确认计划后顺序执行（SSE 步骤流） */
+export async function executeAiPlanStream(
+  goal: string,
+  steps: Array<{ args: any; reason: string; tool: string }>,
+  handlers: PlanStreamHandlers,
+  signal?: AbortSignal,
+): Promise<void> {
+  await ssePost('/ai/plan/execute', { goal, steps }, makePlanDispatcher(handlers), handlers, signal);
+}
+
+/** 高危步骤二次确认（confirmed=true）或取消（false）后继续（SSE） */
+export async function continueAiPlanStream(
+  planId: string,
+  confirmed: boolean,
+  handlers: PlanStreamHandlers,
+  signal?: AbortSignal,
+): Promise<void> {
+  await ssePost(
+    '/ai/plan/continue',
+    { confirmed, planId },
+    makePlanDispatcher(handlers),
+    handlers,
+    signal,
+  );
+}
+
+/** 计划 SSE 事件分发（execute / continue 复用） */
+function makePlanDispatcher(handlers: PlanStreamHandlers) {
+  return (eventName: string, payload: any) => {
+    switch (eventName) {
+      case 'plan_started': {
+        handlers.onStarted(payload.planId, payload.goal ?? '', payload.steps ?? []);
+        break;
+      }
+      case 'step_start': {
+        handlers.onStepStart(payload.index, payload.title);
+        break;
+      }
+      case 'step_done': {
+        handlers.onStepDone(payload.index, payload.title, payload.summary ?? '');
+        break;
+      }
+      case 'step_need_confirm': {
+        handlers.onNeedConfirm(payload.index, payload.title, payload.reason ?? '');
+        break;
+      }
+      case 'step_failed': {
+        handlers.onStepFailed(payload.index, payload.title, payload.error ?? '执行失败');
+        break;
+      }
+      case 'plan_done': {
+        handlers.onPlanDone(payload.status, payload.results ?? []);
+        break;
+      }
+      case 'plan_error':
+      case 'error': {
+        handlers.onError(payload.message ?? '计划执行异常');
+        break;
+      }
+    }
+  };
+}
+
+/**
+ * AI 接口通用 SSE POST：Bearer 认证 + ReadableStream 按空行切事件。
+ * @param dispatch 事件回调（event 名称 + data JSON）
+ */
+async function ssePost(
+  path: string,
+  body: unknown,
+  dispatch: (eventName: string, payload: any) => void,
+  errorHandlers: { onError: (message: string) => void },
+  signal?: AbortSignal,
+): Promise<void> {
   const accessStore = useAccessStore();
   let response: Response;
   try {
-    response = await fetch(`${apiURL}/ai/chat`, {
+    response = await fetch(`${apiURL}${path}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${accessStore.accessToken ?? ''}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify(body),
       signal,
     });
-  } catch (error) {
+  } catch {
     if (signal?.aborted) {
-      handlers.onDone();
+      errorHandlers.onError('');
       return;
     }
-    handlers.onError('网络异常，无法连接 AI 服务');
+    errorHandlers.onError('网络异常，无法连接 AI 服务');
     return;
   }
 
   if (!response.ok || !response.body) {
-    const message = await readErrorMessage(response);
-    handlers.onError(message);
+    errorHandlers.onError(await readErrorMessage(response));
     return;
   }
 
@@ -95,21 +254,19 @@ export async function streamAiChat(
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      // SSE 事件以空行分隔
       let separatorIndex: number;
       while ((separatorIndex = buffer.indexOf('\n\n')) !== -1) {
         const rawEvent = buffer.slice(0, separatorIndex);
         buffer = buffer.slice(separatorIndex + 2);
-        dispatchEvent(rawEvent, handlers);
+        dispatchSseEvent(rawEvent, dispatch);
       }
     }
-    // 刷新缓冲区尾部
     if (buffer.trim()) {
-      dispatchEvent(buffer, handlers);
+      dispatchSseEvent(buffer, dispatch);
     }
   } catch {
     if (!signal?.aborted) {
-      handlers.onError('读取 AI 响应流中断，请稍后重试');
+      errorHandlers.onError('读取 AI 响应流中断，请稍后重试');
     }
   }
 }
@@ -143,8 +300,11 @@ export async function summarizeAiChatApi(
 
 // ------------------------------------------------------------------
 
-/** 解析单个 SSE 事件块（event: 名称 + data: JSON） */
-function dispatchEvent(rawEvent: string, handlers: StreamHandlers) {
+/** 解析单个 SSE 事件块（event: 名称 + data: JSON）后回调分发 */
+function dispatchSseEvent(
+  rawEvent: string,
+  dispatch: (eventName: string, payload: any) => void,
+) {
   let eventName = '';
   const dataLines: string[] = [];
   for (const line of rawEvent.split('\n')) {
@@ -163,28 +323,7 @@ function dispatchEvent(rawEvent: string, handlers: StreamHandlers) {
   } catch {
     return;
   }
-  switch (eventName) {
-    case 'delta': {
-      handlers.onDelta(payload.text ?? '');
-      break;
-    }
-    case 'history': {
-      handlers.onHistory(Array.isArray(payload.messages) ? payload.messages : []);
-      break;
-    }
-    case 'toolcall': {
-      handlers.onToolCall(payload as AiToolCallPayload);
-      break;
-    }
-    case 'done': {
-      handlers.onDone();
-      break;
-    }
-    case 'error': {
-      handlers.onError(payload.message ?? 'AI 服务异常');
-      break;
-    }
-  }
+  dispatch(eventName, payload);
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
