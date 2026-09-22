@@ -12,7 +12,8 @@
     "suggestionUsers": "List all users",
     "placeholder": "Type a message. Enter to send, Shift+Enter for a new line",
     "send": "Send",
-    "stop": "Stop"
+    "stop": "Stop",
+    "thinking": "Thinking"
   },
   "card": {
     "confirmExecute": "Confirm execution",

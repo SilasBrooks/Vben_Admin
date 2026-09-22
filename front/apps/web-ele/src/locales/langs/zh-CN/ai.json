@@ -12,7 +12,8 @@
     "suggestionUsers": "查一下有哪些用户",
     "placeholder": "输入消息，Enter 发送，Shift+Enter 换行",
     "send": "发送",
-    "stop": "停止"
+    "stop": "停止",
+    "thinking": "思考中"
   },
   "card": {
     "confirmExecute": "确认执行",

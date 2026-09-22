@@ -79,6 +79,10 @@ export interface AiChatMessage {
   role: 'assistant' | 'tool' | 'user';
   /** 正在流式输出中 */
   streaming?: boolean;
+  /** 等待首个流式片段：显示「思考中」加载态 */
+  thinking?: boolean;
+  /** thinking 起始时间戳，用于「已处理 Ns」计时 */
+  thinkingStart?: number;
   /** role=tool 的关联 id（不渲染气泡，但要回传） */
   toolCallId?: string;
   /** 助手发起的工具调用（回传给后端） */
@@ -199,11 +203,28 @@ export function useAiChat() {
     loading.value = true;
     activeId = null;
 
+    // 立即创建带「思考中」态的助手气泡，避免发送后到首 delta 之间界面空白无反馈
+    const thinkingBubble: AiChatMessage = {
+      content: '',
+      id: nextId(),
+      role: 'assistant',
+      streaming: true,
+      thinking: true,
+      thinkingStart: Date.now(),
+    };
+    messages.value.push(thinkingBubble);
+    activeId = thinkingBubble.id;
+
     await streamAiChat(
       wire,
       {
         onDelta: (delta) => {
           const bubble = ensureActiveBubble();
+          // 首片段到达：退出思考态
+          if (bubble.thinking) {
+            bubble.thinking = false;
+            bubble.thinkingStart = undefined;
+          }
           bubble.content = (bubble.content ?? '') + delta;
         },
         onHistory: (entries) => reconcileHistory(entries),
@@ -501,7 +522,11 @@ export function useAiChat() {
   function finalizeActive() {
     if (activeId !== null) {
       const found = messages.value.find((m) => m.id === activeId);
-      if (found) found.streaming = false;
+      if (found) {
+        found.streaming = false;
+        found.thinking = false;
+        found.thinkingStart = undefined;
+      }
       activeId = null;
     }
   }
@@ -528,6 +553,8 @@ export function useAiChat() {
         if (bubble) {
           bubble.content = entry.content;
           bubble.streaming = false;
+          bubble.thinking = false;
+          bubble.thinkingStart = undefined;
           bubble.toolCalls = entry.tool_calls?.map((tc) => ({
             arguments: tc.function.arguments,
             id: tc.id,
