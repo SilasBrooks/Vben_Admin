@@ -1,6 +1,6 @@
 # Vben Admin 管理系统
 
-> 企业级中后台管理系统：**Spring Boot 3 (JDK 21) + MyBatis-Plus + PostgreSQL** 后端，**Vue 3 + Vite + Element Plus（Vben Admin 5.7）** 前端，内置**按钮级 RBAC 权限体系**与 **AI 智能助手（DeepSeek Agent 编排）**。
+> 企业级中后台管理系统：**Spring Boot 3 (JDK 21) + MyBatis-Plus + PostgreSQL** 后端，**Vue 3 + Vite + Element Plus（Vben Admin 5.7）** 前端，内置**按钮级 RBAC 权限体系**与 **AI 智能助手（可插拔 LLM Agent 编排）**。
 >
 > 前后端完全分离、服务端无状态（JWT 双 Token），开箱即可对接 Vben Admin 前端，也可作为新项目的权限底座二次开发。
 
@@ -133,8 +133,6 @@ pnpm dev
 │       ├── security/         # JWT 过滤器、权限拦截器、登录用户上下文
 │       └── module/           # 业务模块：auth / user / system(角色部门) / menu / monitor / ai
 │   └── src/main/resources/db/  # schema-postgres.sql / data.sql（幂等）
-├── docs/
-│   └── tech-overview.md      # 技术架构全景说明（模块级细节）
 └── openspec/                 # 规范驱动开发：变更提案与归档
 ```
 
@@ -173,5 +171,4 @@ pnpm dev
 
 ## 相关文档
 
-- [技术架构全景说明](docs/tech-overview.md) —— 后端每个模块的职责、实现位置与设计细节
 - [变更归档](openspec/changes/archive/) —— 每个功能的 proposal / design / spec / tasks 全过程记录
