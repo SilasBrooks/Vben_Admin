@@ -115,6 +115,9 @@ watch(
         </template>
       </ElTableColumn>
       <ElTableColumn :label="$t('notice.colTitle')" min-width="220" prop="title" show-overflow-tooltip />
+      <ElTableColumn :label="$t('notice.colPublisher')" width="110">
+        <template #default="{ row }">{{ row.publisher ?? '—' }}</template>
+      </ElTableColumn>
       <ElTableColumn :label="$t('notice.colContent')" min-width="320" prop="content" show-overflow-tooltip />
       <ElTableColumn :label="$t('notice.colTime')" width="180">
         <template #default="{ row }">{{ formatTime(row.createTime) }}</template>

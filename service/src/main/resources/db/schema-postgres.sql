@@ -235,6 +235,7 @@ CREATE TABLE IF NOT EXISTS sys_notice (
   title       VARCHAR(100)  NOT NULL,
   content     VARCHAR(500)  NULL,
   msg_type    VARCHAR(20)   NOT NULL DEFAULT 'security',
+  publisher   VARCHAR(64)   NULL,
   read_flag   SMALLINT      NOT NULL DEFAULT 0,
   read_time   TIMESTAMP     NULL,
   create_time TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -246,6 +247,7 @@ COMMENT ON COLUMN sys_notice.user_id IS '接收人id(sys_user.id)';
 COMMENT ON COLUMN sys_notice.title IS '通知标题';
 COMMENT ON COLUMN sys_notice.content IS '通知内容';
 COMMENT ON COLUMN sys_notice.msg_type IS '消息类型,本期仅security安全提醒';
+COMMENT ON COLUMN sys_notice.publisher IS '发布人登录名快照(公告广播时固化,安全通知为null)';
 COMMENT ON COLUMN sys_notice.read_flag IS '0未读 1已读';
 COMMENT ON COLUMN sys_notice.read_time IS '阅读时间,NULL=未读';
 

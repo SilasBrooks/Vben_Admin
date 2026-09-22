@@ -9,6 +9,7 @@ import com.vben.service.module.notice.mapper.SysNoticeMapper;
 import com.vben.service.module.notice.websocket.NoticeWebSocketHandler;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
+import com.vben.service.security.LoginUserHolder;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ public class NoticeService {
    * @param content 通知内容
    */
   public void send(Long userId, String title, String content) {
-    send(userId, title, content, MSG_TYPE_SECURITY);
+    send(userId, title, content, MSG_TYPE_SECURITY, null);
   }
 
   /**
@@ -82,8 +83,9 @@ public class NoticeService {
   public int announce(String title, String content, String targetType,
       List<Long> deptIds, List<Long> userIds) {
     List<Long> targets = resolveTargets(targetType, deptIds, userIds);
+    String publisher = LoginUserHolder.require().getUsername();
     for (Long userId : targets) {
-      send(userId, title, content, MSG_TYPE_ANNOUNCEMENT);
+      send(userId, title, content, MSG_TYPE_ANNOUNCEMENT, publisher);
     }
     return targets.size();
   }
@@ -114,13 +116,14 @@ public class NoticeService {
     return userMapper.selectList(wrapper).stream().map(SysUser::getId).toList();
   }
 
-  /** 通用发送：落库 + 推送，推送失败仅告警不影响落库 */
-  private void send(Long userId, String title, String content, String msgType) {
+  /** 通用发送：落库 + 推送，推送失败仅告警不影响落库；publisher 公告发布人（安全通知为 null） */
+  private void send(Long userId, String title, String content, String msgType, String publisher) {
     SysNotice notice = new SysNotice();
     notice.setUserId(userId);
     notice.setTitle(title);
     notice.setContent(content);
     notice.setMsgType(msgType);
+    notice.setPublisher(publisher);
     notice.setReadFlag(READ_FLAG_UNREAD);
     noticeMapper.insert(notice);
 
@@ -131,6 +134,7 @@ public class NoticeService {
       payload.put("id", notice.getId());
       payload.put("title", notice.getTitle());
       payload.put("content", notice.getContent());
+      payload.put("publisher", notice.getPublisher());
       payload.put("createTime", notice.getCreateTime());
       webSocketHandler.sendToUser(userId, payload);
     } catch (Exception e) {

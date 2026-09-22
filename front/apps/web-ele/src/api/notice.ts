@@ -10,6 +10,8 @@ export interface NoticeItem {
   readFlag: 0 | 1;
   readTime: null | string;
   title: string;
+  /** 发布人登录名快照（公告有值，安全通知为 null） */
+  publisher?: null | string;
 }
 
 /** 通知分页结果（时间倒序） */

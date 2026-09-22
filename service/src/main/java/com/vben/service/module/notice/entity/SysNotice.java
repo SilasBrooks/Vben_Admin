@@ -31,6 +31,9 @@ public class SysNotice {
   /** 消息类型：security 安全提醒（本期仅此一类） */
   private String msgType;
 
+  /** 发布人登录名快照（公告广播时固化；系统自动触发的安全通知为 null） */
+  private String publisher;
+
   /** 已读标记：0 未读 1 已读 */
   private Integer readFlag;
 

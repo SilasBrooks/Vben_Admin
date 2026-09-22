@@ -11,6 +11,7 @@
   "filterAll": "All",
   "colType": "Type",
   "colTitle": "Title",
+  "colPublisher": "Publisher",
   "colContent": "Content",
   "colTime": "Time",
   "colStatus": "Status",

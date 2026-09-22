@@ -11,6 +11,7 @@
   "filterAll": "全部",
   "colType": "类型",
   "colTitle": "标题",
+  "colPublisher": "发布人",
   "colContent": "内容",
   "colTime": "时间",
   "colStatus": "状态",

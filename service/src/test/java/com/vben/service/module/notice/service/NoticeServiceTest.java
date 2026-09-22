@@ -19,8 +19,11 @@ import com.vben.service.module.notice.mapper.SysNoticeMapper;
 import com.vben.service.module.notice.websocket.NoticeWebSocketHandler;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
+import com.vben.service.security.LoginUser;
+import com.vben.service.security.LoginUserHolder;
 import java.util.List;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -50,6 +53,13 @@ class NoticeServiceTest {
         new MapperBuilderAssistant(new MybatisConfiguration(), "");
     TableInfoHelper.initTableInfo(assistant, SysUser.class);
     TableInfoHelper.initTableInfo(assistant, SysNotice.class);
+    // announce 依赖登录态取发布人，统一注入并清理
+    LoginUserHolder.set(new LoginUser(9L, "vben", List.of(), java.util.Set.of(), 0L));
+  }
+
+  @AfterEach
+  void tearDown() {
+    LoginUserHolder.clear();
   }
 
   private static BizException biz(Runnable action) {
@@ -78,6 +88,7 @@ class NoticeServiceTest {
     assertEquals(3L, inserted.get(1).getUserId());
     assertEquals("announcement", inserted.get(0).getMsgType());
     assertEquals(0, inserted.get(0).getReadFlag());
+    assertEquals("vben", inserted.get(0).getPublisher());
     verify(webSocketHandler, times(2)).sendToUser(anyLong(), any());
   }
 

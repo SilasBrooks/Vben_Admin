@@ -196,6 +196,7 @@ CREATE TABLE IF NOT EXISTS sys_notice (
   title       VARCHAR(100)  NOT NULL COMMENT '通知标题',
   content     VARCHAR(500)  NULL COMMENT '通知内容',
   msg_type    VARCHAR(20)   NOT NULL DEFAULT 'security' COMMENT '消息类型,本期仅security安全提醒',
+  publisher   VARCHAR(64)   NULL COMMENT '发布人登录名快照(公告广播时固化,安全通知为null)',
   read_flag   TINYINT       NOT NULL DEFAULT 0 COMMENT '0未读 1已读',
   read_time   DATETIME      NULL COMMENT '阅读时间(NULL=未读)',
   create_time DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
