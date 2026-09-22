@@ -34,6 +34,7 @@
 ## 4. 编码约定
 
 ### 前端
+- **组件使用优先级**：优先使用 `front/packages/` 下已封装的组件库（`@vben/common-ui` 的 Page / VbenButton / useVbenModal、`#/adapter` 适配的 vxe-table / 表单组件等），**禁止直接使用 Element Plus 原始组件**；仅当特殊定制开发且现有封装组件无法满足需求时才允许使用原始组件。使用封装组件时必须遵循其使用规范与最佳实践（参照 `views/system/user` 等既有页面写法），保证项目 UI 一致性与代码可维护性
 - 按钮权限用 `v-access:code` 指令 + 权限码（如 `System:User:Add`）
 - `<Transition>` / `<KeepAlive>` 内组件必须单根节点；多根组件设 `inheritAttrs: false` 并在目标根元素 `v-bind="$attrs"`
 - vxe-table：搜索表单默认 `showCollapseButton: false`；树表用 treeConfig + childrenField（`transform` 模式不支持嵌套 children）；调 grid API（如 query()）前包 `nextTick()`

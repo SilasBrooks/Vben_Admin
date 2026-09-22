@@ -2,34 +2,40 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { LlmItem } from '#/api/system/llm';
 
-import { reactive, ref } from 'vue';
+import { Page, VbenButton, useVbenModal } from '@vben/common-ui';
 
-import { Page, VbenButton } from '@vben/common-ui';
-
-import {
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElInputNumber,
-  ElMessage,
-  ElMessageBox,
-  ElOption,
-  ElSelect,
-  ElSwitch,
-  ElTag,
-} from 'element-plus';
+import { ElMessage, ElMessageBox, ElTag } from 'element-plus';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import {
   activateLlmApi,
-  createLlmApi,
   deleteLlmApi,
   getLlmListApi,
   testLlmApi,
-  updateLlmApi,
 } from '#/api/system/llm';
-
 import { $t } from '#/locales';
+
+import LlmForm from './llm-form.vue';
+
+// ------------------------------------------------------------------
+// 新增/编辑弹窗（项目封装 useVbenModal，新增/编辑共用）
+// ------------------------------------------------------------------
+
+const [LlmFormModal, llmFormApi] = useVbenModal({
+  connectedComponent: LlmForm,
+});
+
+function openAdd() {
+  llmFormApi.setData({}).open();
+}
+
+function openEdit(row: LlmItem) {
+  llmFormApi.setData({ ...row }).open();
+}
+
+function onFormSaved() {
+  gridApi.reload();
+}
 
 // ------------------------------------------------------------------
 // 列表
@@ -103,94 +109,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
 });
 
 // ------------------------------------------------------------------
-// 新增/编辑表单
-// ------------------------------------------------------------------
-
-const dialogVisible = ref(false);
-const editingId = ref<null | number>(null);
-const saving = ref(false);
-
-const form = reactive({
-  apiKey: '',
-  baseUrl: '',
-  enabled: true,
-  maxTokens: undefined as undefined | number,
-  model: '',
-  name: '',
-  remark: '',
-  temperature: undefined as undefined | number,
-  timeoutSeconds: 60,
-});
-
-const formRef = ref<InstanceType<typeof ElForm>>();
-const formRules = {
-  baseUrl: [{ message: $t('llm.requiredHint'), required: true, trigger: 'blur' }],
-  model: [{ message: $t('llm.requiredHint'), required: true, trigger: 'blur' }],
-  name: [{ message: $t('llm.requiredHint'), required: true, trigger: 'blur' }],
-};
-
-function openAdd() {
-  editingId.value = null;
-  Object.assign(form, {
-    apiKey: '',
-    baseUrl: '',
-    enabled: true,
-    maxTokens: undefined,
-    model: '',
-    name: '',
-    remark: '',
-    temperature: undefined,
-    timeoutSeconds: 60,
-  });
-  dialogVisible.value = true;
-}
-
-function openEdit(row: LlmItem) {
-  editingId.value = row.id;
-  Object.assign(form, {
-    apiKey: '',
-    baseUrl: row.baseUrl,
-    enabled: row.enabled === 1,
-    maxTokens: row.maxTokens ?? undefined,
-    model: row.model,
-    name: row.name,
-    remark: row.remark ?? '',
-    temperature: row.temperature ?? undefined,
-    timeoutSeconds: row.timeoutSeconds || 60,
-  });
-  dialogVisible.value = true;
-}
-
-async function save() {
-  const valid = await formRef.value?.validate().catch(() => false);
-  if (!valid) return;
-  saving.value = true;
-  try {
-    const payload = {
-      apiKey: form.apiKey,
-      baseUrl: form.baseUrl.trim(),
-      enabled: (form.enabled ? 1 : 0) as 0 | 1,
-      maxTokens: form.maxTokens ?? null,
-      model: form.model.trim(),
-      name: form.name.trim(),
-      remark: form.remark || null,
-      temperature: form.temperature ?? null,
-      timeoutSeconds: form.timeoutSeconds || 60,
-    };
-    if (editingId.value == null) {
-      await createLlmApi(payload);
-    } else {
-      await updateLlmApi(editingId.value, payload);
-    }
-    ElMessage.success($t('llm.saveSuccess'));
-    dialogVisible.value = false;
-    gridApi.reload();
-  } finally {
-    saving.value = false;
-  }
-}
-
-// ------------------------------------------------------------------
 // 行操作
 // ------------------------------------------------------------------
 
@@ -242,6 +160,7 @@ async function remove(row: LlmItem) {
 
 <template>
   <Page auto-content-height>
+    <LlmFormModal @saved="onFormSaved" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton
@@ -313,99 +232,5 @@ async function remove(row: LlmItem) {
         </VbenButton>
       </template>
     </Grid>
-
-    <el-dialog
-      v-model="dialogVisible"
-      :title="editingId == null ? $t('llm.formTitleAdd') : $t('llm.formTitleEdit')"
-      width="560px"
-      destroy-on-close
-    >
-      <ElForm ref="formRef" :model="form" :rules="formRules" label-width="110px">
-        <ElFormItem :label="$t('llm.name')" prop="name">
-          <ElInput
-            v-model="form.name"
-            :placeholder="$t('llm.namePlaceholder')"
-            maxlength="64"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.baseUrl')" prop="baseUrl">
-          <ElInput
-            v-model="form.baseUrl"
-            :placeholder="$t('llm.baseUrlPlaceholder')"
-            maxlength="255"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.apiKey')">
-          <ElInput
-            v-model="form.apiKey"
-            type="password"
-            show-password
-            autocomplete="new-password"
-            :placeholder="
-              editingId == null ? $t('llm.apiKeyPlaceholder') : $t('llm.apiKeyEditPlaceholder')
-            "
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.model')" prop="model">
-          <ElInput
-            v-model="form.model"
-            :placeholder="$t('llm.modelPlaceholder')"
-            maxlength="64"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.temperature')">
-          <ElInputNumber
-            v-model="form.temperature"
-            :min="0"
-            :max="2"
-            :step="0.1"
-            :precision="1"
-            controls-position="right"
-            class="!w-40"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.maxTokens')">
-          <ElInputNumber
-            v-model="form.maxTokens"
-            :min="1"
-            :step="256"
-            controls-position="right"
-            class="!w-40"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.timeout')">
-          <ElSelect v-model="form.timeoutSeconds" class="!w-40">
-            <ElOption :label="30" :value="30" />
-            <ElOption :label="60" :value="60" />
-            <ElOption :label="120" :value="120" />
-            <ElOption :label="180" :value="180" />
-          </ElSelect>
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.enabled')">
-          <ElSwitch
-            v-model="form.enabled"
-            :active-text="$t('llm.enabledOn')"
-            :inactive-text="$t('llm.enabledOff')"
-          />
-        </ElFormItem>
-        <ElFormItem :label="$t('llm.remark')">
-          <ElInput
-            v-model="form.remark"
-            type="textarea"
-            :rows="2"
-            maxlength="255"
-            :placeholder="$t('llm.remarkPlaceholder')"
-          />
-        </ElFormItem>
-      </ElForm>
-      <template #footer>
-        <VbenButton variant="outline" size="sm" @click="dialogVisible = false">
-          {{ $t('llm.cancel') }}
-        </VbenButton>
-        <VbenButton variant="default" size="sm" :disabled="saving" @click="save">
-          {{ $t('llm.save') }}
-        </VbenButton>
-      </template>
-    </el-dialog>
   </Page>
 </template>
