@@ -119,7 +119,7 @@ async function testConnect(row: LlmItem) {
     duration: 0,
   });
   try {
-    const result = await testLlmApi(row.id);
+    const result = await testLlmApi(row.id, row.timeoutSeconds);
     loading.close();
     ElMessage.success(
       $t('llm.testSuccess', { model: result.model, ms: result.elapsedMs }),

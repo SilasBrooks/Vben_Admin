@@ -80,7 +80,7 @@ public class LlmClient {
     }
 
     HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(endpoint.baseUrl() + "/v1/chat/completions"))
+        .uri(chatCompletionsUri(endpoint.baseUrl()))
         .timeout(Duration.ofSeconds(endpoint.timeoutSeconds()))
         .header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + endpoint.apiKey())
@@ -127,7 +127,7 @@ public class LlmClient {
     }
 
     HttpRequest request = HttpRequest.newBuilder()
-        .uri(URI.create(endpoint.baseUrl() + "/v1/chat/completions"))
+        .uri(chatCompletionsUri(endpoint.baseUrl()))
         .timeout(Duration.ofSeconds(Math.max(endpoint.timeoutSeconds(), 60)))
         .header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + endpoint.apiKey())
@@ -248,6 +248,30 @@ public class LlmClient {
       case 429 -> "AI 请求过于频繁，请稍后再试";
       default -> "AI 服务返回错误（HTTP " + status + "），请稍后重试";
     };
+  }
+
+  /**
+   * 拼接 chat/completions 请求地址，兼容不同厂商的版本路径约定：
+   *
+   * <ul>
+   *   <li>已带版本路径段（/v1、/api/v3、/api/paas/v4 等）→ 追加 /chat/completions
+   *      （火山方舟 https://ark.cn-beijing.volces.com/api/v3、GLM、dashscope 等）
+   *   <li>已写全到 /chat/completions → 原样使用
+   *   <li>裸域名（如 DeepSeek 官方 https://api.deepseek.com）→ 按 OpenAI 惯例补 /v1 前缀
+   * </ul>
+   */
+  static URI chatCompletionsUri(String baseUrl) {
+    String root = baseUrl == null ? "" : baseUrl.trim();
+    while (root.endsWith("/")) {
+      root = root.substring(0, root.length() - 1);
+    }
+    if (root.endsWith("/chat/completions")) {
+      return URI.create(root);
+    }
+    if (root.matches(".*" + "/v\\d+$")) {
+      return URI.create(root + "/chat/completions");
+    }
+    return URI.create(root + "/v1/chat/completions");
   }
 
   /** 工具调用分片聚合器 */

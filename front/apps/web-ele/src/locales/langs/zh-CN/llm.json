@@ -5,7 +5,7 @@
   "nameSearch": "名称",
   "nameSearchPlaceholder": "按名称搜索",
   "baseUrl": "接口地址",
-  "baseUrlPlaceholder": "如 https://api.deepseek.com（不带末尾斜杠）",
+  "baseUrlPlaceholder": "如 https://api.deepseek.com 或 https://ark.cn-beijing.volces.com/api/v3（不带末尾斜杠）",
   "apiKey": "API Key",
   "apiKeyPlaceholder": "sk-...",
   "apiKeyEditPlaceholder": "留空则保持原 Key 不变",

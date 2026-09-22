@@ -5,7 +5,7 @@
   "nameSearch": "Name",
   "nameSearchPlaceholder": "Search by name",
   "baseUrl": "Base URL",
-  "baseUrlPlaceholder": "e.g. https://api.deepseek.com (no trailing slash)",
+  "baseUrlPlaceholder": "e.g. https://api.deepseek.com or https://ark.cn-beijing.volces.com/api/v3 (no trailing slash)",
   "apiKey": "API Key",
   "apiKeyPlaceholder": "sk-...",
   "apiKeyEditPlaceholder": "Leave empty to keep the current key",

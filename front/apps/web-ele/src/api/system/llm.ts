@@ -63,12 +63,14 @@ export async function activateLlmApi(id: number) {
   return requestClient.post(`/system/llm/${id}/activate`);
 }
 
-/** 连通测试：真实发一次最小补全请求 */
-export async function testLlmApi(id: number) {
+/** 连通测试：真实发一次最小补全请求（思考型模型推理耗时较长，按配置超时+5s 覆盖请求级默认 10s） */
+export async function testLlmApi(id: number, timeoutSeconds = 60) {
   return requestClient.post<{
     elapsedMs: number;
     model: string;
     ok: boolean;
     reply: string;
-  }>(`/system/llm/${id}/test`);
+  }>(`/system/llm/${id}/test`, undefined, {
+    timeout: (timeoutSeconds + 5) * 1000,
+  });
 }
