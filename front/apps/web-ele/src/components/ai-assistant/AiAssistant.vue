@@ -77,6 +77,128 @@ function toggle() {
   }
 }
 
+// ===== 对话层定位：跟随球，默认左侧，空间不足依次换右/上/下 =====
+const PANEL_W = 400;
+const PANEL_GAP = 12;
+type PanelSide = 'left' | 'right' | 'top' | 'bottom';
+const panelPos = ref({ x: 0, y: 0 });
+const panelSide = ref<PanelSide>('left');
+
+function layoutPanel() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // 面板实际高度随内容变化，按最大值（max-height）保守估算
+  const ph = Math.min(640, Math.round(vh * 0.82));
+  const fx = fabPos.value.x;
+  const fy = fabPos.value.y;
+  let x = fx - PANEL_GAP - PANEL_W;
+  let y = fy + FAB_SIZE / 2 - ph / 2;
+  let side: PanelSide = 'left';
+  // 左侧放不下 → 右侧
+  if (x < 0) {
+    x = fx + FAB_SIZE + PANEL_GAP;
+    side = 'right';
+  }
+  // 左右都放不下 → 上方够则上，否则下
+  if ((side === 'left' && x < 0) || (side === 'right' && x + PANEL_W > vw)) {
+    x = Math.min(Math.max(fx + FAB_SIZE / 2 - PANEL_W / 2, 8), vw - PANEL_W - 8);
+    if (fy - PANEL_GAP - ph >= 8) {
+      y = fy - PANEL_GAP - ph;
+      side = 'top';
+    } else {
+      y = fy + FAB_SIZE + PANEL_GAP;
+      side = 'bottom';
+    }
+  }
+  y = Math.min(Math.max(y, 8), vh - ph - 8);
+  panelPos.value = { x, y };
+  panelSide.value = side;
+}
+watch(open, (v) => {
+  if (v) layoutPanel();
+});
+
+// ===== 悬浮球：拖动 + 右侧贴边吸附 =====
+const FAB_SIZE = 56;
+const FAB_MARGIN = 24;
+/** 吸附判定：球中心距屏幕右缘 150px 内则贴边吸附 */
+const SNAP_RANGE = 150;
+
+const fabPos = ref({
+  x: window.innerWidth - FAB_MARGIN - FAB_SIZE,
+  y: window.innerHeight - FAB_MARGIN - FAB_SIZE,
+});
+const snapped = ref(false);
+const draggingNow = ref(false);
+let mouseStart: { x: number; y: number } | null = null;
+let moveOrigin: { x: number; y: number } | null = null;
+let moved = false;
+
+function clampFab(x: number, y: number) {
+  return {
+    x: Math.min(Math.max(x, 0), window.innerWidth - FAB_SIZE),
+    y: Math.min(Math.max(y, 0), window.innerHeight - FAB_SIZE),
+  };
+}
+
+function onFabMouseDown(e: MouseEvent) {
+  if (e.button !== 0) return;
+  // 阻止图片原生拖拽与文本选中
+  e.preventDefault();
+  mouseStart = { x: e.clientX, y: e.clientY };
+  moveOrigin = { ...fabPos.value };
+  moved = false;
+  window.addEventListener('mousemove', onFabMouseMove);
+  window.addEventListener('mouseup', onFabMouseUp);
+}
+
+function onFabMouseMove(e: MouseEvent) {
+  if (!mouseStart || !moveOrigin) return;
+  const dx = e.clientX - mouseStart.x;
+  const dy = e.clientY - mouseStart.y;
+  // 位移超过 5px 才算拖动，避免抖动误判单击
+  if (!moved && Math.hypot(dx, dy) < 5) return;
+  moved = true;
+  draggingNow.value = true;
+  snapped.value = false;
+  fabPos.value = clampFab(moveOrigin.x + dx, moveOrigin.y + dy);
+  // 面板打开时跟随球实时重定位
+  if (open.value) layoutPanel();
+}
+
+function onFabMouseUp() {
+  window.removeEventListener('mousemove', onFabMouseMove);
+  window.removeEventListener('mouseup', onFabMouseUp);
+  if (!moved) {
+    // 未拖动 → 单击：开/收对话层
+    toggle();
+  } else if (
+    fabPos.value.x + FAB_SIZE / 2 >=
+    window.innerWidth - SNAP_RANGE
+  ) {
+    // 拖动松开且靠近右缘 → 吸附贴边（完整可见）
+    snapped.value = true;
+    fabPos.value = clampFab(window.innerWidth - FAB_SIZE, fabPos.value.y);
+  }
+  mouseStart = null;
+  moveOrigin = null;
+  draggingNow.value = false;
+}
+
+// 窗口缩放时把球拉回可视区（吸附态保持右缘贴边），面板同步重定位
+function onWindowResize() {
+  fabPos.value = snapped.value
+    ? clampFab(window.innerWidth - FAB_SIZE, fabPos.value.y)
+    : clampFab(fabPos.value.x, fabPos.value.y);
+  if (open.value) layoutPanel();
+}
+window.addEventListener('resize', onWindowResize);
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize);
+  window.removeEventListener('mousemove', onFabMouseMove);
+  window.removeEventListener('mouseup', onFabMouseUp);
+});
+
 async function handleSend() {
   const text = inputText.value.trim();
   if (!text || loading.value) return;
@@ -116,23 +238,42 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 </script>
 
 <template>
-  <!-- 悬浮入口按钮 -->
+  <!-- 悬浮入口按钮：可拖动，靠近右缘 150px 内松开自动贴边吸附 -->
   <div
     class="ai-fab"
-    :class="{ active: open }"
+    :class="{
+      active: open,
+      'ai-fab--snapped': snapped,
+      'ai-fab--dragging': draggingNow,
+    }"
+    :style="{ left: `${fabPos.x}px`, top: `${fabPos.y}px` }"
     role="button"
     tabindex="0"
     :aria-label="open ? $t('ai.chat.closeAria') : $t('ai.chat.openAria')"
-    @click="toggle"
+    @mousedown="onFabMouseDown"
     @keydown.enter="toggle"
   >
-    <img src="/logo.png" :alt="$t('ai.chat.title')" class="ai-fab__img" />
+    <img
+      src="/logo.png"
+      :alt="$t('ai.chat.title')"
+      class="ai-fab__img"
+      draggable="false"
+    />
     <span v-if="loading" class="ai-fab__dot" />
   </div>
 
-  <!-- 聊天面板 -->
+  <!-- 聊天面板：定位跟随悬浮球（默认左侧，空间不足换右/上/下） -->
   <Transition name="ai-slide">
-    <section v-if="open" class="ai-panel">
+    <section
+      v-if="open"
+      class="ai-panel"
+      :style="{
+        left: `${panelPos.x}px`,
+        top: `${panelPos.y}px`,
+        transformOrigin:
+          panelSide === 'right' ? 'left center' : panelSide === 'left' ? 'right center' : panelSide === 'top' ? 'center bottom' : 'center top',
+      }"
+    >
       <!-- 标题栏 -->
       <header class="ai-panel__header">
         <div class="ai-panel__title">
@@ -301,8 +442,6 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 <style scoped>
 .ai-fab {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -313,13 +452,28 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
   justify-content: center;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   box-shadow: 0 4px 16px rgb(99 102 241 / 40%);
+  user-select: none;
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    transform 0.25s ease,
+    box-shadow 0.2s,
+    left 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .ai-fab:hover {
-  transform: scale(1.08);
   box-shadow: 0 6px 20px rgb(99 102 241 / 50%);
+}
+.ai-fab--dragging {
+  cursor: grabbing;
+  /* 拖动中禁用位移过渡，跟手不滞；吸附是靠松手后恢复过渡实现的缓动 */
+  transition: transform 0.15s, box-shadow 0.2s;
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgb(99 102 241 / 55%);
+}
+/* 吸附态：球完整贴屏幕右缘可见 */
+.ai-fab--snapped {
+  box-shadow:
+    -6px 0 16px rgb(99 102 241 / 35%),
+    0 4px 16px rgb(99 102 241 / 40%);
 }
 .ai-fab.active {
   transform: scale(0.9);
@@ -354,8 +508,6 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 
 .ai-panel {
   position: fixed;
-  right: 24px;
-  bottom: 24px;
   width: 400px;
   max-height: min(640px, 82vh);
   display: flex;
@@ -771,16 +923,16 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
   background: var(--el-color-danger, #f56c6c);
 }
 
-/* 动画 */
+/* 动画：缩放+渐显，方向感由 transformOrigin 按面板出现侧提供 */
 .ai-slide-enter-active,
 .ai-slide-leave-active {
   transition:
-    transform 0.25s ease,
-    opacity 0.25s ease;
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .ai-slide-enter-from,
 .ai-slide-leave-to {
-  transform: translateX(20px) scale(0.95);
+  transform: scale(0.92);
   opacity: 0;
 }
 </style>
