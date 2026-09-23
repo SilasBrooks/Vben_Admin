@@ -2,9 +2,12 @@
 # 前端镜像：多阶段构建（pnpm 构建 web-ele → nginx 托管）
 # 注意：构建上下文必须是 front/（monorepo 根），compose 中以
 #   context: ./front, dockerfile: apps/web-ele/Dockerfile 指定
-# 基础镜像走国内镜像源前缀 docker.1ms.run，海外环境可整体去掉该前缀
+# 基础镜像源前缀可通过构建参数覆盖：本地默认国内源 docker.1ms.run，
+# 海外环境（如 GitHub Actions）构建时传 BASE_IMAGE_PREFIX=（空）走官方源
 # ---------------------------------------------------------------------------
-FROM docker.1ms.run/library/node:22-slim AS builder
+ARG BASE_IMAGE_PREFIX=docker.1ms.run/
+
+FROM ${BASE_IMAGE_PREFIX}library/node:22-slim AS builder
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -25,7 +28,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build:ele
 
 # ---------------------------------------------------------------------------
-FROM docker.1ms.run/library/nginx:stable-alpine AS production
+FROM ${BASE_IMAGE_PREFIX}library/nginx:stable-alpine AS production
 
 RUN rm -rf /etc/nginx/conf.d/default.conf
 

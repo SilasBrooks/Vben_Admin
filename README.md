@@ -48,24 +48,40 @@
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
 | AI 助手 | 真 Agent（plan-and-execute）：**25 个内置工具注解自动注册**（Service 方法标 `@AiAgentTool` 即成为 AI 工具，零 switch 适配），工具按登录用户权限码**动态可见可调**；AI 自主多步规划——多写操作任务先产出执行计划（目标+步骤+理由），前端计划卡确认后 SSE 步骤流顺序执行（等待/执行中/成功/失败实时反馈）；高危操作（删除用户/角色/部门、重置密码、强退、菜单授权）计划卡单独标红 + 执行前**二次确认弹框**，服务端 Redis 暂存 10 分钟；任一步失败即终止、每步执行前再校验权限；单写操作仍走轻量确认卡 |
 | 模型配置 | AI 底层模型可插拔（系统管理 → 模型配置）：自定义添加任意 OpenAI 兼容协议模型（DeepSeek / Qwen / Kimi / GLM / Ollama / one-api 等），可配接口地址、API Key（明文入库、接口回显脱敏、编辑留空不修改）、模型名、温度 / 最大 token / 超时；一键连通测试（非流式 ping 返回耗时与回显）；全局唯一激活——AI 助手对话与摘要的底层模型即时切换，无需重启；未配置激活模型时回退 yml `DEEPSEEK_API_KEY` 兜底 |
-| 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：`docker compose up -d` 起全套演示环境，docker profile 自动建库、安全开关默认关闭 |
-| CI | GitHub Actions 双流水线：后端 `mvn test`（幂等切面/IP 工具等单测）+ 前端 `pnpm build`，push/PR 自动执行 |
+| 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：本地构建或 GHCR 免构建拉取均可，docker profile 自动建库、安全开关默认关闭，后端镜像分层 + JVM 容器内存约束 |
+| CI | GitHub Actions 双流水线：后端 `mvn test`（幂等切面/IP 工具等单测）+ 前端 `pnpm build`，push/PR 自动执行；push 到 gy/master 且测试全绿后自动构建双镜像发布 GHCR |
 
 ## 快速开始
 
 ### 方式一：Docker 一键部署（推荐演示）
 
+**方式 A：免构建拉取（分钟级，需 CI 镜像已发布）**
+
+CI 在 push 到 gy / master 且测试全绿后自动构建双镜像发布到 GHCR，部署机无需任何构建环境：
+
 ```bash
+docker compose pull backend frontend
 docker compose up -d
+```
+
+首次拉取前需把两个 GitHub Package 改为公开：仓库页 Packages → 对应包 → Package settings → Change visibility → Public（仓库本身 public，无额外泄露面）；公开后拉取无需登录。镜像同时带 `latest` 与 `sha-<短哈希>` 标签，回滚时以对应 `sha-` 标签重启容器即可。
+
+**方式 B：本地构建（不依赖 GHCR，首次 20 分钟级）**
+
+```bash
+docker compose up -d --build
 ```
 
 访问 http://localhost:5888 ，账号见下表。说明：
 
-- 编排四服务：PostgreSQL + Redis + 后端（Spring Boot，docker profile）+ 前端（nginx 托管产物并 `/api` 同源反代），首次构建需拉取基础镜像并全量构建，耗时较长
+- 编排四服务：PostgreSQL + Redis + 后端（Spring Boot，docker profile）+ 前端（nginx 托管产物并 `/api` 同源反代），方式 B 首次构建需拉取基础镜像并全量构建，耗时较长
 - 与本地开发完全隔离：前端 **5888**、后端直连 **18080**（调试用），PG/Redis 不映射宿主端口；数据存 named volume（`vben-deploy-*`），不影响开发容器 vben5 / vben-redis，`docker compose down -v` 可彻底清空
 - 首次启动自动建表 + 种子数据；验证码回显、SQL 日志、API 文档均已关闭（与生产语义一致）
 - AI 助手：优先登录后在「系统管理 → 模型配置」添加并激活模型（OpenAI 兼容协议）；也可宿主机 `setx DEEPSEEK_API_KEY "<你的Key>"` 后**重开终端**再执行 compose 命令作为兜底，两者均未配置时仅 AI 功能提示未配置
-- 镜像构建走国内镜像源前缀 `docker.1ms.run`，海外环境可自行去掉；基础镜像拉取或 pnpm 安装受限时参照文件内注释换源
+- 镜像构建走国内镜像源前缀 `docker.1ms.run`（构建参数 `BASE_IMAGE_PREFIX` / compose 变量 `DOCKER_IMAGE_PREFIX` 可覆盖，CI 传空走官方源）；基础镜像拉取或 pnpm 安装受限时参照文件内注释换源
+- PG 密码支持环境变量覆盖：`POSTGRES_PASSWORD`（默认演示值 123456）；后端容器带 JVM 内存约束（堆上限为容器限额 75% + OOM 快速失败），compose 可用 `mem_limit` 精确控制
+- 后端镜像为 layertools 分层结构：仅改业务代码时重建，依赖层命中缓存，只重建业务层
+- 由方式 B 改为拉取模式后，本地旧镜像 `vben-deploy-backend/frontend:latest` 不再被引用，可 `docker rmi` 清理
 
 ### 方式二：本地开发
 
@@ -165,7 +181,7 @@ pnpm dev
 - [ ] 在「模型配置」页添加并激活模型，或注入 `DEEPSEEK_API_KEY` 环境变量兜底（yml 无默认值）；作废历史提交中暴露过的旧 Key
 - [ ] 确认 `vben.captcha.echo-enabled` 为 false（prod 默认关闭，勿在 prod 开启验证码回显）
 - [ ] 数据库以 PostgreSQL 为准（`schema-postgres.sql`）；`application-prod.yml` 中的 MySQL 配置仅为预留，未经验证，生产部署请改写为 PostgreSQL 或先完成验证
-- [ ] 演示/交付环境可直接用根目录 `docker compose up -d`（docker profile：PostgreSQL 自动建库 + 安全开关关闭）；生产公网部署请另行评估并更换全部演示默认值
+- [ ] 演示/交付环境可直接用根目录 `docker compose up -d`（docker profile：PostgreSQL 自动建库 + 安全开关关闭）；生产公网部署请另行评估并更换全部演示默认值（PG 密码可用 `POSTGRES_PASSWORD` 覆盖）
 - [ ] 前端 `pnpm build:ele` 产物走 nginx（构建产出 .gz/.br 预压缩文件，nginx 配置已开 `gzip_static` 直接发送），`/api` 反代到 8080
 - [ ] Cookie `same-site=None + secure=true`
 - [ ] 关闭 SQL 日志与 debug 级别日志

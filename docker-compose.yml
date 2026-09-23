@@ -12,7 +12,8 @@ services:
     image: docker.1ms.run/bitnami/postgresql:latest # 海外环境可改 bitnami/postgresql:18
     container_name: vben-deploy-pg
     environment:
-      POSTGRESQL_PASSWORD: "123456"
+      # 演示默认值 123456；公开部署前用环境变量 POSTGRES_PASSWORD 覆盖
+      POSTGRESQL_PASSWORD: "${POSTGRES_PASSWORD:-123456}"
       POSTGRESQL_DATABASE: vben5
     volumes:
       - vben-deploy-pg-data:/bitnami/postgresql
@@ -44,7 +45,12 @@ services:
     build:
       context: ./service
       dockerfile: Dockerfile
-    image: vben-deploy-backend:latest
+      args:
+        # 基础镜像源前缀：默认国内源；海外/CI 传空走官方源（CI 已自动传空）
+        BASE_IMAGE_PREFIX: "${DOCKER_IMAGE_PREFIX:-docker.1ms.run/}"
+    # CI 推送到 GHCR 的正式镜像名：`docker compose pull backend frontend`
+    # 即可免构建部署；保留 build 段以便本地 `up -d --build` 构建
+    image: ghcr.io/silasbrooks/vben-admin-backend:latest
     container_name: vben-deploy-backend
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -78,7 +84,9 @@ services:
     build:
       context: ./front
       dockerfile: apps/web-ele/Dockerfile
-    image: vben-deploy-frontend:latest
+      args:
+        BASE_IMAGE_PREFIX: "${DOCKER_IMAGE_PREFIX:-docker.1ms.run/}"
+    image: ghcr.io/silasbrooks/vben-admin-frontend:latest
     container_name: vben-deploy-frontend
     ports:
       - "5888:8080"
