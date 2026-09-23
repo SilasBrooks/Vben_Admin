@@ -124,8 +124,7 @@ async function clearAll() {
       <template #toolbar-actions>
         <VbenButton
           v-access:code="'Monitor:LoginLog:Delete'"
-          variant="default"
-          class="text-destructive"
+          variant="destructive"
           @click="clearAll"
         >
           {{ $t('monitor.common.clearLogs') }}
