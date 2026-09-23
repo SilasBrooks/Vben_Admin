@@ -3,9 +3,9 @@ package com.vben.service.module.im.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.vben.service.common.BizException;
+import com.vben.service.common.websocket.WsRedisBroadcaster;
 import com.vben.service.module.im.entity.SysMessage;
 import com.vben.service.module.im.mapper.SysMessageMapper;
-import com.vben.service.module.im.websocket.ImWebSocketHandler;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
 import java.time.LocalDateTime;
@@ -43,7 +43,7 @@ public class ImChatService {
 
   private final SysMessageMapper messageMapper;
   private final SysUserMapper userMapper;
-  private final ImWebSocketHandler webSocketHandler;
+  private final WsRedisBroadcaster broadcaster;
 
   /**
    * 可发起聊天的联系人：全部启用用户（除自己），仅暴露非敏感字段。
@@ -195,7 +195,8 @@ public class ImChatService {
       Map<String, Object> payload = new LinkedHashMap<>();
       payload.put("type", "chat");
       payload.put("message", messagePayload(message));
-      webSocketHandler.sendToUser(receiverId, payload);
+      // 推送改走跨实例广播（落库事实不变，推送失败仅由广播器告警）
+      broadcaster.publish(WsRedisBroadcaster.KIND_IM, receiverId, payload);
     } catch (Exception e) {
       log.warn("IM 消息 WebSocket 推送失败 receiverId={} messageId={}", receiverId, message.getId(), e);
     }
@@ -225,7 +226,8 @@ public class ImChatService {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("type", "read");
         payload.put("peerId", me);
-        webSocketHandler.sendToUser(peerId, payload);
+        // 回执推送改走跨实例广播
+        broadcaster.publish(WsRedisBroadcaster.KIND_IM, peerId, payload);
       } catch (Exception e) {
         log.warn("IM 已读回执推送失败 peerId={}", peerId, e);
       }

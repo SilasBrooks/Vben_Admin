@@ -4,9 +4,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.vben.service.common.BizException;
+import com.vben.service.common.websocket.WsRedisBroadcaster;
 import com.vben.service.module.notice.entity.SysNotice;
 import com.vben.service.module.notice.mapper.SysNoticeMapper;
-import com.vben.service.module.notice.websocket.NoticeWebSocketHandler;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.security.LoginUserHolder;
@@ -23,7 +23,8 @@ import org.springframework.stereotype.Service;
  *
  * <p>{@link #send} 先落库再推送，推送失败（用户未在线/会话异常）仅记 warn，
  * 不影响落库与业务主流程——用户下次拉取列表仍能看到通知。
- * 依赖自身 mapper、websocket handler 与 SysUserMapper（公告广播解析接收人），
+ * 推送经 {@link WsRedisBroadcaster} 跨实例广播（多实例部署可达）。
+ * 依赖自身 mapper、广播器与 SysUserMapper（公告广播解析接收人），
  * 供 system/monitor 模块单向依赖，避免循环注入。
  */
 @Slf4j
@@ -56,7 +57,7 @@ public class NoticeService {
   private static final int READ_FLAG_READ = 1;
 
   private final SysNoticeMapper noticeMapper;
-  private final NoticeWebSocketHandler webSocketHandler;
+  private final WsRedisBroadcaster broadcaster;
   private final SysUserMapper userMapper;
 
   /**
@@ -136,7 +137,8 @@ public class NoticeService {
       payload.put("content", notice.getContent());
       payload.put("publisher", notice.getPublisher());
       payload.put("createTime", notice.getCreateTime());
-      webSocketHandler.sendToUser(userId, payload);
+      // 推送改走跨实例广播（落库事实不变，推送失败仅由广播器告警）
+      broadcaster.publish(WsRedisBroadcaster.KIND_NOTICE, userId, payload);
     } catch (Exception e) {
       log.warn("站内通知 WebSocket 推送失败 userId={} title={}", userId, title, e);
     }

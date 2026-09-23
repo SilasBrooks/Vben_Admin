@@ -22,7 +22,7 @@
 |---|---|
 | 后端 | Java 21、Spring Boot 3.5.6、MyBatis-Plus 3.5.12、JJWT 0.12.6、spring-security-crypto（BCrypt） |
 | 数据库 | PostgreSQL 18（开发，Docker）、MySQL（生产就绪，`schema-mysql.sql`） |
-| 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话、鉴权权限快照（集中式状态，重启不丢、多实例共享） |
+| 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话、鉴权权限快照、WebSocket 推送跨实例广播（集中式状态，重启不丢、多实例共享） |
 | 前端 | Vue 3、Vite、Element Plus、Pinia、Vue Router、Vben Admin 5.7 monorepo（pnpm + turbo） |
 | AI | LLM 可插拔：模型配置页管理多厂商（OpenAI 兼容协议，SSE 流式 + Function Call），全局唯一激活；yml `DEEPSEEK_API_KEY` 兜底 |
 
@@ -173,7 +173,7 @@ pnpm dev
 - **前端按钮权限**：新增按钮时必须配套使用 `v-access:code` 指令 + 菜单管理里登记权限码
 - **多根节点组件**：在 `<Transition>`/`<KeepAlive>` 内使用的组件必须有单一根元素，否则动画与属性继承失效
 - **文件上传/下载**：下载接口 `GET /file/{id}/content` 需登录（未加入 JwtAuthFilter 白名单）；扩展名白名单不校验文件魔数，生产部署请在 Nginx 层禁止上传目录执行脚本，且大文件场景建议改为对象存储签名直链；本地存储目录默认 `./files`（已加入 .gitignore）
-- **WebSocket 单机边界**：站内通知与 IM 聊天的推送注册表是单机内存（`NoticeWebSocketHandler` / `ImWebSocketHandler`），多实例部署需升级为 Redis pub/sub 广播；nginx 反代 `/api/` 已带 WS 升级头
+- **WebSocket 跨实例广播**：站内通知与 IM 聊天的实时推送统一经 `WsRedisBroadcaster` 走 Redis pub/sub 频道 `vben:ws:push`（信封 `{kind, userId, payload}`）广播，各实例订阅后本地按 userId 分发——多实例横向扩容时任意实例产生的消息都能送达连在其它实例上的客户端；单实例同一代码路径（发布者自身也经广播回调本地推送）；推送失败仅告警不影响落库主流程；nginx 反代 `/api/` 已带 WS 升级头
 
 ### 生产部署 Checklist
 

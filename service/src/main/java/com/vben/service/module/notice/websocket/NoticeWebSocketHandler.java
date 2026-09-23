@@ -1,6 +1,8 @@
 package com.vben.service.module.notice.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vben.service.common.websocket.WsRedisBroadcaster;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 放入 attributes），本处理器只负责连接生命周期管理与消息下发。
  * 同一用户可同时存在多个会话（多标签页），推送时逐一会话下发、互不影响；
  * 单会话推送失败仅告警，不中断其他会话也不向上抛出。
+ *
+ * <p>推送入口统一走 {@link WsRedisBroadcaster}（Redis pub/sub 跨实例广播）：
+ * 业务方调用 broadcaster 发布信封，本实例订阅回调后经 {@link #sendToUser} 下发，
+ * 多实例部署时跨实例帧不丢。启动时向 broadcaster 自注册本地推送器。
  */
 @Slf4j
 @Component
@@ -31,6 +37,13 @@ public class NoticeWebSocketHandler extends TextWebSocketHandler {
   private final Map<Long, Set<WebSocketSession>> registry = new ConcurrentHashMap<>();
 
   private final ObjectMapper objectMapper;
+  private final WsRedisBroadcaster broadcaster;
+
+  /** 启动时向广播器注册本地推送函数（订阅回调入口） */
+  @PostConstruct
+  void registerLocal() {
+    broadcaster.registerLocalPusher(WsRedisBroadcaster.KIND_NOTICE, this::sendToUser);
+  }
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {

@@ -60,4 +60,9 @@ public final class RedisKeys {
   public static String permsPattern() {
     return PREFIX + "perms:*";
   }
+
+  /** WebSocket 推送跨实例广播频道（pub/sub channel，非 key）：信封 {kind, userId, payload} */
+  public static String wsPush() {
+    return PREFIX + "ws:push";
+  }
 }

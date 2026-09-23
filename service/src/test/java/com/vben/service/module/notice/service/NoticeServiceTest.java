@@ -14,9 +14,9 @@ import static org.mockito.Mockito.when;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.vben.service.common.BizException;
+import com.vben.service.common.websocket.WsRedisBroadcaster;
 import com.vben.service.module.notice.entity.SysNotice;
 import com.vben.service.module.notice.mapper.SysNoticeMapper;
-import com.vben.service.module.notice.websocket.NoticeWebSocketHandler;
 import com.vben.service.module.system.entity.SysUser;
 import com.vben.service.module.system.mapper.SysUserMapper;
 import com.vben.service.security.LoginUser;
@@ -37,16 +37,16 @@ import org.mockito.ArgumentCaptor;
 class NoticeServiceTest {
 
   private SysNoticeMapper noticeMapper;
-  private NoticeWebSocketHandler webSocketHandler;
+  private WsRedisBroadcaster broadcaster;
   private SysUserMapper userMapper;
   private NoticeService service;
 
   @BeforeEach
   void setUp() {
     noticeMapper = mock(SysNoticeMapper.class);
-    webSocketHandler = mock(NoticeWebSocketHandler.class);
+    broadcaster = mock(WsRedisBroadcaster.class);
     userMapper = mock(SysUserMapper.class);
-    service = new NoticeService(noticeMapper, webSocketHandler, userMapper);
+    service = new NoticeService(noticeMapper, broadcaster, userMapper);
     // MyBatis-Plus 的 .select(SFunction) 会急切解析 lambda 列名，
     // 纯单测环境无 mapper 初始化，需手动注册实体 TableInfo（幂等）
     MapperBuilderAssistant assistant =
@@ -89,7 +89,7 @@ class NoticeServiceTest {
     assertEquals("announcement", inserted.get(0).getMsgType());
     assertEquals(0, inserted.get(0).getReadFlag());
     assertEquals("vben", inserted.get(0).getPublisher());
-    verify(webSocketHandler, times(2)).sendToUser(anyLong(), any());
+    verify(broadcaster, times(2)).publish(eq(WsRedisBroadcaster.KIND_NOTICE), anyLong(), any());
   }
 
   @Test
@@ -100,7 +100,7 @@ class NoticeServiceTest {
 
     assertEquals(1, count);
     verify(noticeMapper).insert(any(SysNotice.class));
-    verify(webSocketHandler).sendToUser(eq(4L), any());
+    verify(broadcaster).publish(eq(WsRedisBroadcaster.KIND_NOTICE), eq(4L), any());
   }
 
   @Test
@@ -149,7 +149,8 @@ class NoticeServiceTest {
 
   @Test
   void send_websocketFailure_stillPersists() {
-    doThrow(new RuntimeException("offline")).when(webSocketHandler).sendToUser(anyLong(), any());
+    doThrow(new RuntimeException("offline")).when(broadcaster)
+        .publish(any(), anyLong(), any());
 
     service.send(2L, "t", "c");
 
