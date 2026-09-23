@@ -21,6 +21,11 @@ CREATE TABLE IF NOT EXISTS sys_user (
   CONSTRAINT uk_user_username UNIQUE (username)
 );
 CREATE INDEX IF NOT EXISTS idx_user_dept ON sys_user (dept_id);
+CREATE TABLE IF NOT EXISTS sys_user_recovery_email (
+  user_id BIGINT PRIMARY KEY REFERENCES sys_user(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  verified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 COMMENT ON TABLE sys_user IS '用户表';
 COMMENT ON COLUMN sys_user.password IS 'BCrypt 哈希';
 COMMENT ON COLUMN sys_user.nickname IS '显示名(对应前端 realName)';

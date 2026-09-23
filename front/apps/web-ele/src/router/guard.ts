@@ -6,7 +6,7 @@ import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
 
 import { getAccessCodesApi } from '#/api';
-import { accessRoutes, coreRouteNames } from '#/router/routes';
+import { accessRoutes } from '#/router/routes';
 import { useAuthStore } from '#/store';
 
 import { generateAccess } from './access';
@@ -51,8 +51,8 @@ function setupAccessGuard(router: Router) {
     const userStore = useUserStore();
     const authStore = useAuthStore();
 
-    // 基本路由，这些路由不需要进入权限拦截
-    if (coreRouteNames.includes(to.name as string)) {
+    // 仅公开页面直接放行；个人中心、消息中心等基础路由也需要登录并初始化菜单。
+    if (to.meta.ignoreAccess) {
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
         return decodeURIComponent(
           (to.query?.redirect as string) ||
@@ -65,11 +65,6 @@ function setupAccessGuard(router: Router) {
 
     // accessToken 检查
     if (!accessStore.accessToken) {
-      // 明确声明忽略权限访问权限，则可以访问
-      if (to.meta.ignoreAccess) {
-        return true;
-      }
-
       // 没有访问权限，跳转登录页面
       if (to.fullPath !== LOGIN_PATH) {
         return {
@@ -116,13 +111,16 @@ function setupAccessGuard(router: Router) {
     accessStore.setAccessMenus(accessibleMenus);
     accessStore.setAccessRoutes(accessibleRoutes);
     accessStore.setIsAccessChecked(true);
-    const redirectPath = (from.query.redirect ??
-      (to.path === preferences.app.defaultHomePath
-        ? userInfo.homePath || preferences.app.defaultHomePath
-        : to.fullPath)) as string;
+    // 只有登录回跳参数经过额外编码，直接访问的 fullPath 不能再整体解码。
+    const redirectPath =
+      typeof from.query.redirect === 'string'
+        ? decodeURIComponent(from.query.redirect)
+        : to.path === preferences.app.defaultHomePath
+          ? userInfo.homePath || preferences.app.defaultHomePath
+          : to.fullPath;
 
     return {
-      ...router.resolve(decodeURIComponent(redirectPath)),
+      ...router.resolve(redirectPath),
       replace: true,
     };
   });

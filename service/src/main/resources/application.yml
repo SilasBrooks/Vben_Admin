@@ -5,6 +5,21 @@ server:
     context-path: /api
 
 spring:
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:true}
+      mail.smtp.starttls.required: ${SMTP_STARTTLS:true}
+      mail.smtp.ssl.enable: ${SMTP_SSL:false}
+      mail.smtp.ssl.checkserveridentity: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
   application:
     name: vben-service
   profiles:
@@ -34,6 +49,8 @@ mybatis-plus:
 # refresh token：httpOnly Cookie（名称与前端约定为 jwt），仅 /api/auth/refresh 使用
 # ---------------------------------------------------------------------------
 vben:
+  mail:
+    from: ${SMTP_FROM:${SMTP_USERNAME:}}
   jwt:
     # 生产环境务必更换为足够随机的密钥（至少 32 字节），并保持 access/refresh 不同
     access-token-secret: "ChangeMe-Access-Token-Secret-Key-At-Least-32Bytes!"

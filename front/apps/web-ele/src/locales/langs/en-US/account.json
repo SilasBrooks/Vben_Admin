@@ -1,0 +1,44 @@
+{
+  "brand": {
+    "title": "Guiyuan Management",
+    "loginDescription": "Sign in with your work account to continue your daily tasks",
+    "description": "Smoother teamwork. More efficient everyday management."
+  },
+  "recovery": {
+    "title": "Reset your password",
+    "description": "Enter your username and complete the captcha to send a code to your verified recovery email.",
+    "unavailable": "Email verification is not enabled. Contact your administrator to configure email delivery or reset your password.",
+    "unbound": "No recovery email or unable to receive mail? Contact your administrator to reset your password.",
+    "send": "Send email code",
+    "sent": "If this account has a recovery email, a code has been sent. Check your inbox and spam folder. The code expires in 5 minutes.",
+    "code": "Email verification code",
+    "codePlaceholder": "Enter the 6 digits from the email",
+    "codeRule": "Enter a 6-digit code",
+    "captchaRule": "Enter the 4 letters or digits in the image",
+    "captchaRetry": "Get a new captcha",
+    "captchaHint": "The captcha expires in 2 minutes. Click the image to refresh it.",
+    "passwordRule": "Use 8–64 ASCII letters, digits or symbols, including a letter and a digit, with no spaces",
+    "reset": "Reset password",
+    "success": "Password reset. Sign in with your new password.",
+    "back": "Back to login",
+    "restart": "Send another code",
+    "countdown": "Send again in {seconds}s",
+    "retry": "Reload",
+    "loading": "Loading verification service…"
+  },
+  "binding": {
+    "title": "Recovery email",
+    "description": "Verify your current password and the target mailbox to bind a recovery email. Your contact email is not automatically used for password resets.",
+    "unbound": "No recovery email bound",
+    "bound": "Bound email: {email}",
+    "email": "Recovery email address",
+    "password": "Current password",
+    "passwordTip": "Enter your current login password",
+    "confirm": "Bind email",
+    "sending": "Sending…",
+    "countdown": "Resend in {seconds}s",
+    "sent": "A code was sent to {email}. It expires in 5 minutes.",
+    "success": "Recovery email bound successfully.",
+    "change": "Change recovery email"
+  }
+}
