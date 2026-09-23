@@ -6,6 +6,7 @@ import { createIconifyIcon } from '@vben/icons';
 import { $t } from '#/locales';
 
 import { useAiChat } from './use-ai-chat';
+import MarkdownContent from './MarkdownContent.vue';
 import PlanCard from './PlanCard.vue';
 import { formatCardArgs } from './tool-labels';
 
@@ -337,7 +338,11 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
                 </span>
               </div>
 
-              <span v-else-if="msg.content" class="ai-bubble__text">{{ msg.content }}</span>
+              <MarkdownContent
+                v-else-if="msg.content"
+                :content="msg.content"
+                :streaming="msg.streaming"
+              />
 
               <!-- 计划卡（多步任务） -->
               <PlanCard
@@ -690,9 +695,6 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 }
 .ai-bubble.is-error {
   color: var(--el-color-danger, #f56c6c);
-}
-.ai-bubble__text {
-  display: block;
 }
 
 /* 思考中指示器 */

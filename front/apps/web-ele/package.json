@@ -42,12 +42,16 @@
     "@vben/utils": "workspace:*",
     "@vueuse/core": "catalog:",
     "dayjs": "catalog:",
+    "dompurify": "catalog:",
     "element-plus": "catalog:",
+    "highlight.js": "catalog:",
+    "markdown-it": "catalog:",
     "pinia": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },
   "devDependencies": {
+    "@types/markdown-it": "catalog:",
     "unplugin-element-plus": "catalog:"
   }
 }

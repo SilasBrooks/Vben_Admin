@@ -80,6 +80,7 @@ catalog:
   '@types/json-bigint': ^1.0.4
   '@types/jsonwebtoken': ^9.0.10
   '@types/lodash.clonedeep': ^4.5.9
+  '@types/markdown-it': ^14.1.2
   '@types/node': ^25.9.1
   '@types/nprogress': ^0.2.3
   '@types/qrcode': ^1.5.6
@@ -114,6 +115,7 @@ catalog:
   czg: ^1.13.1
   dayjs: ^1.11.20
   defu: ^6.1.7
+  dompurify: ^3.2.4
   dotenv: ^17.4.2
   echarts: ^6.1.0
   element-plus: ^2.14.0
@@ -135,6 +137,7 @@ catalog:
   globals: ^17.6.0
   h3: ^1.15.11
   happy-dom: ^20.9.0
+  highlight.js: ^11.11.1
   html-minifier-terser: ^7.2.0
   is-ci: ^4.1.0
   json-bigint: ^1.0.0
@@ -143,6 +146,7 @@ catalog:
   lefthook: ^2.1.8
   lodash.clonedeep: ^4.5.0
   lucide-vue-next: ^0.577.0
+  markdown-it: ^14.1.0
   medium-zoom: ^1.1.0
   naive-ui: ^2.44.1
   nitropack: ^2.13.4
