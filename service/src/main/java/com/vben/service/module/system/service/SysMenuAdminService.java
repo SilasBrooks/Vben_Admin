@@ -44,6 +44,7 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
 
   private final SysRoleMenuMapper roleMenuMapper;
   private final SysRoleMapper roleMapper;
+  private final PermissionCacheService permissionCacheService;
 
   /** 菜单树（按 parentId 聚合成 children） */
   public List<SysMenu> tree() {
@@ -70,6 +71,8 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
     // 新增菜单：按 authority 自动授权（authority 为空时给当前用户角色 + super）
     Set<String> targetRoles = resolveTargetRoles(menu);
     grantToRoles(menu, targetRoles);
+    // 菜单授权面变更影响所有用户快照：全量失效
+    permissionCacheService.evictAll();
   }
 
   @Transactional
@@ -85,6 +88,8 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
     updateById(menu);
     // 编辑：按 authority diff 增删授权，保留 authority 之外的手动授权
     syncGrantsOnUpdate(exist, menu);
+    // 菜单授权面变更影响所有用户快照：全量失效
+    permissionCacheService.evictAll();
   }
 
   @Transactional
@@ -96,6 +101,8 @@ public class SysMenuAdminService extends ServiceImpl<SysMenuMapper, SysMenu> {
     roleMenuMapper.delete(
         new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getMenuId, id));
     removeById(id);
+    // 菜单删除影响所有用户快照：全量失效
+    permissionCacheService.evictAll();
   }
 
   // ------------------------------------------------------------------

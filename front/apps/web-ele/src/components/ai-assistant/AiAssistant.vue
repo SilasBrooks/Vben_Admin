@@ -205,14 +205,15 @@ async function handleSend() {
   if (!text || loading.value) return;
   inputText.value = '';
   await send(text);
-  void nextTick(scrollToBottom);
+  // 用户主动发起：无论当前阅读位置，强制定位到最新消息
+  void nextTick(() => scrollToBottom(true));
 }
 
 async function handleSuggestion(text: string) {
   if (loading.value) return;
   inputText.value = '';
   await send(text);
-  void nextTick(scrollToBottom);
+  void nextTick(() => scrollToBottom(true));
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -222,19 +223,25 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
-function scrollToBottom() {
+/** 用户视口是否在消息区底部附近（跟随阈值内） */
+function isNearBottom(): boolean {
   const el = scrollRef.value;
-  if (el) {
+  if (!el) return false;
+  return el.scrollHeight - el.scrollTop - el.clientHeight < FOLLOW_THRESHOLD;
+}
+
+function scrollToBottom(force = false) {
+  const el = scrollRef.value;
+  // 非强制滚动仅在底部附近跟随：用户上翻阅读时不被拉回，滚回底部自动恢复
+  if (el && (force || isNearBottom())) {
     el.scrollTop = el.scrollHeight;
   }
 }
 
-// 消息列表变化时自动滚到底
-watch(
-  () => messages.value.length,
-  () => void nextTick(scrollToBottom),
-);
-// 流式输出期间持续滚到底
+// 跟随阈值：距底部 60px 内视为「正在看最新」
+const FOLLOW_THRESHOLD = 60;
+
+// 消息/流式内容变化时按跟随判定滚动
 watch(messages, () => void nextTick(scrollToBottom), { deep: true });
 </script>
 

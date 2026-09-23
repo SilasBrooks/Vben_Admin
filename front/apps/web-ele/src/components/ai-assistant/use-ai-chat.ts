@@ -2,6 +2,8 @@ import { ref } from 'vue';
 
 import { useUserStore } from '@vben/stores';
 
+import { $t } from '#/locales';
+
 import {
   continueAiPlanStream,
   executeAiPlanStream,
@@ -262,7 +264,7 @@ export function useAiChat() {
       await send();
     } catch (error: any) {
       card.status = 'error';
-      card.errorMsg = error?.message || '执行失败，请稍后重试';
+      card.errorMsg = error?.message || $t('ai.chat.executeFailed');
     } finally {
       persist();
     }

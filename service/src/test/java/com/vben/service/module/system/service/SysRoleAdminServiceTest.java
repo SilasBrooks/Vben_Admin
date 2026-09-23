@@ -41,6 +41,7 @@ class SysRoleAdminServiceTest {
   private SysUserRoleMapper userRoleMapper;
   private SysRoleDeptMapper roleDeptMapper;
   private NoticeService noticeService;
+  private PermissionCacheService permissionCacheService;
   private SysRoleAdminService service;
 
   @BeforeEach
@@ -50,8 +51,9 @@ class SysRoleAdminServiceTest {
     userRoleMapper = mock(SysUserRoleMapper.class);
     roleDeptMapper = mock(SysRoleDeptMapper.class);
     noticeService = mock(NoticeService.class);
+    permissionCacheService = mock(PermissionCacheService.class);
     service = new SysRoleAdminService(roleMenuMapper, userRoleMapper, roleDeptMapper,
-        noticeService);
+        noticeService, permissionCacheService);
     ReflectionTestUtils.setField(service, "baseMapper", roleMapper);
   }
 

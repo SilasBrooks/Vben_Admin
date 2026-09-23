@@ -16,6 +16,8 @@ import xml from 'highlight.js/lib/languages/xml';
 import yaml from 'highlight.js/lib/languages/yaml';
 import MarkdownIt from 'markdown-it';
 
+import { $t } from '#/locales';
+
 // 常用语言子集（注册即含官方别名：js/ts/py/html/sh/yml/md 等），控制 bundle 体积
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('typescript', typescript);
@@ -29,27 +31,56 @@ hljs.registerLanguage('css', css);
 hljs.registerLanguage('yaml', yaml);
 hljs.registerLanguage('markdown', markdownLang);
 
+/** 长代码折叠阈值（行数） */
+const FOLD_LINES = 20;
+
 /**
  * markdown-it 实例（模型输出不可信）：
  * - html: false —— 原始 HTML 一律转义为文本，第一道防线
  * - linkify + breaks —— 裸 URL 成链接、单换行成 <br>，贴近聊天语境
- * - highlight —— highlight.js core 子集高亮，未注册语言降级为转义纯文本
+ * - fence 自定义渲染：语言标签 + 复制按钮 + 长代码折叠（交互走事件委托）
  */
 const md: MarkdownIt = new MarkdownIt({
   breaks: true,
-  highlight: (str, lang) => {
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return `<pre class="hljs"><code>${hljs.highlight(str, { language: lang }).value}</code></pre>`;
-      } catch {
-        // 高亮失败降级为转义文本
-      }
-    }
-    return `<pre class="hljs"><code>${md.utils.escapeHtml(str)}</code></pre>`;
-  },
   html: false,
   linkify: true,
 });
+
+/** 代码高亮（调用前需确认语言已注册），失败降级为转义文本 */
+function highlightCode(source: string, lang: string): string {
+  try {
+    return hljs.highlight(source, { language: lang }).value;
+  } catch {
+    return md.utils.escapeHtml(source);
+  }
+}
+
+// fence：输出 head（语言标签 + 折叠/复制按钮）+ pre 结构
+md.renderer.rules.fence = (tokens, idx) => {
+  const token = tokens[idx]!;
+  const lang = (token.info.trim().match(/^\S*/)?.[0] ?? '').toLowerCase();
+  const source = token.content;
+  const lines = source.endsWith('\n')
+    ? source.split('\n').length - 1
+    : source.split('\n').length;
+  const body = lang && hljs.getLanguage(lang)
+    ? highlightCode(source, lang)
+    : md.utils.escapeHtml(source);
+  const foldable = lines > FOLD_LINES;
+  const foldBtn = foldable
+    ? `<button class="md-fold" data-fold="true" type="button">${$t('ai.chat.expand', [lines])}</button>`
+    : '';
+  return (
+    `<div class="md-code" data-lines="${lines}">` +
+    `<div class="md-code-head">` +
+    `<span class="md-code-lang">${md.utils.escapeHtml(lang || 'text')}</span>` +
+    `<span class="md-code-actions">${foldBtn}` +
+    `<button class="md-copy" type="button">${$t('ai.chat.copy')}</button>` +
+    `</span></div>` +
+    `<pre class="hljs"${foldable ? ' data-fold="true"' : ''}><code>${body}</code></pre>` +
+    `</div>`
+  );
+};
 
 // 第二道防线：渲染产物统一过 DOMPurify；链接统一新开页 + noopener
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
@@ -73,6 +104,70 @@ const props = defineProps<{
 const renderedText = ref(props.content);
 
 const html = computed(() => toSafeHtml(renderedText.value));
+
+/** 复制：clipboard API 优先，失败（含非安全上下文/权限受限）降级 execCommand */
+async function copyText(text: string, btn: HTMLElement) {
+  let ok = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    }
+  } catch {
+    ok = false;
+  }
+  if (!ok) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.append(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      ta.remove();
+    } catch {
+      ok = false;
+    }
+  }
+  if (!ok) return;
+  btn.textContent = $t('ai.chat.copied');
+  btn.classList.add('is-copied');
+  copiedTimer = setTimeout(() => {
+    copiedTimer = null;
+    // 流式重渲可能已重建 DOM，仅恢复仍挂载的按钮
+    if (btn.isConnected) {
+      btn.textContent = $t('ai.chat.copy');
+      btn.classList.remove('is-copied');
+    }
+  }, 1500);
+}
+
+/** v-html 内节点无法绑 Vue 事件：根元素统一事件委托（复制/展开收起） */
+function onRootClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  const copyBtn = target.closest('.md-copy') as HTMLElement | null;
+  if (copyBtn) {
+    const code = copyBtn.closest('.md-code')?.querySelector('pre code');
+    void copyText(code?.textContent ?? '', copyBtn);
+    return;
+  }
+  const foldBtn = target.closest('.md-fold') as HTMLElement | null;
+  if (foldBtn) {
+    const box = foldBtn.closest('.md-code');
+    const pre = box?.querySelector('pre');
+    if (!pre) return;
+    const folded = pre.getAttribute('data-fold') === 'true';
+    pre.setAttribute('data-fold', folded ? 'false' : 'true');
+    foldBtn.setAttribute('data-fold', folded ? 'false' : 'true');
+    const lines = Number(box?.getAttribute('data-lines') ?? 0);
+    foldBtn.textContent = folded
+      ? $t('ai.chat.collapse')
+      : $t('ai.chat.expand', [lines]);
+  }
+}
+
+let copiedTimer: null | ReturnType<typeof setTimeout> = null;
 
 let timer: null | ReturnType<typeof setTimeout> = null;
 
@@ -114,11 +209,12 @@ watch(
 
 onBeforeUnmount(() => {
   if (timer !== null) clearTimeout(timer);
+  if (copiedTimer !== null) clearTimeout(copiedTimer);
 });
 </script>
 
 <template>
-  <div class="markdown-content" v-html="html" />
+  <div class="markdown-content" v-html="html" @click="onRootClick" />
 </template>
 
 <style scoped>
@@ -209,11 +305,66 @@ onBeforeUnmount(() => {
   font-family: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
 }
 
-/* 代码块：深色底 + 横向滚动 */
-.markdown-content :deep(pre) {
+/* 代码块容器：深色底 + head 行（语言标签 + 操作按钮） */
+.markdown-content :deep(.md-code) {
   margin: 8px 0;
-  padding: 10px 12px;
   border-radius: 8px;
+  background: #0d1117;
+  overflow: hidden;
+}
+.markdown-content :deep(.md-code-head) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
+  background: #161b22;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.markdown-content :deep(.md-code-lang) {
+  color: #8b949e;
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Courier New', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.markdown-content :deep(.md-code-actions) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.markdown-content :deep(.md-copy),
+.markdown-content :deep(.md-fold) {
+  border: none;
+  background: transparent;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #c9d1d9;
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.markdown-content :deep(.md-copy:hover),
+.markdown-content :deep(.md-fold:hover) {
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+}
+.markdown-content :deep(.md-copy.is-copied) {
+  color: #7ee787;
+}
+
+/* 代码块：横向滚动（margin/radius 由容器接管） */
+.markdown-content :deep(pre) {
+  margin: 0;
+  padding: 10px 12px;
   background: #0d1117;
   color: #e6edf3;
   overflow-x: auto;
@@ -236,6 +387,23 @@ onBeforeUnmount(() => {
   white-space: pre;
   word-break: normal;
   overflow-wrap: normal;
+}
+
+/* 长代码折叠态：限高 + 底部渐隐遮罩 */
+.markdown-content :deep(pre[data-fold='true']) {
+  max-height: 180px;
+  overflow: hidden;
+  position: relative;
+}
+.markdown-content :deep(pre[data-fold='true']::after) {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48px;
+  background: linear-gradient(to bottom, transparent, #0d1117);
+  pointer-events: none;
 }
 
 /* 表格：窄气泡内横向滚动 */

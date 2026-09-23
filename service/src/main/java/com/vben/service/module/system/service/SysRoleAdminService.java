@@ -42,6 +42,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleDeptMapper roleDeptMapper;
   private final NoticeService noticeService;
+  private final PermissionCacheService permissionCacheService;
 
   public IPage<SysRole> page(long pageNo, long pageSize, String roleName, Integer status) {
     LambdaQueryWrapper<SysRole> q = new LambdaQueryWrapper<SysRole>()
@@ -94,6 +95,8 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
       throw BizException.badRequest("error.role.superCannotDisable");
     }
     updateById(role);
+    // roleKey/状态变更影响该角色所有用户的权限快照：角色级失效
+    permissionCacheService.evictByRole(role.getId());
   }
 
   @Transactional
@@ -189,5 +192,7 @@ public class SysRoleAdminService extends ServiceImpl<SysRoleMapper, SysRole> {
       noticeService.send(userId, "您的功能权限已更新",
           "管理员调整了角色「" + role.getRoleName() + "」的菜单授权，重新登录或刷新后生效。");
     }
+    // 角色菜单授权变更：该角色所有用户的权限快照即时失效
+    permissionCacheService.evictByRole(roleId);
   }
 }

@@ -13,7 +13,12 @@
     "placeholder": "Type a message. Enter to send, Shift+Enter for a new line",
     "send": "Send",
     "stop": "Stop",
-    "thinking": "Thinking"
+    "thinking": "Thinking",
+    "executeFailed": "Execution failed. Please try again later.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "expand": "Expand ({0} lines)",
+    "collapse": "Collapse"
   },
   "card": {
     "confirmExecute": "Confirm execution",

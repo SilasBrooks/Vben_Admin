@@ -47,6 +47,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
   private final SysDeptAdminService deptService;
   private final TokenVersionService tokenVersionService;
   private final NoticeService noticeService;
+  private final PermissionCacheService permissionCacheService;
   private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
   /** 用户分页列表（密码字段已清空，支持按用户名模糊 + 状态过滤；回填部门名；按数据范围过滤） */
@@ -178,6 +179,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
       protectLastSuper(user.getId(), exist, user, roleIds);
       reassignRoles(user.getId(), roleIds);
     }
+    // 用户状态/角色变更：权限快照即时失效（下次请求重新装配）
+    permissionCacheService.evict(user.getId());
   }
 
   /** 删除用户：禁止自删、禁止删除最后一个 super 用户 */
@@ -198,6 +201,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     }
     userRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, id));
     removeById(id);
+    // 删除用户：快照失效（无 bump 点，靠回源查库 null 拒绝，缓存不可残留旧快照）
+    permissionCacheService.evict(id);
   }
 
   /** 重置密码：仅 super / 当前用户本人可改（前端按按钮权限控制） */
@@ -216,6 +221,7 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     updateById(patch);
     // 重置密码成功：版本 +1，目标用户已签发 token 立即失效
     tokenVersionService.bump(userId);
+    permissionCacheService.evict(userId);
     // 重置成功后通知当事人（落库 + WebSocket 推送，推送失败不影响结果）
     noticeService.send(userId, "登录密码已被管理员重置", "请使用新密码登录并尽快修改密码。");
   }
@@ -230,6 +236,8 @@ public class SysUserAdminService extends ServiceImpl<SysUserMapper, SysUser> {
     List<Long> newRoleIds = roleIds == null ? Collections.emptyList() : roleIds;
     protectLastSuper(userId, exist, exist, newRoleIds);
     reassignRoles(userId, newRoleIds);
+    // 角色分配变更：权限快照即时失效
+    permissionCacheService.evict(userId);
   }
 
   // ------------------------------------------------------------------

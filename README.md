@@ -11,8 +11,9 @@
 - **按钮级 RBAC + 动态路由**：菜单驱动前端路由生成，接口层自定义拦截器按权限码（如 `System:User:Add`）校验，前端按钮用 `v-access:code` 指令同步显隐，前后端权限一码贯通
 - **JWT 双 Token + token 版本号即时失效**：accessToken 走响应体、refreshToken 走 httpOnly Cookie；改密/重置密码/禁用用户/强制下线通过 Redis 中的版本号让已签发 token 立即作废，兼顾无状态水平扩展与"服务端可控失效"
 - **数据权限（行级）**：`@DataScope` 注解 + AOP 切面 + ThreadLocal 上下文，按部门/角色动态改写 SQL 过滤范围，支持"仅本人/本部门/本部门及以下/自定义"多种粒度
-- **AI 智能助手**：DeepSeek 流式 SSE + 工具调用（Function Call）Agent 编排——查询类工具自动执行回喂，写操作类工具生成确认卡片、用户确认后才落库；服务端按权限码双重校验；会话支持按轮截断 + 滚动摘要 + 本地持久化
+- **AI 智能助手**：DeepSeek 流式 SSE + 工具调用（Function Call）Agent 编排——查询类工具自动执行回喂，写操作类工具生成确认卡片、用户确认后才落库；服务端按权限码双重校验；会话支持按轮截断 + 滚动摘要 + 本地持久化；回复以 Markdown 渲染（XSS 双重防线），代码块带语言标签 / 一键复制 / 长代码折叠，流式输出尊重用户滚动位置
 - **声明式操作审计**：`@OperLog` 注解 + 切面自动记录操作人/入参/结果/耗时/IP，密码字段自动脱敏，异步落库不影响主流程
+- **鉴权快照缓存 + 静态资源预压缩**：JWT 认证的权限快照（角色 + 权限码）缓存于 Redis（5 分钟 TTL 兜底），命中时每请求省去 3 条装配 SQL，用户/角色/菜单三级变更即时精准失效、Redis 异常自动降级回源（语义与无缓存一致）；前端构建产出 .gz/.br 预压缩产物，nginx `gzip_static` 直接发送、免实时压缩 CPU 开销
 - **工程化变更管理**：使用 [OpenSpec](openspec/changes/archive/) 规范驱动开发，每个功能有 proposal / design / spec / tasks 四件套并归档可追溯
 
 ## 技术栈
@@ -21,7 +22,7 @@
 |---|---|
 | 后端 | Java 21、Spring Boot 3.5.6、MyBatis-Plus 3.5.12、JJWT 0.12.6、spring-security-crypto（BCrypt） |
 | 数据库 | PostgreSQL 18（开发，Docker）、MySQL（生产就绪，`schema-mysql.sql`） |
-| 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话（集中式状态，重启不丢、多实例共享） |
+| 缓存/会话 | Redis 7+（Docker）：验证码、登录锁定、限流窗口、token 版本号、在线会话、鉴权权限快照（集中式状态，重启不丢、多实例共享） |
 | 前端 | Vue 3、Vite、Element Plus、Pinia、Vue Router、Vben Admin 5.7 monorepo（pnpm + turbo） |
 | AI | LLM 可插拔：模型配置页管理多厂商（OpenAI 兼容协议，SSE 流式 + Function Call），全局唯一激活；yml `DEEPSEEK_API_KEY` 兜底 |
 
@@ -165,7 +166,7 @@ pnpm dev
 - [ ] 确认 `vben.captcha.echo-enabled` 为 false（prod 默认关闭，勿在 prod 开启验证码回显）
 - [ ] 数据库以 PostgreSQL 为准（`schema-postgres.sql`）；`application-prod.yml` 中的 MySQL 配置仅为预留，未经验证，生产部署请改写为 PostgreSQL 或先完成验证
 - [ ] 演示/交付环境可直接用根目录 `docker compose up -d`（docker profile：PostgreSQL 自动建库 + 安全开关关闭）；生产公网部署请另行评估并更换全部演示默认值
-- [ ] 前端 `pnpm build:ele` 产物走 nginx，`/api` 反代到 8080
+- [ ] 前端 `pnpm build:ele` 产物走 nginx（构建产出 .gz/.br 预压缩文件，nginx 配置已开 `gzip_static` 直接发送），`/api` 反代到 8080
 - [ ] Cookie `same-site=None + secure=true`
 - [ ] 关闭 SQL 日志与 debug 级别日志
 

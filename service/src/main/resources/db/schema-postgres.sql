@@ -138,6 +138,7 @@ CREATE TABLE IF NOT EXISTS sys_oper_log (
   oper_time       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_oper_log_time ON sys_oper_log (oper_time);
+CREATE INDEX IF NOT EXISTS idx_oper_log_user ON sys_oper_log (oper_user_id);
 COMMENT ON TABLE sys_oper_log IS '操作日志表';
 COMMENT ON COLUMN sys_oper_log.oper_user_id IS '操作人id(NULL=匿名)';
 COMMENT ON COLUMN sys_oper_log.oper_name IS '操作人用户名';
@@ -157,6 +158,7 @@ CREATE TABLE IF NOT EXISTS sys_login_log (
   login_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_login_log_time ON sys_login_log (login_time);
+CREATE INDEX IF NOT EXISTS idx_login_log_username ON sys_login_log (username);
 COMMENT ON TABLE sys_login_log IS '登录日志表';
 COMMENT ON COLUMN sys_login_log.username IS '尝试登录的用户名';
 COMMENT ON COLUMN sys_login_log.status IS '0成功 1失败';

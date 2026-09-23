@@ -47,6 +47,7 @@ class SysUserAdminServiceTest {
   private SysDeptAdminService deptService;
   private TokenVersionService tokenVersionService;
   private NoticeService noticeService;
+  private PermissionCacheService permissionCacheService;
   private SysUserAdminService service;
 
   @BeforeEach
@@ -57,8 +58,9 @@ class SysUserAdminServiceTest {
     deptService = mock(SysDeptAdminService.class);
     tokenVersionService = mock(TokenVersionService.class);
     noticeService = mock(NoticeService.class);
+    permissionCacheService = mock(PermissionCacheService.class);
     service = new SysUserAdminService(userRoleMapper, roleMapper, deptService,
-        tokenVersionService, noticeService);
+        tokenVersionService, noticeService, permissionCacheService);
     // ServiceImpl 的 baseMapper 由 Spring 启动时注入，单测需手动反射注入 mock
     ReflectionTestUtils.setField(service, "baseMapper", userMapper);
   }

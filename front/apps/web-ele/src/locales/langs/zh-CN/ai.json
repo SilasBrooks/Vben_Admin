@@ -13,7 +13,12 @@
     "placeholder": "输入消息，Enter 发送，Shift+Enter 换行",
     "send": "发送",
     "stop": "停止",
-    "thinking": "思考中"
+    "thinking": "思考中",
+    "executeFailed": "执行失败，请稍后重试",
+    "copy": "复制",
+    "copied": "已复制",
+    "expand": "展开（{0} 行）",
+    "collapse": "收起"
   },
   "card": {
     "confirmExecute": "确认执行",

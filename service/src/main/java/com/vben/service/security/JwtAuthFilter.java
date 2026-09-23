@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vben.service.common.I18nMessage;
 import com.vben.service.common.IpUtil;
 import com.vben.service.common.R;
+import com.vben.service.module.system.service.PermissionCacheService;
 import com.vben.service.module.system.service.SysPermissionService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -51,6 +52,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
   private final JwtTokenService jwtTokenService;
   private final TokenVersionService tokenVersionService;
   private final SysPermissionService permissionService;
+  private final PermissionCacheService permissionCacheService;
   private final com.vben.service.module.auth.RefreshTokenCookieService cookieService;
   private final OnlineSessionService onlineSessionService;
   private final ObjectMapper objectMapper;
@@ -100,11 +102,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       return;
     }
 
-    // 以库中最新角色/权限为准（token 中的 roles 仅作冗余）
-    LoginUser user = permissionService.loadLoginUser(payload.getUserId());
+    // 以库中最新角色/权限为准（token 中的 roles 仅作冗余）：
+    // 优先读 Redis 权限快照（三级失效保证新鲜），miss/Redis 异常降级回源查库并回填
+    LoginUser user = permissionCacheService.get(payload.getUserId());
     if (user == null) {
-      writeUnauthorized(request, response);
-      return;
+      user = permissionService.loadLoginUser(payload.getUserId());
+      if (user == null) {
+        writeUnauthorized(request, response);
+        return;
+      }
+      permissionCacheService.put(user);
     }
 
     // 认证成功：续期在线活动窗口（滑动过期，窗口内无请求即视为离线；失败不影响请求）

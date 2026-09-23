@@ -50,4 +50,14 @@ public final class RedisKeys {
   public static String aiPlan(String planId) {
     return PREFIX + "ai:plan:" + planId;
   }
+
+  /** 用户权限快照：vben:perms:{userId}，值为权限快照 JSON，TTL 5 分钟兜底 */
+  public static String perms(Long userId) {
+    return PREFIX + "perms:" + userId;
+  }
+
+  /** 权限快照全量清理扫描模式（菜单级变更时 SCAN 逐批删除） */
+  public static String permsPattern() {
+    return PREFIX + "perms:*";
+  }
 }
