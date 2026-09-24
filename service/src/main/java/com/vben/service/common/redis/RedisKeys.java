@@ -11,6 +11,14 @@ public final class RedisKeys {
   private RedisKeys() {
   }
 
+  public static String emailCode(String purpose, String challengeId) {
+    return PREFIX + "email:code:" + purpose + ":" + challengeId;
+  }
+
+  public static String emailCooldown(String purpose, String subjectHash) {
+    return PREFIX + "email:cooldown:" + purpose + ":" + subjectHash;
+  }
+
   /** 图形验证码：vben:captcha:{captchaId}，值为明文码，TTL = 验证码有效期 */
   public static String captcha(String captchaId) {
     return PREFIX + "captcha:" + captchaId;

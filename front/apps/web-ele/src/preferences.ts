@@ -13,6 +13,9 @@ export const overridesPreferences = defineOverridesPreferences({
     accessMode: 'backend',
   },
   logo: {
-    source: '/logo.png'
+    source: '/logo.png',
+  },
+  navigation: {
+    accordion: false,
   },
 });

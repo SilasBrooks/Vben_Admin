@@ -20,6 +20,13 @@ CREATE TABLE IF NOT EXISTS sys_user (
   KEY idx_user_dept (dept_id)
 ) ENGINE = InnoDB COMMENT ='用户表';
 
+CREATE TABLE IF NOT EXISTS sys_user_recovery_email (
+  user_id BIGINT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  verified_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_recovery_email_user FOREIGN KEY (user_id) REFERENCES sys_user(id) ON DELETE CASCADE
+) ENGINE = InnoDB COMMENT ='已验证的安全邮箱';
+
 CREATE TABLE IF NOT EXISTS sys_dept (
   id          BIGINT AUTO_INCREMENT PRIMARY KEY,
   parent_id   BIGINT       NOT NULL DEFAULT 0 COMMENT '父部门id,0=根部门',

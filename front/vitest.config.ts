@@ -1,9 +1,16 @@
+import { fileURLToPath } from 'node:url';
+
 import Vue from '@vitejs/plugin-vue';
 import VueJsx from '@vitejs/plugin-vue-jsx';
 import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [Vue(), VueJsx()],
+  resolve: {
+    alias: {
+      '#': fileURLToPath(new URL('./apps/web-ele/src', import.meta.url)),
+    },
+  },
   test: {
     environment: 'happy-dom',
     environmentOptions: {
