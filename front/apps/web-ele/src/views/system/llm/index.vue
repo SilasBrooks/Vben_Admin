@@ -42,6 +42,7 @@ function onFormSaved() {
 // ------------------------------------------------------------------
 
 const gridOptions: VxeTableGridOptions<LlmItem> = {
+  id: 'table.system.llm',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'name', title: $t('llm.name'), minWidth: 140, showOverflow: true },
@@ -72,7 +73,7 @@ const gridOptions: VxeTableGridOptions<LlmItem> = {
       formatter: ({ cellValue }) =>
         typeof cellValue === 'string' ? cellValue.replace('T', ' ') : (cellValue ?? ''),
     },
-    { title: $t('llm.action'), width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('llm.action'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

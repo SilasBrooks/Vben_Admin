@@ -45,7 +45,7 @@ async function init() {
 
   // 并行加载菜单树和当前角色已分配的菜单 id
   const [tree, ids] = await Promise.all([
-    menuTree.value.length > 0 ? menuTree.value : getMenuTreeApi(),
+    getMenuTreeApi(),
     roleId.value ? getRoleMenuIdsApi(roleId.value) : Promise.resolve([]),
   ]);
   menuTree.value = translateTitles(tree);

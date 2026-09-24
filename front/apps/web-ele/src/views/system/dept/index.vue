@@ -17,6 +17,7 @@ const [DeptFormModal, deptFormApi] = useVbenModal({
 });
 
 const gridOptions: VxeTableGridOptions<DeptNode> = {
+  id: 'table.system.dept',
   rowConfig: { keyField: 'id', isHover: true },
   // 后端 /system/dept/list 直接返回嵌套 children 的树，无需 transform 重组
   treeConfig: {
@@ -39,7 +40,7 @@ const gridOptions: VxeTableGridOptions<DeptNode> = {
     },
     { field: 'remark', title: $t('system.common.remark'), minWidth: 160 },
     { field: 'createTime', title: $t('system.common.createdAt'), width: 170 },
-    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {

@@ -36,6 +36,7 @@ const DATA_SCOPE_LABELS: Record<string, string> = {
 };
 
 const gridOptions: VxeTableGridOptions<RoleItem> = {
+  id: 'table.system.role',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'id', title: 'ID', visible: false },
@@ -58,7 +59,7 @@ const gridOptions: VxeTableGridOptions<RoleItem> = {
           ? $t('system.common.enabled')
           : $t('system.common.disabled'),
     },
-    { title: $t('system.common.actions'), width: 280, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('system.common.actions'), width: 280, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

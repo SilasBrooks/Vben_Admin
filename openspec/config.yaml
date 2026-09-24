@@ -15,7 +15,7 @@ context: |
   - 后端分层：controller（@RequirePermission 声明权限码）→ service（XxxAdminService）→ mapper → entity
   - 权限码格式 `System:Menu:Add`，前后端一一对应；前端按钮用 `v-access:code` 指令隐藏，后端注解兜底
   - 前端列表页用 `useVbenVxeGrid`，弹窗表单用 `useVbenModal` + `useVbenForm`（schema 驱动），禁止直接用 Element Plus 表格/表单组件
-  - 动态菜单：后端 `/auth/menu` 下发嵌套树 → 前端生成路由；用户偏好（主题色等）localStorage 持久化
+  - 动态菜单：后端 `/user-config?key=menu` 下发嵌套树 → 前端生成路由；用户偏好（主题色等）localStorage 持久化
   - 种子数据：`DatabaseSeeder`（super 账号 vben/123456，受限账号 stockAdmin）
 
   ## 当前规划

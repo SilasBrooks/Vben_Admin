@@ -15,6 +15,7 @@ import { $t } from '#/locales';
 const userStore = useUserStore();
 
 const gridOptions: VxeTableGridOptions<OnlineUserItem> = {
+  id: 'table.monitor.online',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'username', title: $t('monitor.common.username'), minWidth: 140 },
@@ -27,7 +28,7 @@ const gridOptions: VxeTableGridOptions<OnlineUserItem> = {
         typeof cellValue === 'string' ? cellValue.replace('T', ' ') : (cellValue ?? ''),
     },
     { field: 'ip', title: $t('monitor.online.loginIp'), width: 140 },
-    { title: $t('monitor.common.action'), width: 100, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('monitor.common.action'), width: 100, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

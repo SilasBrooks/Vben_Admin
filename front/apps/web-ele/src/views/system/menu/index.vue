@@ -2,6 +2,9 @@
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 import type { MenuNode } from '#/api/system/menu';
 
+import { nextTick, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
 import { Page, VbenButton, useVbenModal } from '@vben/common-ui';
 
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -9,14 +12,20 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { deleteMenuApi, getMenuTreeApi } from '#/api/system/menu';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { $t } from '#/locales';
+import { refreshAccess } from '#/router/refresh-access';
 
 import MenuForm from './menu-form.vue';
+
+const router = useRouter();
+const syncFailed = ref(false);
+const syncing = ref(false);
 
 const [MenuFormModal, menuFormApi] = useVbenModal({
   connectedComponent: MenuForm,
 });
 
 const gridOptions: VxeTableGridOptions<MenuNode> = {
+  id: 'table.system.menu',
   rowConfig: { keyField: 'id', isHover: true },
   // 后端 /system/menu/list 直接返回嵌套 children 的树，无需 transform 重组
   treeConfig: {
@@ -52,7 +61,7 @@ const gridOptions: VxeTableGridOptions<MenuNode> = {
           ? $t('system.menu.show')
           : $t('system.menu.hide'),
     },
-    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {
@@ -89,16 +98,26 @@ async function remove(row: MenuNode) {
   );
   await deleteMenuApi(row.id);
   ElMessage.success($t('system.common.deleteSuccess'));
-  // 菜单变更后需要让前端路由重新加载
-  ElMessage.info($t('system.menu.reloadNotice'));
-  setTimeout(() => window.location.reload(), 1500);
+  await syncMenus();
 }
 
-function onFormSaved() {
-  gridApi.reload();
-  // 菜单变更后刷新页面以让前端路由重新生成
-  ElMessage.info($t('system.menu.reloadNotice'));
-  setTimeout(() => window.location.reload(), 1500);
+async function onFormSaved() {
+  ElMessage.success($t('system.common.saveSuccess'));
+  await syncMenus();
+}
+
+async function syncMenus() {
+  syncing.value = true;
+  syncFailed.value = false;
+  try {
+    await nextTick();
+    await Promise.all([gridApi.query(), refreshAccess(router)]);
+  } catch {
+    syncFailed.value = true;
+    ElMessage.warning($t('system.menu.syncFailed'));
+  } finally {
+    syncing.value = false;
+  }
 }
 </script>
 
@@ -109,6 +128,9 @@ function onFormSaved() {
       <template #toolbar-actions>
         <VbenButton v-access:code="'System:Menu:Add'" variant="default" @click="openCreate(0)">
           {{ $t('system.menu.addRoot') }}
+        </VbenButton>
+        <VbenButton v-if="syncFailed" variant="outline" :loading="syncing" @click="syncMenus">
+          {{ $t('system.menu.retrySync') }}
         </VbenButton>
       </template>
       <template #title="{ row }">

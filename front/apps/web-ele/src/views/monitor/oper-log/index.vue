@@ -22,6 +22,7 @@ function splitRange(
 }
 
 const gridOptions: VxeTableGridOptions<OperLogItem> = {
+  id: 'table.monitor.oper-log',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'operName', title: $t('monitor.operLog.operName'), width: 110 },
@@ -41,7 +42,7 @@ const gridOptions: VxeTableGridOptions<OperLogItem> = {
     { field: 'ip', title: $t('monitor.common.ip'), width: 120 },
     { field: 'costMs', title: $t('monitor.operLog.cost'), width: 90 },
     { field: 'operTime', title: $t('monitor.operLog.operTime'), width: 170 },
-    { title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

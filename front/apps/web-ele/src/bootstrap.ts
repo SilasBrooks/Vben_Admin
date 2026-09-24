@@ -1,6 +1,5 @@
 import { createApp, watchEffect } from 'vue';
 
-import { registerAccessDirective } from '@vben/access';
 import { registerLoadingDirective } from '@vben/common-ui';
 import { preferences } from '@vben/preferences';
 import { initStores } from '@vben/stores';
@@ -13,6 +12,7 @@ import { ElLoading } from 'element-plus';
 import { $t, setupI18n } from '#/locales';
 
 import { initComponentAdapter } from './adapter/component';
+import { registerReactiveAccessDirective } from './adapter/access';
 import { initSetupVbenForm } from './adapter/form';
 import App from './app.vue';
 import { router } from './router';
@@ -50,7 +50,7 @@ async function bootstrap(namespace: string) {
   await initStores(app, { namespace });
 
   // 安装权限指令
-  registerAccessDirective(app);
+  registerReactiveAccessDirective(app);
 
   // 初始化 tippy
   const { initTippy } = await import('@vben/common-ui/es/tippy');

@@ -55,6 +55,8 @@ class IdempotentAspectTest {
         return Idempotent.class;
       }
       @Override public String name() { return "user:profile"; }
+      @Override public String key() { return ""; }
+      @Override public boolean releaseAfterCompletion() { return false; }
       @Override public int intervalSeconds() { return 10; }
       @Override public String message() { return "请勿重复提交"; }
     };
@@ -62,7 +64,7 @@ class IdempotentAspectTest {
 
   @Test
   void firstRequestClaimsAndProceeds() throws Throwable {
-    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString())).thenReturn(1L);
+    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString(), anyString())).thenReturn(1L);
     LoginUserHolder.set(new LoginUser(1L, "vben", List.of("super"), null, 0));
 
     aspect.around(pjp, annotation());
@@ -71,14 +73,14 @@ class IdempotentAspectTest {
     // 键 = vben:idempotent:user:profile:u1，TTL = 10s
     @SuppressWarnings("unchecked")
     ArgumentCaptor<List<String>> keys = ArgumentCaptor.forClass((Class) List.class);
-    verify(redis).execute(any(DefaultRedisScript.class), keys.capture(), anyString());
+    verify(redis).execute(any(DefaultRedisScript.class), keys.capture(), anyString(), anyString());
     assertThat(keys.getValue()).containsExactly("vben:idempotent:user:profile:u1");
-    verify(redis).execute(any(DefaultRedisScript.class), anyList(), org.mockito.ArgumentMatchers.eq("10"));
+    verify(redis).execute(any(DefaultRedisScript.class), anyList(), org.mockito.ArgumentMatchers.eq("10"), anyString());
   }
 
   @Test
   void duplicateRequestRejectedWith409() throws Throwable {
-    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString())).thenReturn(0L);
+    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString(), anyString())).thenReturn(0L);
     LoginUserHolder.set(new LoginUser(1L, "vben", List.of("super"), null, 0));
 
     assertThatThrownBy(() -> aspect.around(pjp, annotation()))
@@ -90,7 +92,7 @@ class IdempotentAspectTest {
 
   @Test
   void anonymousFallsBackToClientIp() throws Throwable {
-    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString())).thenReturn(1L);
+    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString(), anyString())).thenReturn(1L);
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRemoteAddr("203.0.113.7");
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
@@ -99,7 +101,40 @@ class IdempotentAspectTest {
 
     @SuppressWarnings("unchecked")
     ArgumentCaptor<List<String>> keys = ArgumentCaptor.forClass((Class) List.class);
-    verify(redis).execute(any(DefaultRedisScript.class), keys.capture(), anyString());
+    verify(redis).execute(any(DefaultRedisScript.class), keys.capture(), anyString(), anyString());
     assertThat(keys.getValue()).containsExactly("vben:idempotent:user:profile:203.0.113.7");
+  }
+
+  @Test
+  void configKeyIsolatedAndOwnTokenReleasedAfterSuccessOrFailure() throws Throwable {
+    var annotation = com.vben.service.module.user.UserConfigController.class
+        .getMethod("save", com.vben.service.module.user.UserConfigController.SaveRequest.class)
+        .getAnnotation(Idempotent.class);
+    when(redis.execute(any(DefaultRedisScript.class), anyList(), anyString(), anyString())).thenReturn(1L);
+    LoginUserHolder.set(new LoginUser(1L, "vben", List.of("super"), null, 0));
+    when(pjp.getArgs()).thenReturn(new Object[] {
+        new com.vben.service.module.user.UserConfigController.SaveRequest("table.user", null)
+    });
+    aspect.around(pjp, annotation);
+    when(pjp.getArgs()).thenReturn(new Object[] {
+        new com.vben.service.module.user.UserConfigController.SaveRequest("table.role", null)
+    });
+    when(pjp.proceed()).thenThrow(new IllegalStateException("database unavailable"));
+    assertThatThrownBy(() -> aspect.around(pjp, annotation)).isInstanceOf(IllegalStateException.class);
+
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<String>> claims = ArgumentCaptor.forClass((Class) List.class);
+    ArgumentCaptor<String> claimTokens = ArgumentCaptor.forClass(String.class);
+    verify(redis, org.mockito.Mockito.times(2)).execute(any(DefaultRedisScript.class), claims.capture(),
+        org.mockito.ArgumentMatchers.eq("10"), claimTokens.capture());
+    assertThat(claims.getAllValues().get(0)).isNotEqualTo(claims.getAllValues().get(1));
+    @SuppressWarnings("unchecked")
+    ArgumentCaptor<List<String>> releases = ArgumentCaptor.forClass((Class) List.class);
+    ArgumentCaptor<String> releasedTokens = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<DefaultRedisScript> releaseScripts = ArgumentCaptor.forClass(DefaultRedisScript.class);
+    verify(redis, org.mockito.Mockito.times(2)).execute(releaseScripts.capture(), releases.capture(), releasedTokens.capture());
+    assertThat(releases.getAllValues()).isEqualTo(claims.getAllValues());
+    assertThat(releasedTokens.getAllValues()).isEqualTo(claimTokens.getAllValues());
+    assertThat(releaseScripts.getValue().getScriptAsString()).contains("redis.call('GET', KEYS[1]) == ARGV[1]");
   }
 }

@@ -22,6 +22,7 @@ function splitRange(
 }
 
 const gridOptions: VxeTableGridOptions<LoginLogItem> = {
+  id: 'table.monitor.login-log',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'username', title: $t('monitor.common.username'), minWidth: 120 },
@@ -38,7 +39,7 @@ const gridOptions: VxeTableGridOptions<LoginLogItem> = {
     { field: 'ip', title: $t('monitor.common.ip'), width: 130 },
     { field: 'userAgent', title: $t('monitor.loginLog.browser'), minWidth: 200, showOverflow: true },
     { field: 'loginTime', title: $t('monitor.common.loginTime'), width: 170 },
-    { title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('monitor.common.action'), width: 90, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

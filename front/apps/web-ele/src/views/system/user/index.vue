@@ -28,6 +28,7 @@ const [UserFormModal, userFormApi] = useVbenModal({
 
 // 列定义 + proxyConfig（接后端分页）
 const gridOptions: VxeTableGridOptions<VxeGridRow> = {
+  id: 'table.system.user',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'id', title: 'ID', visible: false },
@@ -45,6 +46,7 @@ const gridOptions: VxeTableGridOptions<VxeGridRow> = {
           : $t('system.common.disabled'),
     },
     {
+      field: '__actions',
       title: $t('system.common.actions'),
       width: 200,
       fixed: 'right',

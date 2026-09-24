@@ -44,9 +44,7 @@ async function init() {
     title: isEdit.value ? $t('system.menu.edit') : $t('system.menu.add'),
   });
 
-  if (menuTree.value.length === 0) {
-    menuTree.value = await getMenuTreeApi();
-  }
+  menuTree.value = await getMenuTreeApi();
   // 角色下拉选项（访问角色只能从已存在角色中选）
   if (roleOptions.value.length === 0) {
     roleOptions.value = await getRoleOptionsApi();

@@ -19,7 +19,9 @@ const router = createRouter({
       : createWebHistory(import.meta.env.VITE_BASE),
   // 应该添加到路由的初始路由列表。
   routes,
-  scrollBehavior: (to, _from, savedPosition) => {
+  scrollBehavior: (to, from, savedPosition) => {
+    // 菜单同步在原址更新路由元数据，保留用户当前滚动位置。
+    if (to.fullPath === from.fullPath) return false;
     if (savedPosition) {
       return savedPosition;
     }

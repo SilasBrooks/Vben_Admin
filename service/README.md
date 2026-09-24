@@ -1,6 +1,6 @@
 # Vben Admin 5 配套后端服务
 
-为 [vue-vben-admin](https://github.com/vbenjs/vue-vben-admin)（front/，5.x）配套的企业级 RBAC 后端，**接口协议与官方 `apps/backend-mock` 完全一致**，前端零改造直接切换。
+为 [vue-vben-admin](https://github.com/vbenjs/vue-vben-admin)（front/，5.x）配套的企业级 RBAC 后端，接口对接业务应用 `apps/web-ele`，动态菜单统一通过用户配置接口读取。
 
 ## 技术栈
 
@@ -41,7 +41,7 @@ pnpm dev:ele        # 或 pnpm dev:antdv-next
 
 与 mock 的 MOCK_USERS / MOCK_MENUS / MOCK_CODES 数据完全对齐，三账号登录后的菜单、按钮、页面隔离行为与官方 mock 一致。
 
-## 接口协议（与 backend-mock 逐一对齐）
+## 接口协议
 
 统一响应体 `{code, data, error, message}`，`code === 0` 为成功（前端 `defaultResponseInterceptor` 约定）。
 
@@ -52,7 +52,9 @@ pnpm dev:ele        # 或 pnpm dev:antdv-next
 | `POST /api/auth/logout` | 清除 Cookie，幂等 |
 | `GET /api/auth/codes` | 当前用户按钮级权限码（sys_menu.perm 汇总） |
 | `GET /api/user/info` | `{id, username, realName, roles, homePath}` |
-| `GET /api/menu/all` | 当前用户动态路由树（backend 菜单模式） |
+| `GET /api/user-config?key=menu` | 当前用户动态路由树（只读，backend 菜单模式，无菜单返回空数组） |
+| `GET /api/user-config?key=...` | 当前用户对应 key 的个人配置数组；未保存返回空数组 |
+| `POST /api/user-config/save` | 保存 `{key, value: JSON数组}`；`menu` 为只读保留 key，保存返回 400 |
 | `GET /api/system/user/list` | 样板业务接口：分页 + `@RequirePermission("System:User:List")` |
 
 无 token 访问受保护接口返回 401（前端自动尝试 refresh）；权限不足返回 403。
@@ -64,7 +66,7 @@ sys_user ──< sys_user_role >── sys_role ──< sys_role_menu >── sy
 ```
 
 - `sys_menu.menu_type`：`M` 目录 / `C` 菜单 / `F` 按钮
-  - M/C 生成前端动态路由（`/menu/all`）；F 不进路由树，其 `perm` 汇入权限码（`/auth/codes`）
+  - M/C 生成前端动态路由（`/user-config?key=menu`）；F 不进路由树，其 `perm` 汇入权限码（`/auth/codes`）
 - `sys_menu` 融合 vben meta 字段：`title`（支持 i18n key）、`icon`、`order_num`、
   `keep_alive`、`affix_tab`、`visible`（hideInMenu）、`authority`（meta.authority）、
   `extra_meta`（JSON，任意 meta 扩展如 badge / menuVisibleWithForbidden）
@@ -103,7 +105,7 @@ service/src/main/java/com/vben/service/
 ├── bootstrap/DatabaseSeeder.java  # 种子数据（空库自动执行一次）
 └── module/
     ├── auth/                      # /auth/**（login/refresh/logout/codes）+ Cookie 服务
-    ├── user/                      # /user/info
-    ├── menu/                      # /menu/all + sys_menu→vben 路由树转换
+    ├── user/                      # /user/info + /user-config（含只读 menu）
+    ├── menu/                      # sys_menu→vben 路由树转换
     └── system/                    # RBAC 实体/Mapper/服务 + 样板用户管理接口
 ```

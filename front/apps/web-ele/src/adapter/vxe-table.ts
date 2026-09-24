@@ -8,10 +8,24 @@ import {
   setupVbenVxeTable,
   useVbenVxeGrid as useGrid,
 } from '@vben/plugins/vxe-table';
+import { useUserStore } from '@vben/stores';
 
 import { ElButton, ElImage } from 'element-plus';
 
+import { getUserConfigApi, saveUserConfigApi } from '#/api/core/user-config';
+
 import { useVbenForm } from './form';
+import { createColumnConfigStorage } from './table-column-config';
+
+const columnConfigStorage = createColumnConfigStorage({
+  currentUser: () => {
+    const user = useUserStore().userInfo;
+    const id = user?.id ?? user?.userId;
+    return id == null ? undefined : String(id);
+  },
+  read: getUserConfigApi,
+  save: saveUserConfigApi,
+});
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
@@ -75,6 +89,16 @@ export const useVbenVxeGrid = <T extends Record<string, any>>(
   ...rest: Parameters<typeof useGrid<T, ComponentType, ComponentPropsMap>>
 ) => {
   const options = rest[0];
+  const gridOptions = options?.gridOptions;
+  if (gridOptions?.toolbarConfig?.custom) {
+    if (typeof gridOptions.id !== 'string' || !gridOptions.id) {
+      throw new Error('Customizable grids require a stable gridOptions.id');
+    }
+    gridOptions.customConfig = {
+      ...gridOptions.customConfig,
+      ...columnConfigStorage(gridOptions.id, gridOptions.columns ?? []),
+    };
+  }
   if (options?.formOptions) {
     // 搜索字段不超过一行时"展开/收起"按钮无实际作用，默认关闭；需要时可在页面 formOptions 显式开启
     options.formOptions = {

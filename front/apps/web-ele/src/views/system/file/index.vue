@@ -30,6 +30,7 @@ function formatSize(bytes: number): string {
 }
 
 const gridOptions: VxeTableGridOptions<FileItem> = {
+  id: 'table.system.file',
   columns: [
     { type: 'seq', title: '#', width: 50 },
     { field: 'originalName', title: $t('file.originalName'), minWidth: 200, showOverflow: true },
@@ -48,7 +49,7 @@ const gridOptions: VxeTableGridOptions<FileItem> = {
       formatter: ({ cellValue }) =>
         typeof cellValue === 'string' ? cellValue.replace('T', ' ') : (cellValue ?? ''),
     },
-    { title: $t('file.action'), width: 140, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('file.action'), width: 140, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: true },
   proxyConfig: {

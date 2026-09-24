@@ -23,6 +23,7 @@ const [DictDataModal, dictDataModalApi] = useVbenModal({
 });
 
 const gridOptions: VxeTableGridOptions<DictTypeItem> = {
+  id: 'table.system.dict',
   rowConfig: { keyField: 'id', isHover: true },
   columns: [
     { type: 'seq', title: '#', width: 50 },
@@ -39,7 +40,7 @@ const gridOptions: VxeTableGridOptions<DictTypeItem> = {
     },
     { field: 'remark', title: $t('system.common.remark'), minWidth: 160 },
     { field: 'createTime', title: $t('system.common.createdAt'), width: 170 },
-    { title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
+    { field: '__actions', title: $t('system.common.actions'), width: 220, fixed: 'right', slots: { default: 'action' } },
   ],
   pagerConfig: { enabled: false },
   proxyConfig: {
