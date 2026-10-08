@@ -22,6 +22,14 @@ export default defineConfig(async () => {
             ws: true,
           },
         },
+        // 预热所有页面与核心目录（递归）：默认框架配置的浅层 glob 只覆盖一级目录，
+        // src/views 下的页面从未被预热，导致每个页面首次跳转都要现场编译依赖链（白屏转圈）。
+        // 服务启动后后台预热，首次跳转直接命中缓存。
+        warmup: {
+          clientFiles: [
+            './src/{views,layouts,router,store,api,adapter,locales}/**/*.{vue,ts,tsx}',
+          ],
+        },
       },
     },
   };
