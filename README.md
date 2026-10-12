@@ -13,6 +13,8 @@
 - **安全邮箱找回密码**：已绑定时默认收起表单，点击「更换安全邮箱」后再填写；同屏填写邮箱、当前密码和验证码，验证码框右侧发送、独立按钮绑定；找回时校验图形验证码及已绑定邮箱验证码，Redis 原子防重放，重置后旧登录凭证失效，可复用现有邮箱 SMTP
 - **数据权限（行级）**：`@DataScope` 注解 + AOP 切面 + ThreadLocal 上下文，按部门/角色动态改写 SQL 过滤范围，支持"仅本人/本部门/本部门及以下/自定义"多种粒度
 - **AI 智能助手**：DeepSeek 流式 SSE + 工具调用（Function Call）Agent 编排——查询类工具自动执行回喂，写操作类工具生成确认卡片、用户确认后才落库；服务端按权限码双重校验；会话支持按轮截断 + 滚动摘要 + 本地持久化；回复以 Markdown 渲染（XSS 双重防线），代码块带语言标签 / 一键复制 / 长代码折叠，流式输出尊重用户滚动位置
+- **知识库 RAG（pgvector 向量检索）**：md/txt/pdf/docx 文档上传后异步切块（Markdown 标题感知 + 重叠滑动窗口）→ Embedding 向量化落库，支持**大文件分片上传**（200MB 上限：分片前纯前端增量计算 SHA-256 → init 幂等领号 / **秒传**（同内容文件零上传直入库）/ 并发 3 路分片单片重试 / complete 服务端哈希完整性校验；失败保留会话断点续传）；PDF（PDFBox 按页）与 Word（POI 按段落）服务端文本解析，扫描件/损坏文件给出可读失败原因；管道按阶段持久化进度（解析→切块→向量化，逐批落 processed_chunks 断点），失败可从断点重试、服务重启自动恢复标注，处理中文档的半成品块不可被检索污染；AI 对话自动检索知识库并引用出处（文件名 + 命中片段 + 相似度）；独立检索测试弹窗可视调参 topK；Embedding 模型与对话模型同款可插拔管理（标准 OpenAI 协议 + 火山方舟多模态 vision 双协议风格、连通测试回传维度、全局唯一激活）
+- **Claude 式 Agent Skills**：SKILL.md 能力包（name/描述/正文 ≤ 8000 字符）支持在线维护与 **zip 目录包上传**（对齐 Claude 官方格式 `skill-name/SKILL.md + references/`，上传即解析 frontmatter 建技能、原包归档可下载），对话注入轻量技能清单（渐进式披露），AI 按需调用 `activate_skill` 加载正文、`load_skill_file` 读取包内参考文件（三级披露）——新增技能零代码、即时生效；内置 3 个示例技能（公告撰写 / 会话排障 / 会议纪要）
 - **声明式操作审计**：`@OperLog` 注解 + 切面自动记录操作人/入参/结果/耗时/IP，密码字段自动脱敏，异步落库不影响主流程
 - **鉴权快照缓存 + 静态资源预压缩**：JWT 认证的权限快照（角色 + 权限码）缓存于 Redis（5 分钟 TTL 兜底），命中时每请求省去 3 条装配 SQL，用户/角色/菜单三级变更即时精准失效、Redis 异常自动降级回源（语义与无缓存一致）；前端构建产出 .gz/.br 预压缩产物，nginx `gzip_static` 直接发送、免实时压缩 CPU 开销
 - **工程化变更管理**：使用 [OpenSpec](openspec/changes/archive/) 规范驱动开发，每个功能有 proposal / design / spec / tasks 四件套并归档可追溯
@@ -48,8 +50,11 @@
 | 消息聊天（IM 单聊） | 用户间一对一私聊（`sys_message` 落库可回溯，离线重登可见）：联系人选择、会话列表（未读数）、历史消息（游标分页）、发送与已读回执（`/api/im/*` 登录即可，仅操作本人会话，发送按用户限流 60 次/分钟）；`/api/ws/im?token=` 实时推送，对方在线即时送达并回已读回执；独立「消息聊天」页全员可见；微信式消息右键菜单（引用 / 复制 / 删除）：引用发送时固化内容快照（`quote_id` + `quote_content`，校验被引用消息须属当前会话，原消息删除后引用仍可显示）、相对时间展示（刚刚 / N 分钟前 / N 小时前 / 昨天 / 前天 / 其他具体时间）；单侧删除——`sender_deleted` / `receiver_deleted` 双标记列，删除消息或删除会话仅本人视角不可见（会话汇总、未读统计同步过滤），对方不受影响 |
 | 国际化 | 前端中英双语（`zh-CN` / `en-US`）：认证、系统管理、监控、文件、仪表盘、个人中心、AI 助手全量文案走 vue-i18n 语言包（`apps/web-ele/src/locales/langs/`），头部一键切换、刷新持久；侧边栏菜单标题（数据库存 i18n key）随语言同步切换；后端错误消息同步双语——前端每请求携带 `Accept-Language`，后端 BizException/校验注解/幂等限流/401 均按请求语言返回（`messages.properties` 中文兜底 + `messages_en_US.properties`，约 120 条消息 key） |
 | API 文档 | springdoc 自动生成 OpenAPI 3 + Swagger UI（`/api/swagger-ui/index.html`，dev 开启 / prod 关闭） |
-| AI 助手 | 真 Agent（plan-and-execute）：**25 个内置工具注解自动注册**（Service 方法标 `@AiAgentTool` 即成为 AI 工具，零 switch 适配），工具按登录用户权限码**动态可见可调**；AI 自主多步规划——多写操作任务先产出执行计划（目标+步骤+理由），前端计划卡确认后 SSE 步骤流顺序执行（等待/执行中/成功/失败实时反馈）；高危操作（删除用户/角色/部门、重置密码、强退、菜单授权）计划卡单独标红 + 执行前**二次确认弹框**，服务端 Redis 暂存 10 分钟；任一步失败即终止、每步执行前再校验权限；单写操作仍走轻量确认卡 |
+| AI 助手 | 真 Agent（plan-and-execute）：**27 个内置工具注解自动注册**（Service 方法标 `@AiAgentTool` 即成为 AI 工具，零 switch 适配），工具按登录用户权限码**动态可见可调**；AI 自主多步规划——多写操作任务先产出执行计划（目标+步骤+理由），前端计划卡确认后 SSE 步骤流顺序执行（等待/执行中/成功/失败实时反馈）；高危操作（删除用户/角色/部门、重置密码、强退、菜单授权）计划卡单独标红 + 执行前**二次确认弹框**，服务端 Redis 暂存 10 分钟；任一步失败即终止、每步执行前再校验权限；单写操作仍走轻量确认卡；知识库命中回答自动附**引用溯源卡片**（文档名/块序/融合分，点击展开原文摘要） |
 | 模型配置 | AI 底层模型可插拔（系统管理 → 模型配置）：自定义添加任意 OpenAI 兼容协议模型（DeepSeek / Qwen / Kimi / GLM / Ollama / one-api 等），可配接口地址、API Key（明文入库、接口回显脱敏、编辑留空不修改）、模型名、温度 / 最大 token / 超时；一键连通测试（非流式 ping 返回耗时与回显）；全局唯一激活——AI 助手对话与摘要的底层模型即时切换，无需重启；未配置激活模型时回退 yml `DEEPSEEK_API_KEY` 兜底 |
+| 知识库 | RAG 混合检索问答（系统管理 → 知识库）：md/txt/pdf/docx 上传，≤10MB 单请求、>10MB 自动分片（200MB 上限，SHA-256 秒传/断点续传/完整性校验）；异步管线切块（Markdown 标题归组 + 段落聚合 + 硬切重叠）→ Embedding 向量化 → 阶段进度可观测（处理中/完成/失败含原因，断点重试）；**混合检索**——pgvector 余弦与 PG 全文检索（应用侧中文滑动 bigram 分词 + tsvector GIN 索引，零扩展依赖）双通道 RRF 融合排序，检索测试弹窗标注命中通道与融合分；独立「检索测试」弹窗按 query + topK（1-10）预览命中；上传走幂等防重 + 权限码 `Kb:Doc:*` |
+| Embedding 配置 | 向量模型可插拔（系统管理 → Embedding 配置）：任意 OpenAI 兼容 `/v1/embeddings` 接口，协议风格可选「标准 OpenAI」或「方舟多模态」（火山方舟 doubao-embedding-vision 系列走 `/embeddings/multimodal`），连通测试自动回填向量维度；全局唯一激活——知识库摄取与检索共用；切换不同维度的模型后需重建知识库向量（见注意事项） |
+| AI 技能 | Claude 式 Agent Skills（系统管理 → AI 技能）：SKILL.md 能力包在线维护（name 小写字母数字连字符、描述 ≤ 300、正文 ≤ 8000）+ zip 技能包上传（对齐 Claude 官方目录格式：`SKILL.md` frontmatter 自动解析建技能，references/assets 随包归档；zip 安全三道闸——路径穿越拒绝、条目 ≤ 200 / 解压总量 ≤ 20MB、SKILL.md 唯一定位），带包技能可浏览与下载包内文件/原包；启用技能（上限 20 个）注入对话系统提示——AI 先看清单再按需 `activate_skill` 加载全文、`load_skill_file` 读取包内参考文件（三级渐进式披露）；内置技能只读保护，新增/修改即时生效无需重启 |
 | 一键部署 | Docker Compose 编排（PG + Redis + 后端 + 前端 nginx 同源反代）：本地构建或 GHCR 免构建拉取均可，docker profile 自动建库、安全开关默认关闭，后端镜像分层 + JVM 容器内存约束 |
 | CI | GitHub Actions 双流水线：后端 `mvn test`（幂等切面/IP 工具等单测）+ 前端 `pnpm build`，push/PR 自动执行；push 到 gy/master 且测试全绿后自动构建双镜像发布 GHCR |
 
@@ -131,7 +136,7 @@ pnpm dev
 
 登录后点击右下角悬浮按钮打开。能力与设计：
 
-- **25 个工具、注解零适配注册**：业务 Service 方法标 `@AiAgentTool`（名称/标题/类型/权限码/是否高危）即自动成为 AI 工具，启动时反射扫描注册、JSON Schema 由方法签名生成——新增工具不再需要改任何注册代码。覆盖：用户/角色/部门/菜单/字典/文件/在线用户/登录日志/操作日志/仪表盘查询，用户/角色/部门/公告创建，用户/角色/部门删除，密码重置，在线强退，角色菜单授权，IM 聊天（联系人/会话/聊天记录查询、发消息——发送走确认卡片）
+- **27 个工具、注解零适配注册**：业务 Service 方法标 `@AiAgentTool`（名称/标题/类型/权限码/是否高危）即自动成为 AI 工具，启动时反射扫描注册、JSON Schema 由方法签名生成——新增工具不再需要改任何注册代码。覆盖：用户/角色/部门/菜单/字典/文件/在线用户/登录日志/操作日志/仪表盘查询，用户/角色/部门/公告创建，用户/角色/部门删除，密码重置，在线强退，角色菜单授权，IM 聊天（联系人/会话/聊天记录查询、发消息——发送走确认卡片）
 - **工具按权限动态下发**：每次对话按当前用户权限码过滤工具清单，无权限的工具模型根本"看不见"；执行接口独立二次校验（前端按钮不是安全边界）
 - **plan-and-execute 真 Agent**：多写操作任务 AI 先产出执行计划（目标 + 步骤 + 理由），前端计划卡展示全貌，确认后 SSE 步骤流顺序执行并实时反馈每步状态；任一步失败立即终止；每步执行前再次校验权限
 - **高危操作双保险**：删除用户/角色/部门、重置密码、强退、菜单授权标记 `danger=true`——计划卡单独标红，执行到该步时服务端暂停（Redis 暂存 10 分钟），用户二次确认后才继续
@@ -162,6 +167,9 @@ pnpm dev
 - **安全邮箱**：在「个人中心 → 安全邮箱」填写目标邮箱与当前密码，点击验证码输入框右侧的「发送邮箱验证码」，收到邮件后填写验证码并点击「绑定」。已绑定时默认隐藏表单，点击「更换安全邮箱」后再进行更换；绑定或更换成功后自动收起表单。发信请求单独等待最多 60 秒，发送成功后有 60 秒重发冷却；修改邮箱或密码后需重新获取验证码。基本设置中的联系邮箱不会自动成为安全邮箱。未绑定或无法收信时由管理员重置；找回的新密码要求 8–64 位 ASCII 可见字符，含字母和数字、无空格。
 - **SMTP 配置**：本项目使用标准 SMTP，不内置按条计费的供应商。可复用支持 SMTP 的现有邮箱，免费额度与费用以邮箱服务商为准。后端进程需配置 `SMTP_HOST`、`SMTP_PORT`、`SMTP_USERNAME`、`SMTP_PASSWORD`（邮箱服务商的 SMTP 授权码）和可选 `SMTP_FROM`（默认同用户名）。凭据只放部署环境或未跟踪的本地配置，不写入 Git。默认 587 + STARTTLS；使用 465 隐式 TLS 时设置 `SMTP_PORT=465`、`SMTP_SSL=true`、`SMTP_STARTTLS=false`。认证默认开启，只有无认证的本地测试邮件服务才设置 `SMTP_AUTH=false`。配置完成后重启后端；未配置时界面明确提示邮箱验证未开启，不伪造发信成功。
 - **存量数据库升级**：安全邮箱存储于 `sys_user_recovery_email`，不迁移既有未验证邮箱。开发 PostgreSQL 启动时幂等建表；手工部署分别执行 `service/src/main/resources/db/upgrade-20260923-email-recovery-postgres.sql` 或 `upgrade-20260923-email-recovery-mysql.sql`。
+- **知识库 / AI 技能（存量库升级）**：依赖 PostgreSQL **pgvector 扩展**（`CREATE EXTENSION IF NOT EXISTS vector`；本项目开发镜像 bitnami/postgresql:18 自带 vector 0.8.3，其他发行版需确认含扩展）。存量库手工执行 `service/src/main/resources/db/upgrade-20261009-kb-rag-postgres.sql`、`upgrade-20261009-agent-skills-postgres.sql`、`upgrade-20261010-emb-protocol-postgres.sql`、`upgrade-20261010-skill-packages-postgres.sql`、`upgrade-20261010-kb-large-file-postgres.sql` 与 `upgrade-20261012-kb-hybrid-fts-postgres.sql`（幂等：建表 `sys_embedding_config` / `kb_doc` / `kb_chunk` / `agent_skill` / `kb_file` / `kb_upload_session` + 权限码 + 3 个内置技能 + `sys_embedding_config.protocol` 列 + `agent_skill` 技能包三列 + `kb_doc` 大文件管线五列 + `kb_chunk.content_tsv` 全文索引列与 GIN）；**存量块的全文索引由应用启动时自动回填**（KbTsvBackfill，幂等可重跑），新库由启动 SQL 自动初始化。
+- **Embedding 维度一致性**：向量列按激活模型维度写入，pgvector `vector` 列不固定维度（检索时校验查询向量与库内向量维度一致，不一致报错提示重建）。**切换不同维度的 Embedding 模型后需删除并重新上传知识库文档**，否则检索失败；建议选定模型后再批量导入。
+- **火山方舟 Embedding 协议选型**：方舟 doubao-embedding-vision 系列（如 `doubao-embedding-vision-251215`）须选「方舟多模态」协议（走 `/embeddings/multimodal`，多条文本会合成一个向量，系统按单条请求自动适配）；文本版 embedding（`doubao-embedding-text-*` / `large-text-*`）官方已停止新增开通、直调报 NotFound，vision 系列为官方替代。其余服务商一律选「标准 OpenAI」协议。
 - **邮件发送排查**：服务商明确返回收件账号不存在时，页面提示「邮箱不存在，请检查邮箱地址后重新发送」；其他错误区分 SMTP 认证失败、连接失败、响应超时、TLS 失败、收件地址被拒绝及服务商拒绝发送。后端 `Recovery email delivery failed` 日志只记录错误分类、异常类型和可用的 SMTP 状态码，不记录邮箱、授权码、正文或验证码。
 - **集成测试**：常规 `mvn test` 不依赖本地数据库。显式设置 `RECOVERY_INTEGRATION_TEST=true` 可在本地开发 PostgreSQL/Redis 上验证真实 HTTP 绑定、找回、旧令牌失效和 Lua 验证码并发消费；邮件投递器被替换为测试实现，临时账号自动清理，不向真实邮箱发信。
 

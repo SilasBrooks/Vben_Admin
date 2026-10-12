@@ -10,6 +10,7 @@ import {
   executeAiToolApi,
   streamAiChat,
   summarizeAiChatApi,
+  type AiCitationItem,
   type AiPlanPayload,
   type AiPlanStep,
   type AiPlanStepResult,
@@ -73,6 +74,8 @@ export interface AiPlanCardState {
 export interface AiChatMessage {
   /** 助手消息内的确认卡片 */
   cards?: AiToolCardState[];
+  /** 知识库引用溯源条目（citations 事件挂载，按 docName+seq 去重） */
+  citations?: AiCitationItem[];
   content?: null | string;
   id: number;
   isError?: boolean;
@@ -104,6 +107,25 @@ function safeParse(text: string): any {
   } catch {
     return text;
   }
+}
+
+/** 溯源条目合并去重（docName+seq 唯一；一轮多次检索命中同一片段只保留一张卡片） */
+function mergeCitations(
+  existing: AiCitationItem[] | undefined,
+  incoming: AiCitationItem[],
+): AiCitationItem[] {
+  const seen = new Set(
+    (existing ?? []).map((c) => `${c.docName}#${c.seq}`),
+  );
+  const merged = [...(existing ?? [])];
+  for (const item of incoming) {
+    const key = `${item.docName}#${item.seq}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+  return merged;
 }
 
 /** 本地持久化 key 前缀（按用户 id 隔离），v1 为结构版本 */
@@ -230,6 +252,10 @@ export function useAiChat() {
           bubble.content = (bubble.content ?? '') + delta;
         },
         onHistory: (entries) => reconcileHistory(entries),
+        onCitations: (items) => {
+          const bubble = ensureActiveBubble();
+          bubble.citations = mergeCitations(bubble.citations, items);
+        },
         onToolCall: (payload) => attachCard(payload),
         onPlan: (payload) => attachPlan(payload),
         onDone: () => finishRound(),

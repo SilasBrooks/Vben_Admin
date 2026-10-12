@@ -17,8 +17,10 @@ import com.vben.service.module.ai.tool.AiToolExecutor;
 import com.vben.service.module.ai.tool.AiToolKind;
 import com.vben.service.module.ai.tool.AiToolRegistry;
 import com.vben.service.module.ai.tool.AiToolResult;
+import com.vben.service.module.ai.tool.AiKnowledgeTools;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
+import com.vben.service.module.ai.skill.SkillManifestBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +79,7 @@ public class AiChatService {
   private final AiPlanService planService;
   private final AiProperties properties;
   private final ObjectMapper objectMapper;
+  private final SkillManifestBuilder skillManifestBuilder;
 
   /**
    * 执行一轮对话（可能内部包含多轮工具调用）。
@@ -85,7 +88,7 @@ public class AiChatService {
    */
   public void chat(List<DeepMessage> inbound, AiChatSink sink, CancelToken cancel) {
     List<DeepMessage> messages = new ArrayList<>();
-    messages.add(DeepMessage.system(SYSTEM_PROMPT));
+    messages.add(DeepMessage.system(buildSystemPrompt()));
     messages.addAll(sanitize(inbound));
 
     int toolRounds = 0;
@@ -163,6 +166,10 @@ public class AiChatService {
           AiToolResult result = toolExecutor.runQuiet(call.function().name(),
               call.function().arguments());
           autoResults.add(DeepMessage.toolResult(call.id(), result.content()));
+          // 知识库检索命中：同步下发出处列表供前端渲染溯源卡片（与回喂片段同源）
+          if (AiKnowledgeTools.TOOL_NAME.equals(call.function().name())) {
+            sink.citations(parseCitations(result.content()));
+          }
         } else if (!toolRegistry.canUse(currentUser, def)) {
           // 无权限：不下发确认卡片，把权限不足回喂模型，由模型直接告知用户
           autoResults.add(DeepMessage.toolResult(call.id(),
@@ -187,6 +194,15 @@ public class AiChatService {
     }
   }
 
+  /**
+   * 系统提示词动态组装：常量骨架 + 启用技能清单段（渐进式披露第一级）。
+   * 无启用技能时清单段为空串，提示词与引入技能机制前完全一致。
+   */
+  private String buildSystemPrompt() {
+    String manifest = skillManifestBuilder.build();
+    return manifest.isEmpty() ? SYSTEM_PROMPT : SYSTEM_PROMPT + "\n\n" + manifest;
+  }
+
   private JsonNode parsePlanArgs(String argsJson) {
     try {
       if (argsJson == null || argsJson.isBlank()) {
@@ -195,6 +211,34 @@ public class AiChatService {
       return objectMapper.readTree(argsJson);
     } catch (Exception e) {
       throw BizException.badRequest("error.ai.badJson");
+    }
+  }
+
+  /**
+   * 从 search_knowledge 回喂 JSON 提取出处列表：found=true 时解析 snippets
+   * （与回喂模型的片段同源一致，content 已按工具规则截断）；
+   * 未命中/解析失败返回空列表，MUST NOT 阻断对话。
+   */
+  private List<KbCitation> parseCitations(String resultJson) {
+    try {
+      if (resultJson == null || resultJson.isBlank()) {
+        return List.of();
+      }
+      JsonNode root = objectMapper.readTree(resultJson);
+      if (!root.path("found").asBoolean(false)) {
+        return List.of();
+      }
+      List<KbCitation> items = new ArrayList<>();
+      for (JsonNode s : root.path("snippets")) {
+        items.add(new KbCitation(
+            s.path("docName").asText(""),
+            s.path("seq").asInt(0),
+            s.path("score").asDouble(0.0),
+            s.path("content").asText("")));
+      }
+      return items;
+    } catch (Exception e) {
+      return List.of();
     }
   }
 

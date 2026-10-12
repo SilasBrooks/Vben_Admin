@@ -28,6 +28,12 @@ public interface AiChatSink {
    */
   void plan(String toolCallId, String goal, List<PlanModels.StoredStep> steps);
 
+  /**
+   * 知识库引用溯源：search_knowledge 命中后下发结构化出处列表，
+   * 前端在对应助手气泡下方渲染可展开的溯源卡片（按文档名+序号去重）。
+   */
+  void citations(List<KbCitation> items);
+
   void done();
 
   void error(String message);

@@ -47,6 +47,7 @@ public class DatabaseSeeder implements ApplicationRunner {
   private final SysDeptMapper deptMapper;
   private final SysUserRoleMapper userRoleMapper;
   private final SysRoleMenuMapper roleMenuMapper;
+  private final com.vben.service.module.ai.skill.mapper.AgentSkillMapper agentSkillMapper;
 
   @Override
   @Transactional
@@ -145,6 +146,33 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long llmDelete = insertMenu(perm("System:Llm:Delete", systemLlmId));
     Long llmActivate = insertMenu(perm("System:Llm:Activate", systemLlmId));
 
+    // 嵌入配置（系统管理 leaf，order 9）：知识库向量化所用 Embedding 模型
+    Long systemEmbId = insertMenu(leaf("SystemEmb", "page.system.embedding",
+        "ant-design:api-outlined", 9, "/system/embedding", "/system/embedding/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long embList = insertMenu(perm("System:Emb:List", systemEmbId));
+    Long embAdd = insertMenu(perm("System:Emb:Add", systemEmbId));
+    Long embEdit = insertMenu(perm("System:Emb:Edit", systemEmbId));
+    Long embDelete = insertMenu(perm("System:Emb:Delete", systemEmbId));
+    Long embActivate = insertMenu(perm("System:Emb:Activate", systemEmbId));
+
+    // 知识库（系统管理 leaf，order 10）：AI 助手 RAG 检索的文档底座
+    Long systemKbId = insertMenu(leaf("SystemKb", "page.system.kb",
+        "ant-design:database-outlined", 10, "/system/kb", "/system/kb/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long kbList = insertMenu(perm("Kb:Doc:List", systemKbId));
+    Long kbUpload = insertMenu(perm("Kb:Doc:Upload", systemKbId));
+    Long kbDelete = insertMenu(perm("Kb:Doc:Delete", systemKbId));
+
+    // AI 技能（系统管理 leaf，order 11）：Claude 式能力包，渐进式披露扩展助手能力
+    Long systemSkillId = insertMenu(leaf("SystemSkill", "page.system.skill",
+        "ant-design:thunderbolt-outlined", 11, "/system/skill", "/system/skill/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long skillList = insertMenu(perm("System:Skill:List", systemSkillId));
+    Long skillAdd = insertMenu(perm("System:Skill:Add", systemSkillId));
+    Long skillEdit = insertMenu(perm("System:Skill:Edit", systemSkillId));
+    Long skillDelete = insertMenu(perm("System:Skill:Delete", systemSkillId));
+
     // 系统监控模块（Monitor）：super/admin 可见，user 不可见
     Long monitorCatalogId = insertMenu(catalog("Monitor", "page.monitor.title",
         "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
@@ -179,6 +207,9 @@ public class DatabaseSeeder implements ApplicationRunner {
         systemFileId, fileList, fileUpload, fileDelete,
         systemAnnounceId, announcePublish,
         systemLlmId, llmList, llmAdd, llmEdit, llmDelete, llmActivate,
+        systemEmbId, embList, embAdd, embEdit, embDelete, embActivate,
+        systemKbId, kbList, kbUpload, kbDelete,
+        systemSkillId, skillList, skillAdd, skillEdit, skillDelete,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
 
@@ -231,6 +262,62 @@ public class DatabaseSeeder implements ApplicationRunner {
     // ------------------------------------------------------------------
     // 6. 数据字典种子：仅建表不预置业务字典，字典数据请登录后在数据字典页维护
     // ------------------------------------------------------------------
+
+    // ------------------------------------------------------------------
+    // 7. 内置 Agent 技能（示范概念，开箱可演示；可编辑可停用不可删除）
+    // ------------------------------------------------------------------
+    insertSkill("announcement-writer", "公告写作助手",
+        "需要起草站内公告、通知、通告类文案时使用：按公告规范产出结构完整、受众清晰的正文，可直接交给发布公告工具发布",
+        """
+        # 公告写作指引
+
+        任务：为管理后台起草一条站内公告正文。
+
+        ## 要求
+        - 标题 ≤30 字，概括事件与影响（如「系统将于周六 22:00 升级维护」）
+        - 正文结构：事由（1-2 句）→ 影响范围与时间 → 需要用户做什么 → 联系方式/备注
+        - 语言简洁中性，不用感叹号，不堆形容词；时间写绝对时间（含时区语义的年月日时分）
+        - 先向用户确认：公告主题、影响范围、生效时间；信息不全先追问，不要编造
+
+        ## 产出后
+        将草稿交给用户确认；用户确认后可提示「可以通过我直接发布公告」，确认发送范围后
+        调用 publish_announcement 工具发布（该工具需要确认卡片二次确认）。
+        """);
+    insertSkill("connection-troubleshooter", "故障排查手册",
+        "用户反馈系统连不上、接口报错、服务不可用（如数据库/Redis 连接拒绝）时使用：按标准链路逐层定位并给出处理建议",
+        """
+        # 连接类故障排查指引
+
+        任务：帮助用户定位「服务不可用 / 连接拒绝」类问题。
+
+        ## 排查链路（按序执行，每步给出结论再进下一步）
+        1. 确认现象：哪个环境、什么接口/操作报错、报错文案是什么（贴原文）
+        2. 依赖服务状态：数据库（PG 容器 vben5，127.0.0.1:5444）与 Redis（6379）是否存活；
+           连接拒绝通常是容器没启动——提示用户先查 Docker Desktop 是否运行，再启动容器
+        3. 端口与进程：确认端口被监听、无端口冲突；防火墙/代理可能拦截本机回环以外的地址
+        4. 应用侧：后端日志若有 Unresolved compilation problems，执行 mvn -q clean compile 后重启
+        5. 给出结论：根因 + 已执行的处置 + 剩余建议；查不到的事实不要编造
+
+        ## 边界
+        你只能提供排查思路与系统内数据（如通过工具查询到的状态），不能代替用户执行命令。
+        """);
+    insertSkill("meeting-minutes-formatter", "会议纪要整理",
+        "用户粘贴会议记录/聊天摘录希望整理成结构化纪要时使用：产出决议清晰、待办可跟踪的标准纪要",
+        """
+        # 会议纪要整理指引
+
+        任务：把用户提供的原始记录整理为结构化会议纪要。
+
+        ## 输出结构
+        - 结论先行：一段话概括本次会议最重要的决议
+        - 决议列表：每条一行，标注达成方式（共识/拍板/待定）
+        - 待办清单：事项 | 负责人 | 截止时间；缺失的负责人/时间向用户追问或标注「待定」，不要编造
+        - 遗留问题：未达成一致的分歧点
+
+        ## 规则
+        - 忠于原文：只重组不改写事实；原文没有的信息用「待定」占位并提示用户补充
+        - 人名保留原样；时间统一为「M月d日 HH:mm」格式
+        """);
 
     log.info("种子数据初始化完成。账号：vben/123456(super)、admin/123456(admin)、"
         + "jack/123456(user)、stockAdmin/123456(stock,仓储部,数据范围=本部门及以下)");
@@ -300,6 +387,19 @@ public class DatabaseSeeder implements ApplicationRunner {
   private Long insertMenu(MenuSpec spec) {
     menuMapper.insert(spec.menu());
     return spec.menu().getId();
+  }
+
+  /** 内置 Agent 技能（builtIn=1，默认启用） */
+  private void insertSkill(String name, String title, String description, String content) {
+    com.vben.service.module.ai.skill.AgentSkill skill =
+        new com.vben.service.module.ai.skill.AgentSkill();
+    skill.setName(name);
+    skill.setTitle(title);
+    skill.setDescription(description);
+    skill.setContent(content.strip());
+    skill.setEnabled(1);
+    skill.setBuiltIn(1);
+    agentSkillMapper.insert(skill);
   }
 
   // ------------------------------------------------------------------

@@ -304,6 +304,11 @@ public class AiController {
     }
 
     @Override
+    public void citations(java.util.List<com.vben.service.module.ai.agent.KbCitation> items) {
+      safeSend(emitter, "citations", java.util.Map.of("items", items), objectMapper);
+    }
+
+    @Override
     public void done() {
       safeSend(emitter, "done", java.util.Map.of(), objectMapper);
       emitter.complete();

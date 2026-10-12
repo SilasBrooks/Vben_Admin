@@ -5,7 +5,7 @@ import { createIconifyIcon } from '@vben/icons';
 
 import { $t } from '#/locales';
 
-import { useAiChat } from './use-ai-chat';
+import { useAiChat, type AiChatMessage } from './use-ai-chat';
 import MarkdownContent from './MarkdownContent.vue';
 import PlanCard from './PlanCard.vue';
 import { formatCardArgs } from './tool-labels';
@@ -33,6 +33,36 @@ const {
 const open = ref(false);
 const inputText = ref('');
 const scrollRef = ref<HTMLElement>();
+
+/**
+ * 空白助手消息不渲染：查询工具轮（search_knowledge / activate_skill 等）经
+ * history 对账产生的纯 tool_calls 消息（无正文、无卡片），仅用于协议回放，
+ * 渲染出来就是只有头像的空泡。流式/思考中/含卡片或计划的气泡始终保留。
+ */
+function isBlankAssistant(msg: AiChatMessage): boolean {
+  return (
+    msg.role === 'assistant' &&
+    !msg.content &&
+    !msg.isError &&
+    !msg.streaming &&
+    !msg.thinking &&
+    (msg.cards?.length ?? 0) === 0 &&
+    (msg.planCards?.length ?? 0) === 0 &&
+    (msg.citations?.length ?? 0) === 0
+  );
+}
+
+/** 溯源卡片的展开状态 key（msgId#idx），跨重渲染保持展开态 */
+const expandedCitations = ref(new Set<string>());
+function toggleCitation(msgId: number, idx: number) {
+  const key = `${msgId}#${idx}`;
+  if (expandedCitations.value.has(key)) {
+    expandedCitations.value.delete(key);
+  } else {
+    expandedCitations.value.add(key);
+  }
+  expandedCitations.value = new Set(expandedCitations.value);
+}
 
 // 计时驱动：loading 期间每秒刷新一次，驱动「已处理 Ns」更新
 const now = ref(Date.now());
@@ -331,7 +361,10 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
             <div class="ai-bubble ai-bubble--user">{{ msg.content }}</div>
           </div>
 
-          <div v-else-if="msg.role === 'assistant'" class="ai-row ai-row--bot">
+          <div
+            v-else-if="msg.role === 'assistant' && !isBlankAssistant(msg)"
+            class="ai-row ai-row--bot"
+          >
             <img src="/logo.png" alt="" class="ai-avatar" />
             <div class="ai-bubble ai-bubble--bot" :class="{ 'is-error': msg.isError }">
               <!-- 思考中指示器 -->
@@ -350,6 +383,30 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
                 :content="msg.content"
                 :streaming="msg.streaming"
               />
+
+              <!-- 知识库引用溯源卡片（citations 事件，按文档名+序号去重后挂载） -->
+              <div v-if="msg.citations?.length" class="ai-cite-list">
+                <div
+                  v-for="(cite, ci) in msg.citations"
+                  :key="`${msg.id}-cite-${ci}`"
+                  class="ai-cite"
+                  @click="toggleCitation(msg.id, ci)"
+                >
+                  <div class="ai-cite__head">
+                    <span class="ai-cite__icon">📖</span>
+                    <span class="ai-cite__doc">{{ cite.docName }}</span>
+                    <span class="ai-cite__meta">#{{ cite.seq }} · {{ cite.score.toFixed(4) }}</span>
+                    <span
+                      class="ai-cite__arrow"
+                      :class="{ 'is-open': expandedCitations.has(`${msg.id}#${ci}`) }"
+                      >▾</span
+                    >
+                  </div>
+                  <div v-if="expandedCitations.has(`${msg.id}#${ci}`)" class="ai-cite__content">
+                    {{ cite.content }}
+                  </div>
+                </div>
+              </div>
 
               <!-- 计划卡（多步任务） -->
               <PlanCard
@@ -779,6 +836,59 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
   overflow: hidden;
   background: var(--el-fill-color-light, #f7f8fa);
 }
+
+/* 知识库引用溯源卡片：收起显示文档名/序号/得分，点击展开摘要（纯文本展示防注入） */
+.ai-cite-list {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-cite {
+  border: 1px solid var(--el-border-color-light, #e4e7ed);
+  border-radius: 8px;
+  background: var(--el-fill-color-light, #f7f8fa);
+  cursor: pointer;
+}
+.ai-cite__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  min-width: 0;
+}
+.ai-cite__doc {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-cite__meta {
+  margin-left: auto;
+  color: var(--el-text-color-secondary, #909399);
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ai-cite__arrow {
+  color: var(--el-text-color-secondary, #909399);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+.ai-cite__arrow.is-open {
+  transform: rotate(180deg);
+}
+.ai-cite__content {
+  padding: 0 10px 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--el-text-color-regular, #606266);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 .ai-card__title {
   display: flex;
   align-items: center;

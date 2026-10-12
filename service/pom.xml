@@ -105,6 +105,19 @@
       <version>8.5.17</version>
     </dependency>
 
+    <!-- 知识库大文件解析：PDF 文本提取（PDFBox 3 按页流式，内存常数） -->
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <!-- 知识库 docx 解析（POI XWPF 按段落提取文本） -->
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>5.3.0</version>
+    </dependency>
+
     <!-- 开发环境数据库（PostgreSQL，Docker 容器 vben5 :5444） -->
     <dependency>
       <groupId>org.postgresql</groupId>

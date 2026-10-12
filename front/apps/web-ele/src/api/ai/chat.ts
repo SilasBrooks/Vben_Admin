@@ -35,6 +35,14 @@ export interface AiPlanStep {
   tool: string;
 }
 
+/** 知识库引用溯源条目（citations 事件载荷，与 search_knowledge 回喂片段同源） */
+export interface AiCitationItem {
+  content: string;
+  docName: string;
+  score: number;
+  seq: number;
+}
+
 /** chat SSE 的 plan 事件载荷 */
 export interface AiPlanPayload {
   goal: string;
@@ -76,6 +84,8 @@ export interface PlanStreamHandlers {
 export interface StreamHandlers {
   /** 正文片段 */
   onDelta: (text: string) => void;
+  /** 知识库检索出处（渲染溯源卡片） */
+  onCitations: (items: AiCitationItem[]) => void;
   /** 需要持久化的历史消息（按顺序） */
   onHistory: (messages: AiWireMessage[]) => void;
   /** 待确认的写操作 */
@@ -127,6 +137,10 @@ export async function streamAiChat(
         }
         case 'plan': {
           handlers.onPlan(payload as AiPlanPayload);
+          break;
+        }
+        case 'citations': {
+          handlers.onCitations(Array.isArray(payload.items) ? payload.items : []);
           break;
         }
         case 'done': {

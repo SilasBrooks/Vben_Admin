@@ -39,6 +39,11 @@ public class BizException extends RuntimeException {
     return of(400, code, args);
   }
 
+  /** 404：资源不存在 */
+  public static BizException notFound(String code, Object... args) {
+    return of(404, code, args);
+  }
+
   /** 429：请求过于频繁（限流 / 登录锁定） */
   public static BizException tooManyRequests(String code, Object... args) {
     return of(429, code, args);
