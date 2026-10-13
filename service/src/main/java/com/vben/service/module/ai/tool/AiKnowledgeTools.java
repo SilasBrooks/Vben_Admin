@@ -73,6 +73,7 @@ public class AiKnowledgeTools {
       total += added;
       snippets.add(Map.of(
           "docName", hit.getFileName() == null ? "" : hit.getFileName(),
+          "docId", hit.getDocId() == null ? 0L : hit.getDocId(),
           "seq", hit.getSeq() == null ? 0 : hit.getSeq(),
           "score", hit.getScore() == null ? 0.0 : Math.round(hit.getScore() * 1000) / 1000.0,
           "content", content));

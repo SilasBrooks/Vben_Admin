@@ -9,6 +9,7 @@ import com.vben.service.module.ai.client.AiUpstreamException;
 import com.vben.service.module.ai.client.CancelToken;
 import com.vben.service.module.ai.client.DeepMessage;
 import com.vben.service.module.ai.client.LlmClient;
+import com.vben.service.module.ai.client.LlmUsage;
 import com.vben.service.module.ai.client.StreamHandler;
 import com.vben.service.module.ai.client.ToolCall;
 import com.vben.service.module.ai.config.AiProperties;
@@ -18,6 +19,7 @@ import com.vben.service.module.ai.tool.AiToolKind;
 import com.vben.service.module.ai.tool.AiToolRegistry;
 import com.vben.service.module.ai.tool.AiToolResult;
 import com.vben.service.module.ai.tool.AiKnowledgeTools;
+import com.vben.service.module.ai.usage.LlmUsageService;
 import com.vben.service.security.LoginUser;
 import com.vben.service.security.LoginUserHolder;
 import com.vben.service.module.ai.skill.SkillManifestBuilder;
@@ -80,6 +82,7 @@ public class AiChatService {
   private final AiProperties properties;
   private final ObjectMapper objectMapper;
   private final SkillManifestBuilder skillManifestBuilder;
+  private final LlmUsageService usageService;
 
   /**
    * 执行一轮对话（可能内部包含多轮工具调用）。
@@ -122,6 +125,12 @@ public class AiChatService {
         @Override
         public void onToolCalls(List<ToolCall> toolCalls) {
           calls.addAll(toolCalls);
+        }
+
+        @Override
+        public void onUsage(LlmUsage usage) {
+          // 每次上游请求一条用量记录（多轮工具调用逐请求记账）
+          usageService.record(LlmUsageService.SCENE_CHAT, usage);
         }
       }, cancel);
 
@@ -232,6 +241,7 @@ public class AiChatService {
       for (JsonNode s : root.path("snippets")) {
         items.add(new KbCitation(
             s.path("docName").asText(""),
+            s.path("docId").asLong(0),
             s.path("seq").asInt(0),
             s.path("score").asDouble(0.0),
             s.path("content").asText("")));
@@ -297,6 +307,11 @@ public class AiChatService {
           @Override
           public void onToolCalls(List<ToolCall> toolCalls) {
             // 摘要请求不提供工具，不会触发
+          }
+
+          @Override
+          public void onUsage(LlmUsage usage) {
+            usageService.record(LlmUsageService.SCENE_SUMMARIZE, usage);
           }
         },
         new CancelToken());

@@ -20,6 +20,12 @@
     "expand": "展开（{0} 行）",
     "collapse": "收起"
   },
+  "citation": {
+    "viewSource": "查看原文",
+    "previewTitle": "文档原文",
+    "previewEmpty": "该文档暂无正文块（可能尚未完成向量化）",
+    "previewError": "原文加载失败，文档可能已被删除"
+  },
   "card": {
     "confirmExecute": "确认执行",
     "cancel": "取消",

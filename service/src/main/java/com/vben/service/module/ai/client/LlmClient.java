@@ -1,6 +1,7 @@
 package com.vben.service.module.ai.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vben.service.module.ai.llm.ActiveLlmResolver;
@@ -44,11 +45,12 @@ public class LlmClient {
         .build();
   }
 
-  /** 上游请求体（tools/temperature/max_tokens 为空时不下发该字段） */
+  /** 上游请求体（tools/temperature/max_tokens/stream_options 为空时不下发该字段） */
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private record ChatRequest(String model, List<DeepMessage> messages,
                              Boolean stream, List<Map<String, Object>> tools,
-                             java.math.BigDecimal temperature, Integer maxTokens) {
+                             java.math.BigDecimal temperature, Integer maxTokens,
+                             @JsonProperty("stream_options") Map<String, Object> streamOptions) {
   }
 
   /** 连通性测试结果 */
@@ -72,9 +74,10 @@ public class LlmClient {
 
     String requestBody;
     try {
+      // stream_options.include_usage：要求上游在流末尾返回 usage 分片（OpenAI 兼容协议标准字段）
       requestBody = MAPPER.writeValueAsString(new ChatRequest(
           endpoint.model(), messages, Boolean.TRUE, tools,
-          endpoint.temperature(), endpoint.maxTokens()));
+          endpoint.temperature(), endpoint.maxTokens(), Map.of("include_usage", true)));
     } catch (Exception e) {
       throw new AiUpstreamException("AI 请求序列化失败", e);
     }
@@ -87,6 +90,7 @@ public class LlmClient {
         .POST(HttpRequest.BodyPublishers.ofString(requestBody))
         .build();
 
+    long startMs = System.currentTimeMillis();
     HttpResponse<java.util.stream.Stream<String>> response;
     try {
       response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
@@ -107,7 +111,7 @@ public class LlmClient {
       throw new AiUpstreamException(mapHttpError(response.statusCode(), errorBody));
     }
 
-    parseSse(response, handler, cancel);
+    parseSse(response, handler, cancel, endpoint.model(), startMs);
   }
 
   /**
@@ -121,7 +125,7 @@ public class LlmClient {
     String requestBody;
     try {
       requestBody = MAPPER.writeValueAsString(new ChatRequest(endpoint.model(),
-          List.of(DeepMessage.user("ping")), Boolean.FALSE, null, endpoint.temperature(), 1));
+          List.of(DeepMessage.user("ping")), Boolean.FALSE, null, endpoint.temperature(), 1, null));
     } catch (Exception e) {
       throw new AiUpstreamException("AI 请求序列化失败", e);
     }
@@ -158,11 +162,14 @@ public class LlmClient {
     }
   }
 
-  /** 逐行解析 SSE：聚合 content 与 tool_calls 分片 */
-  private void parseSse(HttpResponse<java.util.stream.Stream<String>> response,
-                        StreamHandler handler, CancelToken cancel) {
+  /** 逐行解析 SSE：聚合 content 与 tool_calls 分片；流结束时回调一次用量（包内可见以便单测直调） */
+  void parseSse(HttpResponse<java.util.stream.Stream<String>> response,
+                StreamHandler handler, CancelToken cancel,
+                String model, long startMs) {
     // index -> 聚合中的工具调用
     Map<Integer, ToolCallAggregator> aggregators = new LinkedHashMap<>();
+    // usage 恰回调一次：标准实现仅末尾一个分片带 usage，个别网关每片都带时只取首片
+    boolean[] usageSent = {false};
 
     try (var lines = response.body()) {
       lines.forEach(line -> {
@@ -178,6 +185,22 @@ public class LlmClient {
         }
         try {
           JsonNode chunk = MAPPER.readTree(payload);
+
+          // usage 分片：stream_options.include_usage 生效时上游在流末尾返回
+          // （该分片 choices 为空数组，不能走下方 choice 提前返回逻辑）
+          JsonNode usageNode = chunk.path("usage");
+          if (!usageSent[0] && usageNode.isObject() && usageNode.size() > 0) {
+            usageSent[0] = true;
+            handler.onUsage(new LlmUsage(model,
+                usageNode.hasNonNull("prompt_tokens")
+                    ? usageNode.get("prompt_tokens").asLong() : null,
+                usageNode.hasNonNull("completion_tokens")
+                    ? usageNode.get("completion_tokens").asLong() : null,
+                usageNode.hasNonNull("total_tokens")
+                    ? usageNode.get("total_tokens").asLong() : null,
+                System.currentTimeMillis() - startMs));
+          }
+
           JsonNode choice = chunk.path("choices").path(0);
           if (choice.isMissingNode()) {
             return;
@@ -225,6 +248,11 @@ public class LlmClient {
           log.warn("LLM SSE 分片解析失败，已跳过: {}", payload, e);
         }
       });
+      // 流正常结束仍未收到 usage 分片：tokens 记 null（调用次数保持准确，token 合计偏保守）
+      if (!usageSent[0]) {
+        handler.onUsage(new LlmUsage(model, null, null, null,
+            System.currentTimeMillis() - startMs));
+      }
     } catch (AiStreamCancelledException e) {
       throw e;
     } catch (Exception e) {

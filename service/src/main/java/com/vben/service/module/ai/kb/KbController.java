@@ -146,4 +146,17 @@ public class KbController {
   /** 检索请求体 */
   public record SearchReq(String query, Integer topK) {
   }
+
+  /**
+   * 文档原文预览：AI 溯源卡片「查看原文」数据源。
+   * 仅要求登录态（与 search_knowledge 无权限码同语义：知识库内容面向全体登录用户，
+   * 预览未扩大内容暴露面），限流防遍历。
+   */
+  @Operation(summary = "文档原文预览",
+      description = "返回文档名与按块序号升序的正文块列表（kb_chunk 切块存储形态）；仅要求登录态")
+  @RateLimit(name = "kb:preview", limit = 30, windowSeconds = 60)
+  @GetMapping("/doc/{id}/preview")
+  public R<KbDocService.PreviewDoc> preview(@PathVariable Long id) {
+    return R.ok(docService.preview(id));
+  }
 }

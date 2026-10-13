@@ -45,6 +45,11 @@ public interface KbChunkMapper {
   @Delete("DELETE FROM kb_chunk WHERE doc_id = #{docId}")
   int deleteByDocId(@Param("docId") Long docId);
 
+  /** 取文档全部块（原文预览：按 seq 升序即文档正文序列） */
+  @Select("SELECT id, doc_id AS docId, seq, content FROM kb_chunk "
+      + "WHERE doc_id = #{docId} ORDER BY seq")
+  List<KbChunk> selectByDocId(@Param("docId") Long docId);
+
   /** 纯向量检索退化路径（查询无有效分词 token 时使用）；仅命中完成状态文档 */
   @Select("SELECT c.id AS id, c.doc_id AS docId, c.seq AS seq, c.content AS content, "
       + "d.file_name AS fileName, 1 - (c.embedding <=> CAST(#{queryVector} AS vector)) AS vecScore, "

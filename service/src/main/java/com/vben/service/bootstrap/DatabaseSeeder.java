@@ -173,6 +173,24 @@ public class DatabaseSeeder implements ApplicationRunner {
     Long skillEdit = insertMenu(perm("System:Skill:Edit", systemSkillId));
     Long skillDelete = insertMenu(perm("System:Skill:Delete", systemSkillId));
 
+    // 精排配置（系统管理 leaf，order 12）：知识库检索精排所用 Rerank 模型
+    Long systemRerankId = insertMenu(leaf("SystemRerank", "page.system.rerank",
+        "ant-design:filter-outlined", 12, "/system/rerank", "/system/rerank/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long rerankList = insertMenu(perm("System:Rerank:List", systemRerankId));
+    Long rerankAdd = insertMenu(perm("System:Rerank:Add", systemRerankId));
+    Long rerankEdit = insertMenu(perm("System:Rerank:Edit", systemRerankId));
+    Long rerankDelete = insertMenu(perm("System:Rerank:Delete", systemRerankId));
+    Long rerankActivate = insertMenu(perm("System:Rerank:Activate", systemRerankId));
+
+    // 检索评测（系统管理 leaf，order 13）：知识库检索质量评测集与 Hit@K/MRR 指标
+    Long systemKbEvalId = insertMenu(leaf("SystemKbEval", "page.system.kbEval",
+        "ant-design:experiment-outlined", 13, "/system/kb-eval", "/system/kb-eval/index",
+        systemCatalogId, false, false).authority("super,admin"));
+    Long kbEvalList = insertMenu(perm("Kb:Eval:List", systemKbEvalId));
+    Long kbEvalManage = insertMenu(perm("Kb:Eval:Manage", systemKbEvalId));
+    Long kbEvalRun = insertMenu(perm("Kb:Eval:Run", systemKbEvalId));
+
     // 系统监控模块（Monitor）：super/admin 可见，user 不可见
     Long monitorCatalogId = insertMenu(catalog("Monitor", "page.monitor.title",
         "ic:baseline-monitor", 9500, "/monitor", "/monitor/oper-log", 0L, false, false));
@@ -210,6 +228,8 @@ public class DatabaseSeeder implements ApplicationRunner {
         systemEmbId, embList, embAdd, embEdit, embDelete, embActivate,
         systemKbId, kbList, kbUpload, kbDelete,
         systemSkillId, skillList, skillAdd, skillEdit, skillDelete,
+        systemRerankId, rerankList, rerankAdd, rerankEdit, rerankDelete, rerankActivate,
+        systemKbEvalId, kbEvalList, kbEvalManage, kbEvalRun,
         monitorCatalogId, monitorOperLogId, monitorLoginLogId, monitorOnlineId,
         operLogList, operLogDelete, loginLogList, loginLogDelete, onlineList, onlineKick);
 

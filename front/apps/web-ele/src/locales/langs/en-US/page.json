@@ -23,7 +23,9 @@
     "llm": "Model Config",
     "embedding": "Embedding Config",
     "kb": "Knowledge Base",
-    "skill": "AI Skills"
+    "skill": "AI Skills",
+    "rerank": "Rerank Config",
+    "kbEval": "Retrieval Eval"
   },
   "monitor": {
     "title": "Monitor",

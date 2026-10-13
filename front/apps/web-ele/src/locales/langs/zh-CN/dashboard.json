@@ -11,12 +11,22 @@
     "date": "{y} 年 {m} 月 {d} 日 星期{w}",
     "weekdays": "日,一,二,三,四,五,六",
     "stat": {
-      "user": "用户总数",
-      "role": "角色总数",
-      "dept": "部门总数",
       "online": "在线用户",
-      "file": "文件总数",
-      "todayLogin": "今日登录"
+      "todayAiCalls": "今日 AI 调用",
+      "todayAiTokens": "今日 AI Token",
+      "todayLoginFail": "今日登录失败",
+      "todayLoginSuccess": "今日登录成功",
+      "todayOper": "今日操作"
+    },
+    "quickNav": "快捷入口",
+    "nav": {
+      "imChat": "AI 对话",
+      "kb": "AI 知识库",
+      "kbEval": "检索评测",
+      "llm": "模型配置",
+      "user": "用户管理",
+      "dict": "数据字典",
+      "online": "在线用户"
     },
     "recentLogins": "最近登录",
     "username": "用户名"
@@ -26,10 +36,14 @@
       "users": "总用户",
       "roles": "总角色",
       "logins": "累计登录",
-      "opers": "累计操作"
+      "opers": "累计操作",
+      "aiCalls": "累计 AI 调用",
+      "aiTokens": "累计 AI Token"
     },
+    "tokenTrend": "AI Token 用量趋势（近 14 天）",
     "deptDistribution": "部门人数分布",
     "moduleDistribution": "操作模块分布（近 14 天 Top5）",
+    "modelDistribution": "模型 Token 分布（近 30 天 Top5）",
     "recentOpers": "最近操作",
     "operUser": "操作人",
     "module": "模块",
@@ -38,12 +52,15 @@
     "deptCount": "部门人数",
     "operCount": "操作次数",
     "person": "人",
-    "times": "次"
+    "times": "次",
+    "noModelData": "暂无 AI 调用记录"
   },
   "common": {
     "loginTrend": "近 14 天登录趋势",
     "loginSuccess": "登录成功",
     "loginFail": "登录失败",
+    "tokenUsage": "Token 用量",
+    "callCount": "调用次数",
     "time": "时间",
     "status": "状态",
     "success": "成功",

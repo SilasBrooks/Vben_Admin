@@ -23,7 +23,9 @@
     "llm": "模型配置",
     "embedding": "Embedding 配置",
     "kb": "知识库",
-    "skill": "AI 技能"
+    "skill": "AI 技能",
+    "rerank": "精排配置",
+    "kbEval": "检索评测"
   },
   "monitor": {
     "title": "系统监控",

@@ -2,12 +2,14 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 
 import { createIconifyIcon } from '@vben/icons';
+import { useVbenModal } from '@vben/common-ui';
 
 import { $t } from '#/locales';
 
 import { useAiChat, type AiChatMessage } from './use-ai-chat';
 import MarkdownContent from './MarkdownContent.vue';
 import PlanCard from './PlanCard.vue';
+import CitationDocPreview from './CitationDocPreview.vue';
 import { formatCardArgs } from './tool-labels';
 
 // 图标（lucide 集）
@@ -15,6 +17,15 @@ const TrashIcon = createIconifyIcon('lucide:trash-2');
 const CloseIcon = createIconifyIcon('lucide:x');
 const SendIcon = createIconifyIcon('lucide:arrow-up');
 const StopIcon = createIconifyIcon('lucide:square');
+
+// 溯源卡片「查看原文」弹窗（docId+seq 定位到引用块）
+const [DocPreviewModal, docPreviewApi] = useVbenModal({
+  connectedComponent: CitationDocPreview,
+});
+
+function openDocPreview(docId: number, seq: number) {
+  docPreviewApi.setData({ docId, seq }).open();
+}
 
 const {
   messages,
@@ -384,7 +395,7 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
                 :streaming="msg.streaming"
               />
 
-              <!-- 知识库引用溯源卡片（citations 事件，按文档名+序号去重后挂载） -->
+              <!-- 知识库引用溯源卡片（citations 事件，按 docId+seq 去重后挂载） -->
               <div v-if="msg.citations?.length" class="ai-cite-list">
                 <div
                   v-for="(cite, ci) in msg.citations"
@@ -404,6 +415,15 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
                   </div>
                   <div v-if="expandedCitations.has(`${msg.id}#${ci}`)" class="ai-cite__content">
                     {{ cite.content }}
+                    <!-- 存量消息无 docId（0）时隐藏入口，不提供跳转 -->
+                    <button
+                      v-if="cite.docId > 0"
+                      class="ai-cite__jump"
+                      type="button"
+                      @click.stop="openDocPreview(cite.docId, cite.seq)"
+                    >
+                      {{ $t('ai.citation.viewSource') }} ↗
+                    </button>
                   </div>
                 </div>
               </div>
@@ -506,6 +526,9 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
       </footer>
     </section>
   </Transition>
+
+  <!-- 溯源卡片「查看原文」预览弹窗（挂对话层外，独立于面板生命周期） -->
+  <DocPreviewModal />
 </template>
 
 <style scoped>
@@ -887,6 +910,21 @@ watch(messages, () => void nextTick(scrollToBottom), { deep: true });
   word-break: break-word;
   max-height: 200px;
   overflow-y: auto;
+}
+.ai-cite__jump {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 1px 8px;
+  border: 1px solid hsl(var(--primary) / 40%);
+  border-radius: 999px;
+  font-size: 11px;
+  color: hsl(var(--primary));
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.ai-cite__jump:hover {
+  background: hsl(var(--primary) / 10%);
 }
 
 .ai-card__title {

@@ -11,12 +11,22 @@
     "date": "{w}, {m}/{d}/{y}",
     "weekdays": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
     "stat": {
-      "user": "Total Users",
-      "role": "Total Roles",
-      "dept": "Total Departments",
       "online": "Online Users",
-      "file": "Total Files",
-      "todayLogin": "Today's Logins"
+      "todayAiCalls": "Today's AI Calls",
+      "todayAiTokens": "Today's AI Tokens",
+      "todayLoginFail": "Today's Failed Logins",
+      "todayLoginSuccess": "Today's Logins",
+      "todayOper": "Today's Operations"
+    },
+    "quickNav": "Quick Access",
+    "nav": {
+      "imChat": "AI Chat",
+      "kb": "AI Knowledge Base",
+      "kbEval": "Retrieval Eval",
+      "llm": "Model Config",
+      "user": "User Management",
+      "dict": "Data Dictionary",
+      "online": "Online Users"
     },
     "recentLogins": "Recent Logins",
     "username": "Username"
@@ -26,10 +36,14 @@
       "users": "Total Users",
       "roles": "Total Roles",
       "logins": "Total Logins",
-      "opers": "Total Operations"
+      "opers": "Total Operations",
+      "aiCalls": "Total AI Calls",
+      "aiTokens": "Total AI Tokens"
     },
+    "tokenTrend": "AI Token Usage (Last 14 Days)",
     "deptDistribution": "Department Distribution",
     "moduleDistribution": "Top 5 Modules (Last 14 Days)",
+    "modelDistribution": "Token by Model (Last 30 Days Top 5)",
     "recentOpers": "Recent Operations",
     "operUser": "Operator",
     "module": "Module",
@@ -38,12 +52,15 @@
     "deptCount": "Employees",
     "operCount": "Operations",
     "person": "people",
-    "times": "times"
+    "times": "times",
+    "noModelData": "No AI call records yet"
   },
   "common": {
     "loginTrend": "Login Trend (Last 14 Days)",
     "loginSuccess": "Login Success",
     "loginFail": "Login Failed",
+    "tokenUsage": "Tokens",
+    "callCount": "Calls",
     "time": "Time",
     "status": "Status",
     "success": "Success",

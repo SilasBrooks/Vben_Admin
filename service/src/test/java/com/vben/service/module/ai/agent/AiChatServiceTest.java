@@ -12,11 +12,13 @@ import com.vben.service.module.ai.agent.plan.PlanModels;
 import com.vben.service.module.ai.client.CancelToken;
 import com.vben.service.module.ai.client.DeepMessage;
 import com.vben.service.module.ai.client.LlmClient;
+import com.vben.service.module.ai.client.LlmUsage;
 import com.vben.service.module.ai.client.StreamHandler;
 import com.vben.service.module.ai.config.AiProperties;
 import com.vben.service.module.ai.skill.SkillManifestBuilder;
 import com.vben.service.module.ai.tool.AiToolExecutor;
 import com.vben.service.module.ai.tool.AiToolRegistry;
+import com.vben.service.module.ai.usage.LlmUsageService;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -35,8 +37,9 @@ class AiChatServiceTest {
   private final AiPlanService planService = Mockito.mock(AiPlanService.class);
   private final AiProperties properties = Mockito.mock(AiProperties.class);
   private final SkillManifestBuilder manifestBuilder = Mockito.mock(SkillManifestBuilder.class);
+  private final LlmUsageService usageService = Mockito.mock(LlmUsageService.class);
   private final AiChatService service = new AiChatService(llmClient, toolExecutor, toolRegistry,
-      planService, properties, new ObjectMapper(), manifestBuilder);
+      planService, properties, new ObjectMapper(), manifestBuilder, usageService);
 
   /** 纯文本回复的最小流式行为：吐出一段文本后结束本轮 */
   private void stubPlainReply() {
@@ -118,5 +121,23 @@ class AiChatServiceTest {
     // 历史消息原样保留在 system 之后
     assertThat(messages.get(1).getRole()).isEqualTo("user");
     assertThat(messages.get(1).getContent()).isEqualTo("你好");
+  }
+
+  @Test
+  void usageCallbackRecordedWithChatScene() {
+    when(manifestBuilder.build()).thenReturn("");
+    // 模拟上游流结束时回调一次用量
+    Mockito.doAnswer(invocation -> {
+      StreamHandler handler = invocation.getArgument(2);
+      handler.onText("好的");
+      handler.onUsage(new LlmUsage("deepseek-chat", 10L, 5L, 15L, 120L));
+      return null;
+    }).when(llmClient).streamChat(anyList(), anyList(), any(StreamHandler.class),
+        any(CancelToken.class));
+
+    service.chat(List.of(DeepMessage.user("你好")), new NoopSink(), new CancelToken());
+
+    verify(usageService).record(LlmUsageService.SCENE_CHAT,
+        new LlmUsage("deepseek-chat", 10L, 5L, 15L, 120L));
   }
 }

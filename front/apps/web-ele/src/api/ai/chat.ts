@@ -35,9 +35,10 @@ export interface AiPlanStep {
   tool: string;
 }
 
-/** 知识库引用溯源条目（citations 事件载荷，与 search_knowledge 回喂片段同源） */
+/** 知识库引用溯源条目（citations 事件载荷，与 search_knowledge 回喂片段同源；docId 0=存量消息无此字段） */
 export interface AiCitationItem {
   content: string;
+  docId: number;
   docName: string;
   score: number;
   seq: number;

@@ -109,17 +109,21 @@ function safeParse(text: string): any {
   }
 }
 
-/** 溯源条目合并去重（docName+seq 唯一；一轮多次检索命中同一片段只保留一张卡片） */
+/**
+ * 溯源条目合并去重（docId+seq 唯一；一轮多次检索命中同一片段只保留一张卡片）。
+ * 同名文档经秒传会有不同 docId，按 docId 去重避免误合并；存量消息无 docId（0）
+ * 时回落 docName 保底不崩。
+ */
 function mergeCitations(
   existing: AiCitationItem[] | undefined,
   incoming: AiCitationItem[],
 ): AiCitationItem[] {
-  const seen = new Set(
-    (existing ?? []).map((c) => `${c.docName}#${c.seq}`),
-  );
+  const keyOf = (c: AiCitationItem) =>
+    c.docId > 0 ? `${c.docId}#${c.seq}` : `n:${c.docName}#${c.seq}`;
+  const seen = new Set((existing ?? []).map(keyOf));
   const merged = [...(existing ?? [])];
   for (const item of incoming) {
-    const key = `${item.docName}#${item.seq}`;
+    const key = keyOf(item);
     if (!seen.has(key)) {
       seen.add(key);
       merged.push(item);

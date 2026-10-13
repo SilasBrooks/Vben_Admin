@@ -20,6 +20,12 @@
     "expand": "Expand ({0} lines)",
     "collapse": "Collapse"
   },
+  "citation": {
+    "viewSource": "View source",
+    "previewTitle": "Document Source",
+    "previewEmpty": "No content blocks yet (the document may still be processing)",
+    "previewError": "Failed to load source. The document may have been deleted"
+  },
   "card": {
     "confirmExecute": "Confirm execution",
     "cancel": "Cancel",

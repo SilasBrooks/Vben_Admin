@@ -62,6 +62,8 @@ public class AiSystemTools {
       Map.entry("page.system.embedding", "Embedding 配置"),
       Map.entry("page.system.kb", "知识库"),
       Map.entry("page.system.skill", "AI 技能"),
+      Map.entry("page.system.rerank", "精排配置"),
+      Map.entry("page.system.kbEval", "检索评测"),
       Map.entry("page.monitor.title", "系统监控"),
       Map.entry("page.monitor.operLog", "操作日志"),
       Map.entry("page.monitor.loginLog", "登录日志"),

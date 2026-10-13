@@ -24,4 +24,7 @@ public class KbSearchHit {
 
   /** 匹配通道：vector 仅向量命中 / fts 仅全文命中 / both 双通道命中 */
   private String matchType;
+
+  /** 精排得分（Rerank 模型 relevance_score，越大越相关）；null=未精排（未配置或降级） */
+  private Double rerankScore;
 }

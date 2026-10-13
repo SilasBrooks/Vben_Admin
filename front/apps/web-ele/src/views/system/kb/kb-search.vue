@@ -94,7 +94,14 @@ async function handleSearch() {
             <el-tag :type="matchTagType(hit.matchType)" size="small" effect="plain">
               {{ $t(`kb.match.${hit.matchType}`) }}
             </el-tag>
-            <span>{{ $t('kb.rrfScore') }} {{ hit.score.toFixed(4) }}</span>
+            <!-- 精排生效（rerankScore 有值）显示精排分并保留融合分参考，否则仅融合分 -->
+            <template v-if="hit.rerankScore != null">
+              <el-tag size="small" effect="dark" type="danger">
+                {{ $t('kb.rerankScore') }} {{ hit.rerankScore.toFixed(4) }}
+              </el-tag>
+              <span class="text-foreground/50">RRF {{ hit.score.toFixed(4) }}</span>
+            </template>
+            <span v-else>{{ $t('kb.rrfScore') }} {{ hit.score.toFixed(4) }}</span>
           </span>
         </div>
         <div class="whitespace-pre-wrap break-words">{{ hit.content }}</div>

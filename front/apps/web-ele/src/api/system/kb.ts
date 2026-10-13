@@ -16,13 +16,14 @@ export interface KbDocItem {
   uploaderName: string;
 }
 
-/** 混合检索命中片段（score 为向量+全文 RRF 融合分，matchType 标识命中通道） */
+/** 混合检索命中片段（score 为 RRF 融合分，matchType 标识命中通道；rerankScore 有值=经精排） */
 export interface KbSearchHit {
   content: string;
   docId: number;
   fileName: string;
   id: number;
   matchType: 'both' | 'fts' | 'vector';
+  rerankScore?: null | number;
   score: number;
   seq: number;
   vecScore: number;
@@ -111,10 +112,23 @@ export async function deleteKbDocApi(id: number) {
   return requestClient.delete(`/system/kb/${id}`);
 }
 
-/** 检索测试：向量检索 Top-K 相似片段（与 AI 工具 search_knowledge 同链路） */
+/** 检索测试：混合检索 Top-K 相似片段（与 AI 工具 search_knowledge 同链路） */
 export async function searchKbApi(query: string, topK = 4) {
   return requestClient.post<KbSearchHit[]>('/system/kb/search', {
     query,
     topK,
   });
+}
+
+/** 文档原文预览块：块序号与正文（kb_chunk 按 seq 升序即文档正文序列） */
+export interface KbPreviewBlock {
+  content: string;
+  seq: number;
+}
+
+/** 文档原文预览：AI 溯源卡片「查看原文」数据源（仅要求登录态） */
+export async function previewKbDocApi(id: number) {
+  return requestClient.get<{ blocks: KbPreviewBlock[]; fileName: string }>(
+    `/system/kb/doc/${id}/preview`,
+  );
 }

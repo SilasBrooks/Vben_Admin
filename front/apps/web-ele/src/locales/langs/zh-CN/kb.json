@@ -34,6 +34,7 @@
   "topKLabel": "召回条数",
   "chunkSeq": "块",
   "rrfScore": "融合分",
+  "rerankScore": "精排分",
   "match": {
     "both": "双通道",
     "fts": "全文",

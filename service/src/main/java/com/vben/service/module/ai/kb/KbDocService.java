@@ -28,6 +28,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -66,6 +67,32 @@ public class KbDocService {
     }
     q.orderByDesc("create_time");
     return docMapper.selectPage(new Page<>(pageNo, pageSize), q);
+  }
+
+  /** 预览块：块序号与正文（kb_chunk 按 seq 升序即文档正文序列） */
+  public record PreviewBlock(int seq, String content) {
+  }
+
+  /** 文档原文预览数据：文档名 + 按块序号升序的正文块列表 */
+  public record PreviewDoc(String fileName, List<PreviewBlock> blocks) {
+  }
+
+  /**
+   * 文档原文预览：AI 溯源卡片「查看原文」数据源。
+   * 仅要求登录态（Controller 层不加权限码，与 search_knowledge「知识库面向全体登录用户」
+   * 语义一致——溯源摘要本就随回答面向全体用户展示，预览未扩大内容暴露面）。
+   * 数据源为 kb_chunk（正文切块后的存储形态，预览定位「检索块语境」而非原始排版还原）；
+   * 文档不存在报可读错误，完成前无块时返回空 blocks 由前端提示。
+   */
+  public PreviewDoc preview(Long id) {
+    KbDoc doc = docMapper.selectById(id);
+    if (doc == null) {
+      throw BizException.badRequest("error.kb.notFound");
+    }
+    List<PreviewBlock> blocks = chunkMapper.selectByDocId(id).stream()
+        .map(c -> new PreviewBlock(c.getSeq(), c.getContent()))
+        .toList();
+    return new PreviewDoc(doc.getFileName(), blocks);
   }
 
   /** 单请求上传受理：校验 → md/txt 正文入库 / pdf/docx 转存 → 投递管线 */
